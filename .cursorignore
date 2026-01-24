@@ -1,0 +1,40 @@
+# Laravel Core
+vendor/
+node_modules/
+storage/framework/
+storage/logs/
+bootstrap/cache/
+
+# Build & Assets
+public/build/
+public/hot/
+public/packages/
+public/vendor/
+dist/
+coverage/
+
+# Backpack & Generated
+vendor/backpack/
+stubs/
+
+# Environment & Keys
+.env
+.env.*
+*.key
+auth.json
+
+# IDE & Editor
+.idea/
+.vscode/
+.git/
+*.log
+*.lock
+composer.lock
+package-lock.json
+phpunit.xml
+_ide_helper.php
+.phpstorm.meta.php
+
+# Documentation
+README.md
+LICENSE

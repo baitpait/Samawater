@@ -1,0 +1,237 @@
+{{-- This file is used for menu items by any Backpack v6 theme --}}
+
+{{-- Logo Section - في بداية القائمة --}}
+<li class="nav-item logo-section">
+    <div class="sidebar-logo-wrapper" style="padding: 1.25rem 1rem !important; text-align: center !important; border-bottom: 2px solid #e5e7eb !important; margin-bottom: 0.5rem !important; background: linear-gradient(135deg, rgba(111, 106, 248, 0.05) 0%, rgba(124, 124, 255, 0.05) 100%) !important;">
+        <a href="{{ backpack_url('dashboard') }}" class="sidebar-logo-link" style="display: block !important; text-decoration: none !important;">
+            <img src="{{ asset('logo/Logo-2.png') }}" alt="مياه سما" class="sidebar-logo" style="max-width: 140px !important; height: auto !important; display: block !important; margin: 0 auto !important; transition: transform 0.3s ease !important;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        </a>
+    </div>
+</li>
+
+{{-- ============================================
+    1. الرئيسية
+    ============================================ --}}
+<li class="nav-item">
+    <a class="nav-link" href="{{ backpack_url('dashboard') }}" onclick="saveScrollPosition()">
+        <i class="la la-home"></i>
+        <span>الرئيسية</span>
+    </a>
+</li>
+
+<li class="sidebar-divider"></li>
+
+{{-- ============================================
+    2. التقارير
+    ============================================ --}}
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('reports.advanced') }}" onclick="saveScrollPosition()">
+        <i class="la la-chart-bar"></i>
+        <span>التقارير الإحصائية</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('reports.client-balance') }}" onclick="saveScrollPosition()">
+        <i class="la la-chart-line"></i>
+        <span>رصيد المشتركين</span>
+    </a>
+</li>
+
+<li class="sidebar-divider"></li>
+
+{{-- ============================================
+    3. التسليمات
+    ============================================ --}}
+<li class="nav-item">
+    <a class="nav-link" href="{{ backpack_url('delivery/create') }}" onclick="saveScrollPosition()">
+        <i class="la la-plus"></i>
+        <span>إضافة تسليم</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('delivery.list') }}" onclick="saveScrollPosition()">
+        <i class="la la-truck"></i>
+        <span>قائمة التسليم</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('reports.clients_delivery_overview') }}" onclick="saveScrollPosition()">
+        <i class="la la-list"></i>
+        <span>التسليمات</span>
+    </a>
+</li>
+
+<li class="sidebar-divider"></li>
+
+{{-- ============================================
+    4. المشتركين
+    ============================================ --}}
+<x-backpack::menu-item title="المشتركين" icon="la la-users" :link="backpack_url('client')" />
+<x-backpack::menu-item title="نوع المشترك" icon="las la-building" :link="route('client-type.index')" />
+<x-backpack::menu-item title="حالة المشترك" icon="las la-calculator" :link="route('client-status.index')" />
+
+<li class="sidebar-divider"></li>
+
+{{-- ============================================
+    5. الموزعين
+    ============================================ --}}
+<x-backpack::menu-item title="الموزعين" icon="la la-car" :link="route('distributors.list')" />
+
+<li class="sidebar-divider"></li>
+
+{{-- ============================================
+    6. الإعدادات
+    ============================================ --}}
+<x-backpack::menu-item title="أنواع الاشتراكات" icon="la la-calendar" :link="backpack_url('subscription-type')" />
+<x-backpack::menu-item title="حالة الاشتراك" icon="la la-bell" :link="backpack_url('subscription-status')" />
+<x-backpack::menu-item title="المدن" icon="la la-city" :link="backpack_url('city')" />
+
+<li class="sidebar-divider"></li>
+
+{{-- ============================================
+    7. المالية والمصروفات
+    ============================================ --}}
+<x-backpack::menu-item title="فئات المصروفات" icon="la la-folder" :link="backpack_url('expense-category')" />
+<x-backpack::menu-item title="المصروفات" icon="la la-money-bill" :link="backpack_url('expense')" />
+<x-backpack::menu-item title="الموردين" icon="la la-truck" :link="backpack_url('vendor')" />
+<x-backpack::menu-item title="مدفوعات الموردين" icon="la la-money-bill-wave" :link="backpack_url('vendor-payment')" />
+
+<li class="sidebar-divider"></li>
+
+{{-- ============================================
+    8. المخزون
+    ============================================ --}}
+<x-backpack::menu-item title="المخزون" icon="la la-warehouse" :link="backpack_url('inventory-item')" />
+
+<li class="sidebar-divider"></li>
+
+{{-- ============================================
+    9. المبيعات والمشتركين
+    ============================================ --}}
+<x-backpack::menu-item title="الفواتير" icon="la la-file-invoice" :link="backpack_url('invoice')" />
+<x-backpack::menu-item title="مدفوعات المشتركين" icon="la la-money-bill" :link="backpack_url('client-payment')" />
+<x-backpack::menu-item title="أمانات المشتركين" icon="la la-hand-holding" :link="backpack_url('client-deposit')" />
+
+<li class="sidebar-divider"></li>
+
+{{-- ============================================
+    10. النظام
+    ============================================ --}}
+@if(auth()->check() && auth()->user()->canManageUsers())
+<x-backpack::menu-item title="المستخدمين" icon="la la-users" :link="backpack_url('user')" />
+@endif
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('backup.download') }}" 
+       onclick="return confirm('هل تريد تحميل نسخة احتياطية من قاعدة البيانات؟\n\nسيتم تحميل ملف SQL يحتوي على جميع البيانات.');">
+        <i class="la la-download"></i>
+        <span>نسخة احتياطية</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a class="nav-link" href="https://wa.me/970599814758" target="_blank">
+        <i class="la la-whatsapp"></i>
+        <span>الدعم الفني</span>
+    </a>
+</li>
+
+<li class="sidebar-divider"></li>
+
+{{-- ============================================
+    11. الحساب
+    ============================================ --}}
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('backpack.account.info') }}" onclick="saveScrollPosition()">
+        <i class="la la-user"></i>
+        <span>حسابي</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ backpack_url('logout') }}" onclick="saveScrollPosition()">
+        <i class="la la-sign-out"></i>
+        <span>تسجيل الخروج</span>
+    </a>
+</li>
+
+<li class="sidebar-divider"></li>
+
+{{-- ============================================
+    12. تقارير إضافية
+    ============================================ --}}
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('expenses.current-month') }}" onclick="saveScrollPosition()">
+        <i class="la la-calendar-check"></i>
+        <span>المصروفات الشهرية الحالية</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('reports.filters') }}" onclick="saveScrollPosition()">
+        <i class="la la-filter"></i>
+        <span>تقارير مع فلاتر</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('reports.clients_due_advanced') }}" onclick="saveScrollPosition()">
+        <i class="la la-exclamation-triangle"></i>
+        <span>تقرير المشتركين المستحقين المتقدم</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ backpack_url('clients-due') }}" onclick="saveScrollPosition()">
+        <i class="la la-list-alt"></i>
+        <span>المشتركين المستحقين</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('client.report') }}" onclick="saveScrollPosition()">
+        <i class="la la-file-alt"></i>
+        <span>تقرير المشترك</span>
+    </a>
+</li>
+
+{{-- JavaScript لحفظ موضع التمرير --}}
+<script>
+// حفظ موضع التمرير قبل الانتقال
+function saveScrollPosition() {
+    sessionStorage.setItem('sidebarScrollPosition', window.pageYOffset || document.documentElement.scrollTop);
+}
+
+// استعادة موضع التمرير عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    const savedPosition = sessionStorage.getItem('sidebarScrollPosition');
+    if (savedPosition) {
+        setTimeout(function() {
+            window.scrollTo(0, parseInt(savedPosition));
+            sessionStorage.removeItem('sidebarScrollPosition');
+        }, 100);
+    }
+    
+    // حفظ موضع التمرير عند التمرير
+    let scrollTimeout;
+    window.addEventListener('scroll', function() {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(function() {
+            sessionStorage.setItem('sidebarScrollPosition', window.pageYOffset || document.documentElement.scrollTop);
+        }, 100);
+    });
+    
+    // إضافة onclick لجميع الروابط في القائمة
+    const menuLinks = document.querySelectorAll('.sidebar .nav-link');
+    menuLinks.forEach(function(link) {
+        if (!link.hasAttribute('onclick') || link.getAttribute('onclick').indexOf('saveScrollPosition') === -1) {
+            link.addEventListener('click', function(e) {
+                saveScrollPosition();
+            });
+        }
+    });
+});
+</script>

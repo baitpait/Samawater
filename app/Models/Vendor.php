@@ -1,0 +1,60 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Backpack\CRUD\app\Models\Traits\CrudTrait;
+
+/**
+ * Business Purpose: الموردون (Vendors) - الشركات/الأفراد الذين نشتري منهم
+ * - الرصيد = opening_balance + SUM(expenses.total_amount) - SUM(payments.amount)
+ * - الرصيد يُحسب على المبلغ الكامل للفاتورة (ignoring amortization)
+ */
+class Vendor extends Model
+{
+    use CrudTrait;
+
+    protected $fillable = [
+        'name',
+        'phone',
+        'email',
+        'address',
+        'opening_balance',
+        'notes',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'opening_balance' => 'decimal:2',
+        'is_active' => 'boolean',
+    ];
+
+    /**
+     * العلاقة مع المصروفات
+     */
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class, 'vendor_id');
+    }
+
+    /**
+     * العلاقة مع المدفوعات
+     */
+    public function payments()
+    {
+        return $this->hasMany(VendorPayment::class, 'vendor_id');
+    }
+
+    /**
+     * حساب الرصيد الحالي للمورد
+     * Business Purpose: الرصيد = opening_balance + إجمالي المصروفات - إجمالي المدفوعات
+     * - يُحسب على المبلغ الكامل للفاتورة (ignoring amortization)
+     */
+    public function getBalanceAttribute()
+    {
+        $totalExpenses = $this->expenses()->sum('total_amount');
+        $totalPayments = $this->payments()->sum('amount');
+        
+        return $this->opening_balance + $totalExpenses - $totalPayments;
+    }
+}

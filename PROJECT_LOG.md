@@ -1,0 +1,614 @@
+# 📝 سجل المشروع - Project Log
+
+---
+
+## [2026-01-23 16:00] - إزالة فلتر حالة الالتزام من قائمة التسليم
+
+- **الهدف:** تبسيط فلاتر البحث بعرض الحقول المطلوبة فقط.
+- **التغييرات:** حذف فلتر حالة الالتزام من واجهة `delivery_list.blade.php` وإزالة شرطه من `DeliveryListController`.
+- **الأدوات:** لا توجد مكتبات جديدة.
+- **تنبيه:** لا يوجد إجراء يدوي إضافي.
+---
+
+## [2026-01-23 15:50] - إعادة ترتيب فلاتر قائمة التسليم
+
+- **الهدف:** تحسين ترتيب الفلاتر بإبراز حقل البحث في صف مستقل وتقليل الفراغات.
+- **التغييرات:** نقل حقل البحث لصف منفصل وإعادة توزيع باقي الفلاتر على صفّين متوازنين في `delivery_list.blade.php`.
+- **الأدوات:** لا توجد مكتبات جديدة.
+- **تنبيه:** لا يوجد إجراء يدوي إضافي.
+---
+
+## [2026-01-23 15:40] - تثبيت جدول التسليم وإظهار شريط أفقي
+
+- **الهدف:** منع خروج الجدول من البطاقة وإظهار شريط تمرير أفقي عند ضيق الشاشة.
+- **التغييرات:** تقوية `overflow-x` على `card-body` و`table-responsive` وزيادة `min-width` للجدول في `delivery_list.blade.php`.
+- **الأدوات:** لا توجد مكتبات جديدة.
+- **تنبيه:** لا يوجد إجراء يدوي إضافي.
+---
+
+## [2026-01-23 15:30] - تثبيت جدول قائمة التسليم داخل الحاوية
+
+- **الهدف:** ضمان بقاء جدول قائمة التسليم داخل نفس البطاقة مع شريط تمرير أفقي عند صغر الشاشة.
+- **التغييرات:** ضبط `table-responsive` على `overflow-x: auto` وتحديد `min-width` للجدول في `delivery_list.blade.php`.
+- **الأدوات:** لا توجد مكتبات جديدة.
+- **تنبيه:** لا يوجد إجراء يدوي إضافي.
+---
+
+## [2026-01-23 15:20] - عرض العنوان داخل عمود المدينة في قائمة التسليم
+
+- **الهدف:** تحسين وضوح موقع المشترك عبر عرض العنوان مع المدينة في نفس العمود.
+- **التغييرات:** تحديث جدول `delivery_list.blade.php` لإظهار العنوان أسفل المدينة وتحديث عنوان العمود.
+- **الأدوات:** لا توجد مكتبات جديدة.
+- **تنبيه:** لا يوجد إجراء يدوي إضافي.
+---
+
+## [2026-01-23 15:05] - توسيع بحث قائمة التسليم ليشمل العنوان
+
+- **الهدف:** تمكين البحث عن المشتركين في قائمة التسليم باستخدام العنوان ضمن نفس حقل البحث.
+- **التغييرات:** تحديث منطق البحث في `DeliveryListController` ليشمل `address` في الاستعلامين؛ تحديث placeholder في `delivery_list.blade.php`.
+- **الأدوات:** لا توجد مكتبات جديدة.
+- **تنبيه:** لا يوجد إجراء يدوي إضافي.
+---
+
+## [2026-01-23 14:30] - إصلاح فلترة عرض قائمة المشتركين
+
+- **الهدف:** توحيد نتائج الفلاتر بين العداد والجدول وضمان ظهور البيانات المفلترة بشكل صحيح.
+- **التغييرات:** توحيد منطق الفلترة في عرض قائمة المشتركين داخل `resources/views/vendor/backpack/crud/list.blade.php` ليدعم البحث بالاسم/الهاتف/العنوان مع نفس شروط الفلاتر؛ تحديث النص إلى "مشترك".
+- **الأدوات:** لا توجد مكتبات جديدة.
+- **تنبيه:** لا يوجد إجراء يدوي إضافي.
+---
+
+## [2026-01-12 17:00] - تغيير المصطلحات من "عميل/عملاء" إلى "مشترك/مشتركين"
+
+### **الهدف:**
+تحديث جميع المصطلحات في النظام من "عميل/عملاء" إلى "مشترك/مشتركين" لتحسين الدقة في التسمية.
+
+### **التغييرات:**
+
+#### 1. Controllers
+- **الملفات المعدلة:**
+  - `app/Http/Controllers/Admin/ClientCrudController.php`
+  - `app/Http/Controllers/Admin/DeliveryCrudController.php`
+  - `app/Http/Controllers/Admin/InvoiceCrudController.php`
+  - `app/Http/Controllers/Admin/ClientPaymentCrudController.php`
+  - `app/Http/Controllers/Admin/DeliveryListController.php`
+- **التغييرات:**
+  - تغيير `setEntityNameStrings('عميل', 'العملاء')` إلى `setEntityNameStrings('مشترك', 'المشتركين')`
+  - تحديث جميع الـ labels من "العميل" إلى "المشترك"
+  - تحديث جميع الـ hints والرسائل
+  - تحديث جميع التعليقات في الكود
+
+#### 2. Models
+- **الملفات المعدلة:**
+  - `app/Models/Client.php`
+  - `app/Models/Invoice.php`
+  - `app/Models/ClientPayment.php`
+  - `app/Models/ClientDeposit.php`
+  - `app/Models/City.php`
+  - `app/Models/Distributor.php`
+  - `app/Models/ClientType.php`
+  - `app/Models/SubscriptionType.php`
+  - `app/Models/SubscriptionStatus.php`
+- **التغييرات:**
+  - تحديث جميع الـ DocBlocks والتعليقات
+  - تغيير "العميل الأب" إلى "المشترك الأب"
+  - تغيير "عميل فرعي" إلى "مشترك فرعي"
+  - تحديث جميع أوصاف العلاقات
+
+#### 3. Views
+- **الملفات المعدلة:**
+  - `resources/views/admin/delivery_list.blade.php`
+- **التغييرات:**
+  - تغيير "عدد العملاء" إلى "عدد المشتركين"
+  - تغيير "العميل" إلى "المشترك" في رؤوس الجداول
+  - تحديث جميع النصوص المعروضة للمستخدم
+
+#### 4. Routes
+- **الملفات المعدلة:**
+  - `routes/backpack/custom.php`
+- **التغييرات:**
+  - تحديث التعليقات من "رصيد العملاء" إلى "رصيد المشتركين"
+
+#### 5. Migrations
+- **الملفات المعدلة:**
+  - `database/migrations/2026_01_12_160554_add_delivery_on_demand_to_clients_table.php`
+- **التغييرات:**
+  - تحديث التعليقات في الـ DocBlocks
+
+### **الأدوات:**
+- Laravel
+- Backpack CRUD
+- Blade Templates
+
+### **تنبيه:**
+- تم تغيير جميع النصوص التي يراها المستخدم مباشرة
+- تم تحديث التعليقات والـ DocBlocks في الكود
+- لا توجد تغييرات في قاعدة البيانات (الأسماء في قاعدة البيانات لم تتغير)
+- بعض ملفات Views الأخرى قد تحتاج تحديث يدوي (مثل `menu_items.blade.php` إذا كان محمياً)
+
+---
+
+## [2026-01-12 16:30] - إضافة ميزة "تسليم حسب الطلب" وإصلاحات نهائية
+
+### **الهدف:**
+إضافة ميزة "تسليم حسب الطلب" للعملاء، إصلاح مشكلة عدم ظهور الحقول في صفحة العملاء، وإكمال جميع الميزات المطلوبة.
+
+### **التغييرات:**
+
+#### 1. إضافة ميزة "تسليم حسب الطلب" (Delivery on Demand)
+- **الملفات المعدلة:**
+  - `database/migrations/2026_01_12_160554_add_delivery_on_demand_to_clients_table.php` (جديد)
+  - `app/Models/Client.php`
+  - `app/Http/Controllers/Admin/ClientCrudController.php`
+  - `app/Http/Controllers/Admin/DeliveryListController.php`
+  - `app/Http/Controllers/Admin/DeliveryCrudController.php`
+- **التغييرات:**
+  - **إضافة حقل `delivery_on_demand`:**
+    - نوع: `boolean` (default: `false`)
+    - يظهر في صفحة إضافة/تعديل العميل كـ checkbox
+    - إذا كان `true`، يظهر العميل في قائمة التسليم حتى لو لم يتجاوز `distribution_days`
+  - **منطق التطبيق:**
+    - في `DeliveryListController`: يتم عرض العملاء الذين `delivery_on_demand = true` بالإضافة إلى العملاء المستحقين حسب أيام الاشتراك
+    - في `DeliveryCrudController`: بعد إنشاء/تحديث تسليم، يتم إرجاع `delivery_on_demand` إلى `false` تلقائياً
+  - **إصلاح نوع الحقل:**
+    - تغيير نوع الحقل من `boolean` إلى `checkbox` في Backpack CRUD لضمان ظهوره بشكل صحيح
+
+#### 2. إصلاح مشكلة عدم ظهور الحقول
+- **الملف:** `app/Http/Controllers/Admin/ClientCrudController.php`
+- **المشكلة:** حقل `delivery_on_demand` لم يظهر في صفحة إضافة/تعديل العميل
+- **الحل:** تغيير نوع الحقل من `boolean` إلى `checkbox` مع `default => 0`
+
+### **الأدوات:**
+- Laravel Migrations
+- Backpack CRUD
+- Eloquent ORM
+
+### **تنبيه:**
+- حقل `delivery_on_demand` يظهر فقط في صفحة إضافة/تعديل العميل (`/admin/client/create` أو `/admin/client/{id}/edit`)
+- لا يظهر في قائمة العملاء (`/admin/client`) - لأنها صفحة عرض فقط
+- بعد التسليم، يتم إرجاع `delivery_on_demand` إلى `false` تلقائياً
+
+---
+
+## [2026-01-09 20:45] - تحسينات نظام التسليمات والمخزون والعلامة التجارية
+
+### **الهدف:**
+تحسين نظام التسليمات مع إدارة المخزون التلقائية، ربط الدفعات بالعملاء، حماية الصنف الأساسي، تحديث العلامة التجارية، وإعادة ترتيب القائمة الجانبية.
+
+### **التغييرات:**
+
+#### 1. تحسين نظام التسليمات (Deliveries)
+- **الملفات المعدلة:**
+  - `database/migrations/2026_01_09_204125_add_required_amount_to_deliveries_table.php` (جديد)
+  - `app/Models/Delivery.php`
+  - `app/Http/Requests/DeliveryRequest.php`
+  - `app/Http/Controllers/Admin/DeliveryCrudController.php`
+- **التغييرات:**
+  - **إضافة حقول جديدة:**
+    - `required_amount` (decimal 10,2): المبلغ المطلوب الكامل من العميل
+    - `inventory_item_id` (foreign key, default=1): ربط بصنف العبوات في المخزون
+    - `client_payment_id` (nullable foreign key): ربط بالدفعة المرتبطة
+  - **إدارة المخزون التلقائية:**
+    - العبوات المستلمة (`bottle_received`) → تنقص من المخزون تلقائياً
+    - العبوات الفارغة (`bottle_empty`) → تزيد في المخزون تلقائياً
+    - يتم استخدام الصنف `id=1` (قوارير مياه) افتراضياً
+  - **إنشاء الدفعات تلقائياً:**
+    - إذا كان `paymant > 0` → يتم إنشاء `ClientPayment` تلقائياً
+    - الدفعات تُحمل على العميل الأب (parent client) فقط
+    - إذا كان التسليم لعميل فرعي (child)، تُضاف ملاحظة في `notes` تشير إلى العنوان
+  - **منطق التعديل:**
+    - عند التعديل: إرجاع الكميات القديمة للمخزون (عكس العملية)
+    - ثم تطبيق الكميات الجديدة
+    - تحديث `ClientPayment` أو إنشاؤه/حذفه حسب الحاجة
+  - **منطق الحذف:**
+    - إرجاع العبوات المستلمة للمخزون
+    - خصم العبوات الفارغة من المخزون
+    - حذف `ClientPayment` المرتبط إن وجد
+  - **واجهة المستخدم:**
+    - إضافة حقل "المبلغ المطلوب" و "المبلغ المدفوع"
+    - إضافة JavaScript لإظهار الدين المتبقي تلقائياً (`required_amount - paymant`)
+    - حقل `inventory_item_id` مخفي (default=1)
+
+#### 2. حماية الصنف الأساسي في المخزون (id=1)
+- **الملف:** `app/Http/Controllers/Admin/InventoryItemCrudController.php`
+- **التغييرات:**
+  - **منع التعديل:**
+    - في `setupUpdateOperation()`: جعل الحقول `readonly` و `disabled` للصنف `id=1`
+    - إضافة رسائل توضيحية: "هذا الصنف محمي من التعديل"
+  - **منع الحذف:**
+    - في `destroy()`: منع الحذف مع رسالة خطأ واضحة
+    - في `setupListOperation()`: إخفاء زر الحذف للصنف `id=1`
+    - عرض أيقونة قفل بدلاً من زر الحذف مع رسالة توضيحية
+  - **الحماية المزدوجة:**
+    - في الواجهة: إخفاء زر الحذف
+    - على مستوى الخادم: منع الحذف حتى لو تم الوصول مباشرة
+
+#### 3. تحديث العلامة التجارية
+- **الملفات المعدلة:**
+  - `config/backpack/ui.php`
+  - `resources/views/welcome.blade.php`
+  - `resources/views/driver_map.blade.php`
+- **التغييرات:**
+  - تغيير `project_name` من "مياه ايلياء" إلى "مياه سما"
+  - تحديث جميع عناوين الصفحات (`<title>`) من "مياه إيلياء" إلى "مياه سما"
+  - تحديث النصوص في صفحات الواجهة
+
+#### 4. إعادة ترتيب القائمة الجانبية
+- **الملف:** `resources/views/vendor/backpack/ui/inc/menu_items.blade.php`
+- **التغييرات:**
+  - **ترتيب القائمة حسب التصنيفات:**
+    1. الرئيسية
+    2. التقارير (التقارير الإحصائية، رصيد العملاء)
+    3. التسليمات (إضافة تسليم، قائمة التسليم، التسليمات)
+    4. العملاء (العملاء، نوع العميل، حالة العميل)
+    5. الموزعين
+    6. الإعدادات (أنواع الاشتراكات، حالة الاشتراك، المدن)
+    7. المالية والمصروفات (فئات المصروفات، المصروفات، الموردين، مدفوعات الموردين)
+    8. المخزون
+    9. المبيعات والعملاء (الفواتير، مدفوعات العملاء، أمانات العملاء)
+    10. النظام (المستخدمين، نسخة احتياطية، الدعم الفني)
+    11. الحساب (حسابي، تسجيل الخروج)
+  - **تحسين الشعار:**
+    - زيادة الحجم إلى 140px
+    - إضافة خلفية متدرجة خفيفة
+    - إضافة تأثير hover (تكبير عند التمرير)
+    - تحسين التباعد والحدود
+  - **إصلاح مشكلة الانتقال إلى أعلى:**
+    - إضافة JavaScript لحفظ موضع التمرير في `sessionStorage`
+    - استعادة الموضع عند تحميل الصفحة
+    - حفظ الموضع تلقائياً عند التمرير
+    - إضافة `onclick="saveScrollPosition()"` لجميع الروابط
+  - **تنظيف القائمة:**
+    - إزالة الفراغات والفواصل الزائدة
+    - توحيد استخدام `<x-backpack::menu-item>` و `<li class="nav-item">`
+    - إضافة تعليقات توضيحية لكل قسم
+
+#### 5. إصلاح مشكلة Closure في custom_html
+- **الملف:** `app/Http/Controllers/Admin/DeliveryCrudController.php`
+- **المشكلة:** استخدام Closure في `value()` لحقل `custom_html` يسبب خطأ "Object of class Closure could not be converted to string"
+- **الحل:** استبدال `value(function() { return '...'; })` بـ `value('...')` مباشرة
+
+### **الأدوات:**
+- Laravel Migrations
+- Backpack CRUD
+- Eloquent ORM
+- JavaScript (لحفظ موضع التمرير وإظهار الدين المتبقي)
+- SessionStorage (لحفظ موضع التمرير)
+
+### **تنبيه:**
+- الصنف `id=1` (قوارير مياه) محمي من التعديل والحذف - يُستخدم في نظام التسليمات
+- الدفعات من التسليمات تُحمل على العميل الأب (parent client) فقط
+- عند إنشاء تسليم لعميل فرعي (child)، الدفعة تُحمل على حساب الأب مع ملاحظة في `notes`
+- جميع التعديلات على التسليمات تؤثر تلقائياً على المخزون (العبوات)
+
+---
+
+## [2026-01-09 18:30] - تحسينات نظام الفواتير والأمانات
+
+### **الهدف:**
+تحسين نظام الفواتير (إظهار/إخفاء حقول الدفع)، إصلاح القائمة الجانبية، تحسين تقرير رصيد العملاء، وإنشاء نظام الأمانات الكامل.
+
+### **التغييرات:**
+
+#### 1. تحسين منطق حقول الدفع في الفواتير
+- **الملف:** `app/Http/Controllers/Admin/InvoiceCrudController.php`
+- **التغييرات:**
+  - تحديث JavaScript لإظهار/إخفاء حقول الدفع حسب حالة الدفع:
+    - **"دين" (unpaid):** إخفاء جميع حقول الدفع، المبلغ الإجمالي = الدين
+    - **"مدفوع كامل" (paid):** إخفاء جميع حقول الدفع، المبلغ المدفوع = المبلغ الإجمالي تلقائياً
+    - **"مدفوع جزئي" (partial):** إظهار حقل "المبلغ المدفوع" فقط
+  - تحديث منطق `store()` و `update()` لإنشاء دفعات تلقائياً حسب الحالة
+  - تحسين رسائل النجاح لتوضيح حالة الدفع
+
+#### 2. إصلاح القائمة الجانبية
+- **الملف:** `resources/views/vendor/backpack/ui/inc/menu_items.blade.php`
+- **التغييرات:**
+  - إزالة التكرارات:
+    - حذف "المخزون" المكرر (كان موجوداً مرتين)
+    - حذف "Inventory items" (إنجليزي)
+    - حذف "Invoices" (إنجليزي)
+  - إضافة الروابط المفقودة:
+    - "الفواتير" (`/admin/invoice`)
+    - "مدفوعات العملاء" (`/admin/client-payment`)
+    - "رصيد العملاء" (`/admin/reports/client-balance`)
+  - ترتيب القائمة بشكل منطقي
+
+#### 3. تحسين تقرير رصيد العملاء
+- **الملف:** `app/Http/Controllers/Admin/ClientBalanceReportController.php`
+- **الملف:** `resources/views/admin/reports/client_balance.blade.php`
+- **التغييرات:**
+  - إضافة فلتر تلقائي لإخفاء العملاء الذين رصيدهم = 0
+  - تحديث الواجهة: إزالة خيار "عرض المدينين فقط" (أصبح افتراضي)
+  - إضافة ملاحظة توضيحية: "يتم عرض العملاء الذين لديهم مستحقات فقط (الرصيد > 0)"
+  - الإحصائيات تُحسب فقط للعملاء المعروضين
+
+#### 4. إنشاء نظام الأمانات الكامل (Client Deposits)
+- **الملفات الجديدة:**
+  - `database/migrations/2026_01_09_183335_create_client_deposits_table.php`
+  - `app/Models/ClientDeposit.php`
+  - `app/Http/Controllers/Admin/ClientDepositCrudController.php`
+  - `resources/views/vendor/backpack/crud/buttons/withdraw_all.blade.php`
+- **التغييرات في الملفات الموجودة:**
+  - `app/Models/Client.php`: إضافة علاقة `deposits()`
+  - `routes/backpack/custom.php`: إضافة Routes للأمانات
+  - `resources/views/vendor/backpack/ui/inc/menu_items.blade.php`: إضافة رابط "أمانات العملاء"
+- **الميزات:**
+  - **جدول الأمانات:** `client_id`, `item_name`, `quantity`, `date_given`, `notes`, `is_withdrawn`, `withdrawn_at`
+  - **إعطاء أمانة:** خصم تلقائي من المخزون عند الإنشاء
+  - **سحب أمانة واحدة:** زر "سحب" لكل صنف في القائمة
+  - **سحب كل الأمانات:** زر في أعلى الصفحة لسحب جميع أمانات عميل معين
+  - **السجلات تبقى:** مع توضيح تاريخ السحب (لا يتم حذفها)
+  - **منع التعديل:** لا يمكن تعديل أمانة مسحوبة
+  - **إرجاع تلقائي:** عند الحذف، يتم إرجاع الكمية للمخزون (إذا لم تكن مسحوبة)
+
+#### 5. إصلاح مشكلة الفلاتر (Backpack PRO)
+- **الملف:** `app/Http/Controllers/Admin/ClientDepositCrudController.php`
+- **المشكلة:** الفلاتر (`CRUD::filter`) تتطلب Backpack PRO
+- **الحل:**
+  - إزالة جميع الفلاتر (`CRUD::filter`)
+  - استبدالها بالبحث العادي عبر `addClause`:
+    - البحث حسب الحالة (معارة/مسحوبة)
+    - البحث حسب العميل عبر `whereHas`
+
+### **الأدوات:**
+- Laravel Migrations
+- Backpack CRUD
+- Eloquent ORM
+- JavaScript (لإظهار/إخفاء الحقول)
+
+### **تنبيه:**
+- تم إزالة الفلاتر من `ClientDepositCrudController` لأنها تتطلب Backpack PRO
+- البحث يعمل الآن عبر `addClause` (بدون PRO)
+- جميع الأمانات المسحوبة تبقى كسجل تاريخي مع توضيح تاريخ السحب
+
+---
+
+---
+
+## [2025-01-25 12:00] - إصلاح قاعدة البيانات وإنشاء الجداول المفقودة
+
+- **الهدف:** إصلاح أخطاء قاعدة البيانات وإنشاء الجداول المفقودة لضمان عمل النظام بشكل صحيح
+- **التغييرات:**
+  - إنشاء migration لجدول `subscription_statuses`
+  - إنشاء migration لجدول `client_statuses`
+  - إنشاء migration لجدول `client_types`
+  - إنشاء migration لجدول `cities`
+  - إنشاء migration لجدول `cash_withdraws`
+  - تشغيل migrations بنجاح
+  - تنظيف الكاش الكامل
+  - بناء الأصول (npm run build)
+- **الأدوات:** Laravel Migrations, SQLite (للتنمية)
+- **تنبيه:** تم إنشاء الجداول فارغة - قد تحتاج إلى Seeder لإضافة البيانات الأساسية
+- **الحالة:** ✅ مكتمل - النظام يعمل الآن بدون أخطاء
+
+---
+
+## [2025-01-25 12:15] - إصلاح مشكلة Basset (404 Errors) وملفات CDN
+
+- **الهدف:** إصلاح أخطاء 404 لملفات CSS/JS من CDN وتحسين تجربة المستخدم
+- **المشكلة:** ملفات Basset غير متاحة عبر public/storage مما يسبب أخطاء 404
+- **التغييرات:**
+  - تشغيل `php artisan basset:internalize` لتحميل 69 ملف من CDN
+  - إصلاح storage link (كان مجلد عادي بدلاً من symbolic link)
+  - حذف `public/storage` القديم وإنشاء link جديد
+  - التحقق من أن جميع ملفات Basset متاحة (HTTP 200)
+  - تنظيف الكاش بعد الإصلاحات
+- **الأدوات:** Laravel Basset, Storage Link
+- **النتيجة:** ✅ جميع ملفات CSS/JS متاحة الآن (jQuery, Noty, Line Awesome, Bootstrap, إلخ)
+- **الحالة:** ✅ مكتمل - لا توجد أخطاء 404
+
+---
+
+## [2025-01-25 12:20] - إصلاح خطأ 500 - جداول فارغة ومشاكل SQLite
+
+- **الهدف:** إصلاح خطأ 500 (Internal Server Error) في جميع الصفحات
+- **المشاكل:** 
+  1. جدول `deliveries` فارغ - كان يحتوي فقط على `id` و `timestamps`
+  2. جدول `clients` فارغ - كان يحتوي فقط على `id` و `timestamps`
+  3. استخدام `DATE_FORMAT` الذي لا يدعمه SQLite
+  4. استخدام Views غير موجودة (`v_clients_delivery_overview`)
+- **التغييرات:**
+  - إنشاء migration لإضافة جميع الأعمدة المفقودة إلى جدول `deliveries`
+  - إنشاء migration لإضافة جميع الأعمدة المفقودة إلى جدول `clients` (18 عمود)
+  - إصلاح استخدام `DATE_FORMAT` ليدعم SQLite (`STRFTIME`) و MySQL
+  - استبدال استخدام Views غير الموجودة بجداول مباشرة
+  - إصلاح حساب معدل الالتزام حسب المدينة
+- **الأدوات:** Laravel Migrations, SQLite, PHP
+- **النتيجة:** ✅ جميع الجداول تحتوي على الأعمدة المطلوبة، جميع الصفحات تعمل
+- **الحالة:** ✅ مكتمل - خطأ 500 تم إصلاحه في جميع الصفحات
+
+---
+
+## [2025-01-25 13:00] - تحويل النظام من SQLite إلى MySQL
+
+- **الهدف:** تحويل النظام بالكامل من SQLite إلى MySQL للاستعداد للرفع على السيرفر
+- **المشاكل المحتملة:**
+  1. Migrations تستخدم `PRAGMA table_info()` - خاص بـ SQLite فقط
+  2. Migrations تستخدم `sqlite_master` - خاص بـ SQLite فقط
+  3. Config files تستخدم `sqlite` كـ default connection
+- **التغييرات:**
+  - إصلاح `add_columns_to_deliveries_table.php` - استبدال `PRAGMA` بـ `Schema::hasColumn()`
+  - إصلاح `add_columns_to_clients_table.php` - استبدال `PRAGMA` بـ `Schema::hasColumn()`
+  - إصلاح `add_indexes_for_performance.php` - إزالة `PRAGMA` و `sqlite_master`، استخدام `information_schema` لـ MySQL
+  - تحديث `config/database.php` - تغيير default من `sqlite` إلى `mysql`
+  - تحديث `config/queue.php` - تغيير default من `sqlite` إلى `mysql`
+  - إضافة DocBlocks توضيحية لجميع Migrations (حسب القاعدة 11 من الدستور)
+- **الأدوات:** Laravel Migrations, MySQL, TablePlus
+- **الملفات المعدلة:**
+  - `database/migrations/2025_01_25_121000_add_columns_to_deliveries_table.php`
+  - `database/migrations/2025_01_25_121100_add_columns_to_clients_table.php`
+  - `database/migrations/2025_12_29_041932_add_indexes_for_performance.php`
+  - `config/database.php`
+  - `config/queue.php`
+- **التوثيق:**
+  - إنشاء `MYSQL_SETUP_GUIDE.md` - دليل شامل لإعداد MySQL في TablePlus
+  - إنشاء `docs/decisions/ADR-001-sqlite-to-mysql-migration.md` - Engineering Decision Record
+- **النتيجة:** ✅ جميع Migrations متوافقة مع MySQL، جاهزة للرفع على السيرفر
+- **الحالة:** ✅ مكتمل - النظام جاهز للعمل على MySQL
+- **تنبيه:** يجب تحديث ملف `.env` لاستخدام MySQL قبل تشغيل Migrations
+
+---
+
+## [2025-01-25 13:30] - إصلاح خطأ 500 بعد التحويل إلى MySQL
+
+- **الهدف:** إصلاح خطأ 500 (Internal Server Error) بعد التحويل إلى MySQL
+- **المشاكل:**
+  1. ملف `.env` غير موجود - النظام يحاول الاتصال بقاعدة بيانات `laravel` الافتراضية
+  2. Migrations تحاول إنشاء جداول موجودة مسبقاً
+  3. Migrations تحاول إضافة indexes على أعمدة غير موجودة
+- **التغييرات:**
+  - إنشاء ملف `.env` جديد مع إعدادات MySQL المحلية (`eliyaa_local`)
+  - تعديل جميع migrations `create_*_table` للتحقق من وجود الجدول قبل الإنشاء
+  - تعديل migration `add_indexes_for_performance` للتحقق من وجود الأعمدة قبل إنشاء indexes
+  - تشغيل جميع Migrations بنجاح
+  - تشغيل DatabaseSeeder لإنشاء المستخدم الإداري الافتراضي
+- **الأدوات:** Laravel Migrations, MySQL, TablePlus
+- **الملفات المعدلة:**
+  - `.env` (تم إنشاؤه)
+  - `database/migrations/2025_11_06_090502_create_clients_table.php`
+  - `database/migrations/2025_11_06_090502_create_deliveries_table.php`
+  - `database/migrations/2025_11_06_090502_create_distributors_table.php`
+  - `database/migrations/2025_11_06_090503_create_subscription_types_table.php`
+  - `database/migrations/2025_12_29_041932_add_indexes_for_performance.php`
+- **النتيجة:** ✅ جميع Migrations تم تشغيلها بنجاح، النظام يعمل على MySQL
+- **الحالة:** ✅ مكتمل - خطأ 500 تم إصلاحه، النظام جاهز للاستخدام
+
+---
+
+## [2025-01-25 14:00] - إزالة روابط غير ضرورية من القائمة الجانبية
+
+- **الهدف:** إزالة روابط "تتبع الموزعين" و "نسخ رابط التطبيق" من القائمة الجانبية
+- **المشاكل:**
+  - روابط غير ضرورية في الوقت الحالي
+  - كود JavaScript غير مستخدم
+- **التغييرات:**
+  - إزالة رابط "تتبع الموزعين" من `menu_items.blade.php`
+  - إزالة رابط "نسخ رابط التطبيق" و script `copyAppLink()` من `menu_items.blade.php`
+  - إزالة Route `/drivers-map` من `routes/backpack/custom.php`
+- **الأدوات:** Laravel, Blade Templates
+- **الملفات المعدلة:**
+  - `resources/views/vendor/backpack/ui/inc/menu_items.blade.php`
+  - `routes/backpack/custom.php`
+- **النتيجة:** ✅ تم إزالة جميع الروابط والكود المتعلق بنجاح
+- **الحالة:** ✅ مكتمل - القائمة الجانبية نظيفة
+
+---
+
+## [2026-01-08 19:40] - إضافة نظام إدارة المصروفات الكامل
+
+- **الهدف:** إضافة نظام شامل لإدارة المصروفات مع إمكانية توزيعها على عدة أشهر للتقارير المالية
+- **المتطلبات:**
+  - فئات المصروفات (Expense Categories)
+  - المصروفات مع توزيع شهري تلقائي
+  - صفحة عرض المصروفات الشهرية الحالية
+- **التغييرات:**
+  - إنشاء migration لجدول `expense_categories` (name, description, is_active)
+  - إنشاء migration لجدول `expenses` (expense_category_id, name, total_amount, number_of_months, monthly_amount, start_month, end_month, payment_date, notes, created_by)
+  - إنشاء migration لجدول `expense_monthly_allocations` (expense_id, month, amount, is_transferred, transferred_at)
+  - إنشاء Models: `ExpenseCategory`, `Expense`, `ExpenseMonthlyAllocation`
+  - إنشاء Backpack CRUD Controllers: `ExpenseCategoryCrudController`, `ExpenseCrudController`
+  - إنشاء `CurrentMonthExpensesController` لعرض المصروفات الشهرية
+  - إنشاء View `current_month.blade.php` مع فلتر السنة والشهر
+  - إضافة Routes للصفحات الجديدة
+  - إضافة روابط في القائمة الجانبية (فئات المصروفات، المصروفات، المصروفات الشهرية)
+  - تطبيق منطق التوزيع التلقائي: عند إنشاء مصروف، يتم توزيعه تلقائياً على الأشهر المحددة
+- **الأدوات:** Laravel Migrations, Backpack CRUD, Carbon (للتواريخ)
+- **الملفات الجديدة:**
+  - `database/migrations/2026_01_08_194302_create_expense_categories_table.php`
+  - `database/migrations/2026_01_08_194302_create_expenses_table.php`
+  - `database/migrations/2026_01_08_194303_create_expense_monthly_allocations_table.php`
+  - `app/Models/ExpenseCategory.php`
+  - `app/Models/Expense.php`
+  - `app/Models/ExpenseMonthlyAllocation.php`
+  - `app/Http/Controllers/Admin/ExpenseCategoryCrudController.php`
+  - `app/Http/Controllers/Admin/ExpenseCrudController.php`
+  - `app/Http/Controllers/Admin/CurrentMonthExpensesController.php`
+  - `resources/views/admin/expenses/current_month.blade.php`
+- **النتيجة:** ✅ نظام إدارة المصروفات الكامل جاهز للاستخدام
+- **الحالة:** ✅ مكتمل - يمكن إضافة المصروفات وتوزيعها تلقائياً على الأشهر
+
+---
+
+## [2026-01-08 20:00] - تحسين نظام المصروفات: الترحيل التلقائي وإزالة الأزرار
+
+- **الهدف:** جعل جميع المصروفات مرحلة تلقائياً عند الإضافة وإزالة أزرار الترحيل اليدوي
+- **التغييرات:**
+  - تعديل `ExpenseCrudController::store()` - جميع التوزيعات الشهرية تكون `is_transferred = true` مباشرة
+  - تعديل `Expense::createMonthlyAllocations()` - جميع المصروفات مرحلة تلقائياً
+  - إزالة زر "ترحيل" الفردي من View `current_month.blade.php`
+  - إزالة زر "ترحيل الكل" من View
+  - إزالة عمود "الإجراءات" المتعلق بالترحيل
+  - إضافة عمود "الإجراءات" مع زر "تعديل" يفتح صفحة تعديل المصروف
+  - تحديث جميع المصروفات القديمة لتصبح مرحلة
+- **الأدوات:** Laravel, Backpack CRUD
+- **الملفات المعدلة:**
+  - `app/Http/Controllers/Admin/ExpenseCrudController.php`
+  - `app/Models/Expense.php`
+  - `resources/views/admin/expenses/current_month.blade.php`
+  - `app/Http/Controllers/Admin/CurrentMonthExpensesController.php`
+- **النتيجة:** ✅ جميع المصروفات مرحلة تلقائياً عند الإضافة، واجهة نظيفة بدون أزرار ترحيل
+- **الحالة:** ✅ مكتمل - النظام يعمل بشكل تلقائي بالكامل
+
+---
+
+## [2026-01-08 20:15] - إزالة حقل "اسم المصروف" من النظام
+
+- **الهدف:** إزالة حقل "اسم المصروف" من النظام وقاعدة البيانات - الاعتماد على الفئة فقط
+- **التغييرات:**
+  - إنشاء migration `2026_01_08_201019_remove_name_from_expenses_table.php` لحذف عمود `name`
+  - إزالة `'name'` من `$fillable` في Model `Expense`
+  - إزالة عمود `name` من `setupListOperation()` في `ExpenseCrudController`
+  - إزالة حقل `name` من `setupCreateOperation()` في `ExpenseCrudController`
+  - إزالة `name` من Validation في `store()` method
+  - إزالة `'name' => $request->name` من `Expense::create()`
+  - إزالة عمود "اسم المصروف" من View `current_month.blade.php`
+  - تحديث `colspan` في `tfoot` للجدول
+- **الأدوات:** Laravel Migrations, Backpack CRUD
+- **الملفات المعدلة:**
+  - `database/migrations/2026_01_08_201019_remove_name_from_expenses_table.php` (جديد)
+  - `app/Models/Expense.php`
+  - `app/Http/Controllers/Admin/ExpenseCrudController.php`
+  - `resources/views/admin/expenses/current_month.blade.php`
+- **النتيجة:** ✅ تم إزالة حقل "اسم المصروف" بالكامل من النظام وقاعدة البيانات
+- **الحالة:** ✅ مكتمل - النظام يعمل بدون حقل "اسم المصروف"، الاعتماد على الفئة فقط
+
+---
+
+## [2026-01-08 20:30] - إضافة منطق التعديل والحذف للمصروفات
+
+- **الهدف:** إضافة منطق كامل لتعديل وحذف المصروفات مع إعادة إنشاء التوزيعات الشهرية
+- **التغييرات:**
+  - إضافة method `update()` مخصص في `ExpenseCrudController` لتحديث المصروف
+  - عند التعديل: حذف التوزيعات القديمة وإنشاء توزيعات جديدة حسب البيانات المحدثة
+  - إضافة method `destroy()` مخصص لحذف المصروف مع جميع التوزيعات الشهرية
+  - إضافة معالجة للأخطاء (try-catch) عند محاولة الوصول لمصروف غير موجود
+  - إصلاح مشكلة حقل `name` في قاعدة البيانات (تم حذفه يدوياً)
+- **الأدوات:** Laravel, Backpack CRUD
+- **الملفات المعدلة:**
+  - `app/Http/Controllers/Admin/ExpenseCrudController.php`
+  - `database/migrations/2026_01_08_194302_create_expenses_table.php`
+- **النتيجة:** ✅ يمكن الآن تعديل وحذف المصروفات بشكل كامل مع إعادة إنشاء التوزيعات تلقائياً
+- **الحالة:** ✅ مكتمل - جميع العمليات (Create, Read, Update, Delete) تعمل بشكل صحيح
+
+---
+
+## [2026-01-08 20:45] - تحسين عرض البيانات في جدول المصروفات
+
+- **الهدف:** إصلاح عرض الفئة وإضافة عمود الملاحظات وتحويل الأزرار إلى dropdown menu
+- **المشاكل:**
+  - عمود "الفئة" كان يعرض JSON بدلاً من اسم الفئة
+  - الأزرار (معاينة، تعديل، حذف) كانت منفصلة وغير منظمة
+  - لم يكن هناك عمود للملاحظات
+- **التغييرات:**
+  - تغيير عرض عمود "الفئة" من `type('relationship')` إلى `type('custom_html')` لعرض اسم الفئة بشكل صحيح
+  - إضافة عمود "الملاحظات" مع تقطيع النص إذا كان أطول من 50 حرفاً
+  - إزالة الأزرار الافتراضية (show, edit, delete)
+  - إضافة dropdown menu موحد للأزرار (معاينة، تعديل، حذف)
+  - تعطيل عمود الإجراءات الافتراضي باستخدام `setOperationSetting('lineButtonsAsDropdown', false)`
+- **الأدوات:** Laravel, Backpack CRUD, Bootstrap 4
+- **الملفات المعدلة:**
+  - `app/Http/Controllers/Admin/ExpenseCrudController.php`
+- **النتيجة:** ✅ جدول نظيف ومنظم مع dropdown menu للأزرار وعرض صحيح للبيانات
+- **الحالة:** ✅ مكتمل - الواجهة محسنة وجاهزة للاستخدام
+
+---

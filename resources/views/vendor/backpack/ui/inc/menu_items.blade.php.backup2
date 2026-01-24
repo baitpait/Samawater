@@ -1,0 +1,101 @@
+{{-- This file is used for menu items by any Backpack v6 theme --}}
+
+{{-- Logo Section - في بداية القائمة --}}
+<li class="nav-item logo-section">
+    <div class="sidebar-logo-wrapper">
+        <a href="{{ backpack_url('dashboard') }}" class="sidebar-logo-link">
+            <img src="{{ asset('logo/Logo-2.png') }}" alt="Eleyyaa Logo" class="sidebar-logo">
+        </a>
+    </div>
+</li>
+
+<li class="nav-item"><a class="nav-link" href="{{ backpack_url('dashboard') }}"><i class="la la-home nav-icon"></i> الرئيسية</a></li>
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('reports.advanced') }}">
+        <i class="la la-chart-bar"></i>
+        <span>التقارير الإحصائية</span>
+    </a>
+</li>
+
+<li class="sidebar-divider"></li>
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ backpack_url('delivery/create') }}">
+        <i class="la la-plus"></i>
+        <span>إضافة تسليم</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('delivery.list') }}">
+        <i class="la la-truck"></i>
+        <span>قائمة التسليم</span>
+    </a>
+</li>
+
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('reports.clients_delivery_overview') }}">
+        <i class="la la-user"></i>
+        <span>التسليمات</span>
+    </a>
+</li>
+
+<li class="sidebar-divider"></li>
+<x-backpack::menu-item title="العملاء" icon="la la-users" :link="backpack_url('client')" />
+<x-backpack::menu-item title="نوع العميل" icon="las la-building" :link="route('client-type.index')" />
+<x-backpack::menu-item title="حالة العميل" icon="las la-calculator" :link="route('client-status.index')" />
+{{-- التقارير --}}
+
+<li class="sidebar-divider"></li>
+
+<x-backpack::menu-item title="الموزعين" icon="la la-car" :link="route('distributors.list')" />
+<li class="nav-item">
+    <a
+        class="nav-link"
+<li class="sidebar-divider"></li>
+
+<x-backpack::menu-item title="أنواع الاشتراكات" icon="la la-calendar" :link="backpack_url('subscription-type')" />
+<x-backpack::menu-item title="حالة الاشتراك" icon="la la-bell" :link="backpack_url('subscription-status')" />
+<x-backpack::menu-item title="المدن" icon="la la-city" :link="backpack_url('city')" />
+<li class="sidebar-divider"></li>
+
+{{-- المصروفات --}}
+<x-backpack::menu-item title="فئات المصروفات" icon="la la-folder" :link="backpack_url('expense-category')" />
+<x-backpack::menu-item title="المصروفات" icon="la la-money-bill" :link="backpack_url('expense')" />
+    {{-- الموردين --}}
+<x-backpack::menu-item title="الموردين" icon="la la-truck" :link="backpack_url('vendor')" />
+<x-backpack::menu-item title="المخزون" icon="la la-warehouse" :link="backpack_url('inventory-item')" />
+<x-backpack::menu-item title="مدفوعات الموردين" icon="la la-money-bill-wave" :link="backpack_url('vendor-payment')" />
+<x-backpack::menu-item title="المخزون" icon="la la-warehouse" :link="backpack_url('inventory-item')" />
+@if(auth()->check() && auth()->user()->canManageUsers())
+<x-backpack::menu-item title="المستخدمين" icon="la la-users" :link="backpack_url('user')" />
+@endif
+<li class="sidebar-divider"></li>
+
+{{-- زر تحميل نسخة احتياطية --}}
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('backup.download') }}" 
+       onclick="return confirm('هل تريد تحميل نسخة احتياطية من قاعدة البيانات؟\n\nسيتم تحميل ملف SQL يحتوي على جميع البيانات.');">
+        <i class="la la-download"></i>
+        <span>نسخة احتياطية</span>
+    </a>
+</li>
+
+<li class="sidebar-divider"></li>
+
+<a href="https://wa.me/970599814758" target="_blank" class="nav-link">
+    <i class="la la-whatsapp"></i>
+    الدعم الفني
+</a>
+<li class="sidebar-divider"></li>
+
+<li class="sidebar-divider"></li>
+
+<li class="nav-item"><a class="nav-link" href="{{ route('backpack.account.info') }}"><i class="la la-user"></i>حسابي</a></li>
+<li class="nav-item"><a class="nav-link" href="{{ backpack_url('logout') }}"><i class="la la-sign-out"></i>تسجيل الخروج</a></li>
+
+
+<x-backpack::menu-item title="Inventory items" icon="la la-question" :link="backpack_url('inventory-item')" />
+<x-backpack::menu-item title="Invoices" icon="la la-question" :link="backpack_url('invoice')" />
