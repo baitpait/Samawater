@@ -8,79 +8,42 @@
         /* ============================================
            Unified Header Design
            ============================================ */
-        section.header-operation,
-        section.header-operation.container-fluid,
-        section.header-operation.animated,
-        section.header-operation.fadeIn {
-            background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%) !important;
+        section.header-operation-unified {
+            background: var(--primary-deep) !important;
             border-radius: 20px !important;
             padding: 1.5rem 2rem !important;
             margin-bottom: 2rem !important;
-            box-shadow: 0 10px 30px rgba(111, 106, 248, 0.3) !important;
+            box-shadow: var(--shadow-md) !important;
             position: relative !important;
             overflow: hidden !important;
             width: 100% !important;
+            display: block !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .header-icon-wrapper {
+            width: 56px !important;
+            height: 56px !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-radius: 16px !important;
             display: flex !important;
             align-items: center !important;
-            justify-content: space-between !important;
-            flex-wrap: wrap !important;
+            justify-content: center !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
         }
 
-        section.header-operation::before {
-            content: '' !important;
-            position: absolute !important;
-            top: -50% !important;
-            right: -50% !important;
-            width: 200% !important;
-            height: 200% !important;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%) !important;
-            animation: pulse 3s ease-in-out infinite !important;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 0.5;
-            }
-            50% {
-                opacity: 0.8;
-            }
-        }
-
-        section.header-operation h1,
-        section.header-operation h1.text-capitalize,
-        section.header-operation h1.mb-0 {
-            color: #fff !important;
+        .header-icon-wrapper i {
             font-size: 24px !important;
-            font-weight: 700 !important;
-            margin: 0 !important;
-            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
-            position: relative !important;
-            z-index: 1 !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 1rem !important;
-        }
-
-        /* Unified Card Design */
-        .filter-card {
-            background: #fcfdff !important;
-            border-radius: 20px !important;
-            border: none !important;
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06) !important;
-            margin-bottom: 1.5rem !important;
-        }
-
-        .filter-card .card-body {
-            padding: 1.5rem !important;
+            color: #fff !important;
         }
 
         /* Balance Card */
         .balance-card {
-            background: linear-gradient(135deg, #34d399 0%, #22c55e 100%) !important;
+            background: var(--success-gradient) !important;
             border-radius: 20px !important;
             padding: 2rem !important;
-            box-shadow: 0 10px 30px rgba(34, 211, 153, 0.3) !important;
+            box-shadow: var(--shadow-sm) !important;
             margin-bottom: 2rem !important;
         }
 
@@ -89,7 +52,6 @@
             font-size: 32px !important;
             font-weight: 700 !important;
             margin: 0 !important;
-            font-family: 'Cairo', sans-serif !important;
         }
 
         .balance-card p {
@@ -97,7 +59,6 @@
             font-size: 16px !important;
             font-weight: 600 !important;
             margin: 0 0 0.5rem 0 !important;
-            font-family: 'Cairo', sans-serif !important;
         }
 
         /* Unified Table Design */
@@ -108,91 +69,58 @@
             background: #fff !important;
             border-radius: 20px !important;
             overflow: hidden !important;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
+            box-shadow: var(--shadow-md) !important;
         }
 
         .table-clean thead th {
-            background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%) !important;
+            background: var(--primary-deep) !important;
             color: #fff !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
             padding: 1rem !important;
             border: none !important;
-            font-family: 'Cairo', sans-serif !important;
             font-size: 14px !important;
             text-align: center !important;
         }
 
         .table-clean tbody tr {
-            border-bottom: 1px solid #e5e7eb !important;
+            border-bottom: 1px solid #f1f5f9 !important;
             transition: all 0.2s ease !important;
         }
 
         .table-clean tbody tr:hover {
-            background: #f7f9ff !important;
+            background: #f8fafc !important;
         }
 
         .table-clean tbody td {
             padding: 1rem !important;
-            color: #1f2937 !important;
-            font-family: 'Cairo', sans-serif !important;
-            font-size: 14px !important;
+            color: #334155 !important;
+            font-weight: 600 !important;
             vertical-align: middle !important;
         }
         
-        /* ملاحظات - دعم النصوص الطويلة */
-        .table-clean tbody td:last-child {
-            text-align: right !important;
-            word-wrap: break-word !important;
-            word-break: break-word !important;
-            white-space: normal !important;
-            line-height: 1.6 !important;
-            max-width: 400px !important;
-        }
-
-        .table-clean tbody tr:last-child td {
-            border-bottom: none !important;
-        }
-
-        .table-clean tfoot {
-            background: #f7f9ff !important;
-        }
-
-        .table-clean tfoot td {
-            background: #f7f9ff !important;
-            font-weight: 700 !important;
-            color: #1f2937 !important;
-            padding: 1rem !important;
-            font-size: 16px !important;
-        }
-
-        /* Unified Buttons */
         .btn-print-unified {
-            background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%) !important;
-            border: none !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
             color: #fff !important;
             border-radius: 12px !important;
             padding: 0.75rem 1.5rem !important;
-            font-weight: 600 !important;
-            font-size: 14px !important;
-            font-family: 'Cairo', sans-serif !important;
+            font-weight: 700 !important;
             transition: all 0.2s ease !important;
-            box-shadow: 0 4px 12px rgba(111, 106, 248, 0.3) !important;
+            box-shadow: var(--shadow-sm) !important;
         }
 
         .btn-print-unified:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
             transform: translateY(-2px) !important;
-            box-shadow: 0 6px 20px rgba(111, 106, 248, 0.4) !important;
         }
 
         .btn-back-unified {
-            background: rgba(255, 255, 255, 0.2) !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
             color: #fff !important;
             border-radius: 12px !important;
             padding: 0.75rem 1.5rem !important;
-            font-weight: 600 !important;
-            font-size: 14px !important;
-            font-family: 'Cairo', sans-serif !important;
+            font-weight: 700 !important;
             transition: all 0.2s ease !important;
             text-decoration: none !important;
             display: inline-flex !important;
@@ -201,65 +129,39 @@
         }
 
         .btn-back-unified:hover {
-            background: rgba(255, 255, 255, 0.3) !important;
+            background: rgba(255, 255, 255, 0.2) !important;
             transform: translateY(-2px) !important;
             color: #fff !important;
         }
 
-        /* Print Styles */
         @media print {
-            body * {
-                visibility: hidden !important;
-            }
-
-            #print-area,
-            #print-area * {
-                visibility: visible !important;
-            }
-
-            #print-area {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-            }
-
-            .no-print {
-                display: none !important;
-            }
-
-            .card {
-                box-shadow: none !important;
-                border: 1px solid #ccc !important;
-            }
-
-            .balance-card {
-                background: #f0f0f0 !important;
-            }
+            body * { visibility: hidden !important; }
+            #print-area, #print-area * { visibility: visible !important; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none !important; }
+            .card { box-shadow: none !important; border: 1px solid #ccc !important; }
+            .balance-card { background: #f0f0f0 !important; }
         }
     </style>
 @endsection
 
 @section('header')
-    {{-- Unified Header Design - الهوية البصرية الموحدة --}}
-    <section class="header-operation-unified" style="background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%); border-radius: 20px; padding: 1.5rem 2rem; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(111, 106, 248, 0.3); position: relative; overflow: hidden;">
-        {{-- Background Animation Effect --}}
-        <div style="content: ''; position: absolute; top: -50%; right: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%); animation: pulse 3s ease-in-out infinite; pointer-events: none;"></div>
-        
-        {{-- Header Content --}}
+    <section class="header-operation-unified">
         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; position: relative; z-index: 1;">
             <div style="display: flex; align-items: center; gap: 1rem;">
-                <i class="la la-file-invoice-dollar" style="font-size: 28px; color: #fff; font-weight: 900;"></i>
-                <h1 style="color: #fff; font-size: 24px; font-weight: 700; margin: 0; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                    التقرير المالي
+                <div class="header-icon-wrapper">
+                    <i class="la la-file-invoice-dollar"></i>
+                </div>
+                <h1 style="color: #fff; font-size: 24px; font-weight: 800; margin: 0; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);">
+                    التقرير المالي للموزع
                 </h1>
             </div>
             <div style="display: flex; align-items: center; gap: 0.75rem;">
                 <a href="{{ backpack_url('distributor') }}" class="btn btn-back-unified no-print">
-                    <i class="la la-angle-double-right"></i> العودة إلى قائمة الموزعين
+                    <i class="la la-angle-double-right"></i> العودة للقائمة
                 </a>
                 <button onclick="window.print()" class="btn btn-print-unified no-print">
-                    <i class="la la-print"></i> طباعة التقرير
+                    <i class="la la-print"></i> طباعة
                 </button>
             </div>
         </div>
@@ -269,13 +171,11 @@
 @section('content')
 <div class="container-fluid">
     <div id="print-area">
-        
         {{-- Distributor Name Card --}}
-        <div class="card filter-card mb-4">
-            <div class="card-body text-center">
-                <h3 style="color: #1f2937; font-size: 22px; font-weight: 700; margin: 0; font-family: 'Cairo', sans-serif;">
-                    <i class="la la-user-tie" style="margin-left: 8px; color: #6f6af8;"></i>
-                    {{ $entry->name }}
+        <div class="card mb-4">
+            <div class="card-body text-center p-4">
+                <h3 class="fw-bold mb-0 text-primary-deep">
+                    <i class="la la-user-tie"></i> {{ $entry->name }}
                 </h3>
             </div>
         </div>
@@ -284,8 +184,8 @@
         <div class="balance-card">
             <div style="display: flex; align-items: center; justify-content: space-between;">
                 <div>
-                    <p>الرصيد الحالي</p>
-                    <h3>{{ number_format($entry->balance, 2) }} <span style="font-size: 24px;">₪</span></h3>
+                    <p>الرصيد الحالي المستحق</p>
+                    <h3>{{ number_format($entry->balance, 2) }} ₪</h3>
                 </div>
                 <div style="width: 70px; height: 70px; background: rgba(255, 255, 255, 0.2); border-radius: 16px; display: flex; align-items: center; justify-content: center;">
                     <i class="la la-wallet" style="font-size: 36px; color: #fff;"></i>
@@ -294,11 +194,10 @@
         </div>
 
         {{-- Withdraws Table --}}
-        <div class="card filter-card">
-            <div class="card-body">
-                <h4 style="color: #1f2937; font-size: 18px; font-weight: 700; margin: 0 0 1.5rem 0; font-family: 'Cairo', sans-serif; display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="la la-money-bill-wave" style="color: #6f6af8;"></i>
-                    سجل السحوبات
+        <div class="card">
+            <div class="card-body p-4">
+                <h4 class="fw-bold mb-4 text-primary-deep d-flex align-items-center gap-2">
+                    <i class="la la-history"></i> سجل السحوبات المالية
                 </h4>
                 
                 <div class="table-responsive">
@@ -306,44 +205,36 @@
                         <thead>
                             <tr>
                                 <th style="width: 60px;">#</th>
-                                <th style="width: 120px;">التاريخ</th>
+                                <th style="width: 150px;">التاريخ</th>
                                 <th style="width: 150px;">المبلغ</th>
-                                <th style="min-width: 200px;">ملاحظات</th>
+                                <th>ملاحظات</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($entry->cashWithdraws as $withdraw)
                                 <tr>
-                                    <td style="text-align: center; font-weight: 600; color: #6f6af8;">{{ $loop->iteration }}</td>
-                                    <td style="text-align: center; color: #1f2937;">{{ $withdraw->created_at->format('Y-m-d') }}</td>
-                                    <td style="text-align: center; font-weight: 600; color: #1f2937;">₪ {{ number_format($withdraw->total_amount, 2) }}</td>
-                                    <td style="text-align: right; padding-right: 1.5rem; word-wrap: break-word; max-width: 400px; white-space: normal; line-height: 1.6;">
-                                        @if($withdraw->notes && trim($withdraw->notes) !== '')
-                                            <span style="color: #1f2937;">{{ $withdraw->notes }}</span>
-                                        @else
-                                            <span style="color: #9ca3af; font-style: italic;">-</span>
-                                        @endif
-                                    </td>
+                                    <td class="text-center text-primary-deep fw-bold">{{ $loop->iteration }}</td>
+                                    <td class="text-center">{{ $withdraw->created_at->format('Y-m-d') }}</td>
+                                    <td class="text-center fw-bold">₪ {{ number_format($withdraw->total_amount, 2) }}</td>
+                                    <td class="text-right">{{ $withdraw->notes ?: '-' }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="text-center" style="padding: 3rem 1rem; color: #6b7280;">
-                                        <i class="la la-inbox" style="font-size: 48px; color: #d1d5db; margin-bottom: 1rem; display: block;"></i>
-                                        <p style="margin: 0; font-size: 16px; font-family: 'Cairo', sans-serif;">لا توجد سحوبات</p>
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        <i class="la la-inbox d-block mb-2" style="font-size: 40px;"></i>
+                                        لا توجد سحوبات مسجلة
                                     </td>
                                 </tr>
                             @endforelse
                         </tbody>
-                        
                         @if($entry->cashWithdraws->count())
                             <tfoot>
                                 <tr>
-                                    <td colspan="3" style="text-align: left; padding-right: 1rem;">
-                                        <strong style="font-size: 16px; color: #1f2937;">إجمالي السحوبات</strong>
-                                    </td>
-                                    <td style="font-weight: 700; color: #1f2937; font-size: 18px; text-align: center;">
+                                    <td colspan="2" class="text-start fw-bold">إجمالي السحوبات</td>
+                                    <td class="text-center fw-bold text-primary-deep" style="font-size: 18px;">
                                         ₪ {{ number_format($entry->cashWithdraws->sum('total_amount'), 2) }}
                                     </td>
+                                    <td></td>
                                 </tr>
                             </tfoot>
                         @endif
@@ -351,7 +242,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 @endsection

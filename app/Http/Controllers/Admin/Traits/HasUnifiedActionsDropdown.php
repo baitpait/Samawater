@@ -45,7 +45,7 @@ trait HasUnifiedActionsDropdown
                 
                 return '
                 <div class="btn-group unified-actions-dropdown dropdown" style="position: relative;">
-                    <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                         <i class="la la-cog"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">

@@ -1,1549 +1,414 @@
 /**
  * ============================================
- * Unified Forms Design System
- * توحيد تصميم النماذج في جميع أنحاء النظام
+ * Sama Water - Unified Visual Identity v2.0
+ * الهوية البصرية الموحدة لشركة مياه سما
  * ============================================
- * 
- * الألوان الأساسية:
- * - البنفسجي: #6f6af8, #7c7cff
- * - الأخضر: #34d399, #22c55e
  */
 
-/* ============================================
-   Filter Cards (بطاقات الفلاتر)
-   ============================================ */
-.filter-card {
-    background: #fcfdff;
-    border-radius: 20px;
-    border: none;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
-    margin-bottom: 1.5rem;
-    overflow: hidden;
+/* استيراد خط Cairo */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
+
+:root {
+    --primary-deep: #1e3a5f;
+    --primary-light: #1e3a5f;
+    --primary-gradient: #1e3a5f;
+    --success-gradient: #059669;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --bg-light: #f8fafc;
+    --card-radius: 16px;
+    --input-radius: 12px;
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-.filter-card .card-body {
-    padding: 1.5rem;
+/* الإعدادات العامة للخط */
+body, h1, h2, h3, h4, h5, h6, p, span, a, button, input, select, textarea, .btn, .form-control {
+    font-family: 'Cairo', sans-serif !important;
 }
 
-/* ============================================
-   Form Labels (تسميات الحقول)
-   ============================================ */
-.form-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #55607b;
-    margin-bottom: 8px;
-    display: block;
-    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.form-label.required::after {
-    content: ' *';
-    color: #ef4444;
+body {
+    background-color: var(--bg-light) !important;
+    color: #334155;
 }
 
 /* ============================================
-   Form Controls (حقول الإدخال)
+   Sidebar - القائمة الجانبية الملكية
    ============================================ */
-.form-control,
-.form-select,
-.modern-input,
-.modern-select {
-    width: 100%;
-    height: 46px;
-    border-radius: 20px;
-    font-size: 13px;
-    background: #f7f9ff;
-    border: 1px solid #e2e8ff;
-    padding: 0 18px;
-    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    transition: all 0.2s ease;
-    color: #1f2937;
-}
-
-.form-control::placeholder,
-.form-select::placeholder {
-    color: #9ca3af;
-    opacity: 0.7;
-}
-
-/* Focus State (حالة التركيز) */
-.form-control:focus,
-.form-select:focus,
-.modern-input:focus,
-.modern-select:focus {
-    background: #fff;
-    border-color: #7b7bff;
-    box-shadow: 0 0 0 3px rgba(123, 123, 255, 0.15);
-    outline: none;
-}
-
-/* Disabled State (حالة التعطيل) */
-.form-control:disabled,
-.form-select:disabled,
-.modern-input:disabled,
-.modern-select:disabled {
-    background: #f3f4f6;
-    border-color: #e5e7eb;
-    color: #9ca3af;
-    cursor: not-allowed;
-}
-
-/* Error State (حالة الخطأ) */
-.form-control.is-invalid,
-.form-select.is-invalid,
-.modern-input.is-invalid,
-.modern-select.is-invalid {
-    border-color: #ef4444;
-    background: #fef2f2;
-}
-
-.form-control.is-invalid:focus,
-.form-select.is-invalid:focus,
-.modern-input.is-invalid:focus,
-.modern-select.is-invalid:focus {
-    border-color: #ef4444;
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
-}
-
-/* Success State (حالة النجاح) */
-.form-control.is-valid,
-.form-select.is-valid,
-.modern-input.is-valid,
-.modern-select.is-valid {
-    border-color: #22c55e;
-    background: #f0fdf4;
-}
-
-/* ============================================
-   Textarea (حقول النص الطويلة)
-   ============================================ */
-textarea.form-control,
-textarea.modern-input {
-    min-height: 100px;
-    padding: 12px 18px;
-    resize: vertical;
-}
-
-/* ============================================
-   Buttons (الأزرار)
-   ============================================ */
-
-/* Primary Button - Purple (الزر الأساسي - بنفسجي) */
-.btn-show-results,
-.btn-primary-unified {
-    height: 46px;
-    border-radius: 23px;
-    background: linear-gradient(135deg, #6f6af8, #7c7cff);
-    color: #fff;
-    border: none;
-    font-weight: 700;
-    font-size: 14px;
-    box-shadow: 0 14px 30px rgba(124, 124, 255, 0.4);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    padding: 0 24px;
-}
-
-.btn-show-results:hover,
-.btn-primary-unified:hover {
-    color: #fff;
-    transform: translateY(-1px);
-    box-shadow: 0 20px 40px rgba(124, 124, 255, 0.5);
-}
-
-.btn-show-results:active,
-.btn-primary-unified:active {
-    transform: translateY(0);
-    box-shadow: 0 10px 20px rgba(124, 124, 255, 0.3);
-}
-
-/* Secondary Button - Green (الزر الثانوي - أخضر) */
-.btn-success-unified,
-.btn-green-unified {
-    height: 46px;
-    border-radius: 23px;
-    background: linear-gradient(135deg, #34d399, #22c55e);
-    color: #fff;
-    border: none;
-    font-weight: 700;
-    font-size: 14px;
-    box-shadow: 0 14px 30px rgba(34, 197, 94, 0.4);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    padding: 0 24px;
-}
-
-.btn-success-unified:hover,
-.btn-green-unified:hover {
-    color: #fff;
-    transform: translateY(-1px);
-    box-shadow: 0 20px 40px rgba(34, 197, 94, 0.5);
-}
-
-/* Reset/Cancel Button (زر الإلغاء) */
-.btn-reset,
-.btn-cancel-unified {
-    height: 46px;
-    border-radius: 23px;
-    background: #f3f4f6;
-    color: #6b7280;
-    border: 1px solid #e5e7eb;
-    font-weight: 600;
-    font-size: 14px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    padding: 0 24px;
-}
-
-.btn-reset:hover,
-.btn-cancel-unified:hover {
-    background: #e5e7eb;
-    color: #374151;
-    transform: translateY(-1px);
-}
-
-/* ============================================
-   Form Groups (مجموعات الحقول)
-   ============================================ */
-.form-group {
-    margin-bottom: 1.25rem;
-}
-
-.form-group:last-child {
-    margin-bottom: 0;
-}
-
-/* ============================================
-   Input Groups (مجموعات الإدخال)
-   ============================================ */
-.input-group {
-    display: flex;
-    align-items: stretch;
-}
-
-.input-group .form-control,
-.input-group .form-select {
-    border-radius: 20px 0 0 20px;
-}
-
-.input-group .input-group-text {
-    background: #f7f9ff;
-    border: 1px solid #e2e8ff;
-    border-left: none;
-    border-radius: 0 20px 20px 0;
-    padding: 0 18px;
-    display: flex;
-    align-items: center;
-    color: #6b7280;
-}
-
-/* ============================================
-   Checkboxes & Radio Buttons
-   ============================================ */
-.form-check {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 0.75rem;
-}
-
-.form-check-input {
-    width: 20px;
-    height: 20px;
-    border-radius: 6px;
-    border: 2px solid #e2e8ff;
-    background: #f7f9ff;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.form-check-input:checked {
-    background: linear-gradient(135deg, #6f6af8, #7c7cff);
-    border-color: #7c7cff;
-}
-
-.form-check-input:focus {
-    box-shadow: 0 0 0 3px rgba(123, 123, 255, 0.15);
-}
-
-.form-check-label {
-    font-size: 13px;
-    font-weight: 500;
-    color: #374151;
-    cursor: pointer;
-    margin-bottom: 0;
-}
-
-/* ============================================
-   Help Text (نص المساعدة)
-   ============================================ */
-.form-text,
-.help-text {
-    font-size: 12px;
-    color: #6b7280;
-    margin-top: 6px;
-    display: block;
-}
-
-.form-text.error-text {
-    color: #ef4444;
-}
-
-.form-text.success-text {
-    color: #22c55e;
-}
-
-/* ============================================
-   Form Rows (صفوف النماذج)
-   ============================================ */
-.form-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.form-row:last-child {
-    margin-bottom: 0;
-}
-
-/* ============================================
-   Responsive Design (التصميم المتجاوب)
-   ============================================ */
-@media (max-width: 768px) {
-    .form-control,
-    .form-select,
-    .modern-input,
-    .modern-select {
-        height: 42px;
-        font-size: 14px;
-        border-radius: 16px;
-    }
-
-    .btn-show-results,
-    .btn-primary-unified,
-    .btn-success-unified,
-    .btn-green-unified,
-    .btn-reset,
-    .btn-cancel-unified {
-        height: 42px;
-        font-size: 14px;
-        border-radius: 21px;
-    }
-
-    .filter-card .card-body {
-        padding: 1rem;
-    }
-
-    .form-label {
-        font-size: 14px;
-    }
-}
-
-@media (max-width: 576px) {
-    .form-control,
-    .form-select,
-    .modern-input,
-    .modern-select {
-        height: 40px;
-        font-size: 14px;
-        padding: 0 14px;
-    }
-
-    .btn-show-results,
-    .btn-primary-unified,
-    .btn-success-unified,
-    .btn-green-unified {
-        width: 100%;
-    }
-}
-
-/* ============================================
-   Form Validation Messages
-   ============================================ */
-.invalid-feedback {
-    display: block;
-    font-size: 12px;
-    color: #ef4444;
-    margin-top: 6px;
-}
-
-.valid-feedback {
-    display: block;
-    font-size: 12px;
-    color: #22c55e;
-    margin-top: 6px;
-}
-
-/* ============================================
-   Loading State (حالة التحميل)
-   ============================================ */
-.form-control.loading,
-.form-select.loading {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'%3E%3Cpath fill='%236f6af8' d='M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z' opacity='.3'/%3E%3Cpath fill='%236f6af8' d='M12 2a10 10 0 0 1 10 10h-2a8 8 0 0 0-8-8V2z'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 18px center;
-    background-size: 20px 20px;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* ============================================
-   Special Input Types
-   ============================================ */
-
-/* Date Inputs */
-input[type="date"],
-input[type="datetime-local"],
-input[type="time"] {
-    position: relative;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="datetime-local"]::-webkit-calendar-picker-indicator,
-input[type="time"]::-webkit-calendar-picker-indicator {
-    cursor: pointer;
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator:hover,
-input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
-input[type="time"]::-webkit-calendar-picker-indicator:hover {
-    opacity: 1;
-}
-
-/* Number Inputs */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-    opacity: 0.6;
-    cursor: pointer;
-}
-
-/* File Inputs */
-input[type="file"] {
-    padding: 8px;
-}
-
-input[type="file"]::file-selector-button {
-    background: linear-gradient(135deg, #6f6af8, #7c7cff);
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    padding: 8px 16px;
-    margin-right: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-input[type="file"]::file-selector-button:hover {
-    background: linear-gradient(135deg, #7c7cff, #8b8cff);
-}
-
-/* ============================================
-   Form Sections (أقسام النماذج)
-   ============================================ */
-.form-section {
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.form-section:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-
-.form-section-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.form-section-description {
-    font-size: 13px;
-    color: #6b7280;
-    margin-bottom: 1.25rem;
-}
-
-/* ============================================
-   Page Headers (رؤوس الصفحات)
-   ============================================ */
-.page-header {
-    background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%);
-    border-radius: 20px;
-    padding: 1.5rem 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 10px 30px rgba(111, 106, 248, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.page-header::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    animation: pulse 3s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 0.5;
-    }
-    50% {
-        opacity: 0.8;
-    }
-}
-
-.page-header-content {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.page-header-left {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex: 1;
-}
-
-.page-header-icon {
-    width: 56px;
-    height: 56px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: #fff;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-}
-
-.page-header-title {
-    color: #fff;
-    font-size: 24px;
-    font-weight: 700;
-    margin: 0;
-    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.page-header-subtitle {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 14px;
-    margin: 0;
-    margin-top: 4px;
-    font-weight: 500;
-}
-
-.page-header-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-}
-
-.page-header-actions .btn {
-    height: 42px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 13px;
-    padding: 0 18px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease;
-    border: none;
-}
-
-.page-header-actions .btn-success {
-    background: rgba(34, 197, 94, 0.2);
-    color: #fff;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.page-header-actions .btn-success:hover {
-    background: rgba(34, 197, 94, 0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
-}
-
-.page-header-actions .btn-danger {
-    background: rgba(239, 68, 68, 0.2);
-    color: #fff;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.page-header-actions .btn-danger:hover {
-    background: rgba(239, 68, 68, 0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
-}
-
-.page-header-actions .btn-primary,
-.page-header-actions .btn-quick-green {
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.page-header-actions .btn-primary:hover,
-.page-header-actions .btn-quick-green:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.2);
-}
-
-/* Page Header Variants (أنواع مختلفة من الرؤوس) */
-.page-header-green {
-    background: linear-gradient(135deg, #34d399 0%, #22c55e 100%);
-    box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);
-}
-
-.page-header-green::before {
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .page-header {
-        padding: 1.25rem 1.5rem;
-        border-radius: 16px;
-    }
-
-    .page-header-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 20px;
-    }
-
-    .page-header-title {
-        font-size: 20px;
-    }
-
-    .page-header-subtitle {
-        font-size: 13px;
-    }
-
-    .page-header-actions {
-        width: 100%;
-        justify-content: flex-start;
-    }
-
-    .page-header-actions .btn {
-        flex: 1;
-        min-width: auto;
-    }
-}
-
-@media (max-width: 576px) {
-    .page-header {
-        padding: 1rem;
-    }
-
-    .page-header-left {
-        width: 100%;
-    }
-
-    .page-header-title {
-        font-size: 18px;
-    }
-
-    .page-header-actions .btn {
-        font-size: 12px;
-        padding: 0 12px;
-    }
-}
-
-/* ============================================
-   Action Dropdown Menu (قائمة الإجراءات)
-   ============================================ */
-.btn-group .btn-primary.dropdown-toggle {
-    background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%) !important;
+.sidebar {
+    background: var(--primary-deep) !important;
     border: none !important;
-    border-radius: 12px !important;
-    padding: 8px 16px !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    color: #fff !important;
-    box-shadow: 0 4px 15px rgba(111, 106, 248, 0.3) !important;
-    transition: all 0.2s ease !important;
-    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    height: 36px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
+    box-shadow: var(--shadow-lg) !important;
+    width: 280px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    z-index: 1050 !important;
 }
 
-.btn-group .btn-primary.dropdown-toggle:hover,
-.btn-group .btn-primary.dropdown-toggle:focus {
-    background: linear-gradient(135deg, #7c7cff 0%, #8b8cff 100%) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 6px 20px rgba(111, 106, 248, 0.4) !important;
-}
-
-.btn-group .btn-primary.dropdown-toggle:active {
-    transform: translateY(0) !important;
-    box-shadow: 0 2px 10px rgba(111, 106, 248, 0.3) !important;
-}
-
-/* Dropdown Menu */
-.dropdown-menu {
-    border: none !important;
-    border-radius: 16px !important;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
-    padding: 8px !important;
-    margin-top: 8px !important;
-    background: #fff !important;
-    min-width: 180px !important;
-    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-}
-
-.dropdown-menu-right {
-    right: 0 !important;
-    left: auto !important;
-}
-
-/* Dropdown Items */
-.dropdown-item {
-    padding: 10px 16px !important;
-    border-radius: 10px !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    color: #374151 !important;
-    transition: all 0.2s ease !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important;
-    margin-bottom: 4px !important;
-}
-
-.dropdown-item:last-child {
-    margin-bottom: 0 !important;
-}
-
-.dropdown-item:hover {
-    background: linear-gradient(135deg, rgba(111, 106, 248, 0.1) 0%, rgba(124, 124, 255, 0.1) 100%) !important;
-    color: #6f6af8 !important;
-    transform: translateX(-2px) !important;
-}
-
-.dropdown-item:active {
-    background: linear-gradient(135deg, rgba(111, 106, 248, 0.15) 0%, rgba(124, 124, 255, 0.15) 100%) !important;
-    color: #6f6af8 !important;
-}
-
-/* Dropdown Item Icons */
-.dropdown-item i {
-    font-size: 16px !important;
-    width: 20px !important;
-    text-align: center !important;
-    color: inherit !important;
-}
-
-/* Dropdown Divider */
-.dropdown-divider {
-    margin: 8px 0 !important;
-    border-top: 1px solid #e5e7eb !important;
-    opacity: 0.5 !important;
-}
-
-/* Danger Dropdown Item */
-.dropdown-item.text-danger {
-    color: #ef4444 !important;
-}
-
-.dropdown-item.text-danger:hover {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.1) 100%) !important;
-    color: #dc2626 !important;
-}
-
-.dropdown-item.text-danger:active {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.15) 100%) !important;
-}
-
-/* Special Delivery Item */
-.dropdown-item[href*="delivery/create"],
-.dropdown-item[href*="delivery/create"] i {
-    color: #22c55e !important;
-}
-
-.dropdown-item[href*="delivery/create"]:hover {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.1) 100%) !important;
-    color: #16a34a !important;
-}
-
-.dropdown-item[href*="delivery/create"]:hover i {
-    color: #16a34a !important;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .btn-group .btn-primary.dropdown-toggle {
-        font-size: 12px !important;
-        padding: 6px 12px !important;
-        height: 32px !important;
+/* Responsive Sidebar */
+@media (max-width: 991.98px) {
+    .sidebar {
+        margin-right: -280px !important; /* Hide off-screen by default on mobile */
+        position: fixed !important;
+        height: 100% !important;
     }
     
-    .dropdown-menu {
-        min-width: 160px !important;
-        font-size: 12px !important;
+    body.sidebar-show .sidebar {
+        margin-right: 0 !important; /* Show when body has sidebar-show class */
+    }
+
+    /* Overlay when sidebar is open on mobile */
+    body.sidebar-show::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+        backdrop-filter: blur(2px);
+    }
+
+    .app-body {
+        margin-right: 0 !important;
+    }
+}
+
+/* Ensure main content takes full width on mobile */
+@media (max-width: 991.98px) {
+    .main {
+        margin-right: 0 !important;
+        width: 100% !important;
     }
     
-    .dropdown-item {
-        padding: 8px 12px !important;
-        font-size: 12px !important;
+    [dir="rtl"] .app-body {
+        margin-right: 0 !important;
     }
 }
 
-/* ============================================
-   Sidebar Menu (القائمة الجانبية)
-   ============================================ */
-
-/* ============================================
-   Sidebar - Simple Fixed Design
-   تصميم Sidebar بسيط وثابت
-   ============================================ */
-
-/* Sidebar Container - Fixed Width - Zero Gaps */
-body .sidebar,
-body .sidebar.sidebar-fixed,
-body .navbar-vertical,
-body aside,
-body aside.sidebar,
-body .sidebar.sidebar-pills,
-.sidebar.sidebar-pills {
-    width: 270px !important;
-    background: linear-gradient(180deg, #1e3a5f 0%, #1a2f4a 100%) !important;
-    box-shadow: none !important;
-    border: none !important;
-    border-right: none !important;
-    border-left: none !important;
-    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    color: #ffffff !important;
-    transition: transform 0.3s ease !important;
-    position: fixed !important;
-    top: 0 !important;
-    bottom: 0 !important;
-    height: 100vh !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    z-index: 1000 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-}
-
-/* Custom Scrollbar for Sidebar - No Gap, Sticky to Edge */
-.sidebar::-webkit-scrollbar {
-    width: 6px !important;
-}
-
-.sidebar::-webkit-scrollbar-track {
-    background: transparent !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-}
-
-.sidebar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2) !important;
-    border-radius: 3px 0 0 3px !important;
-    transition: background 0.2s ease !important;
-    margin: 4px 0 !important;
-}
-
-[dir="rtl"] .sidebar::-webkit-scrollbar-thumb {
-    border-radius: 0 3px 3px 0 !important;
-}
-
-.sidebar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.35) !important;
-}
-
-/* Firefox Scrollbar */
-.sidebar {
-    scrollbar-width: thin !important;
-    scrollbar-color: rgba(255, 255, 255, 0.2) transparent !important;
-}
-
-/* Ensure no gap between scrollbar and content */
-.sidebar * {
-    box-sizing: border-box !important;
-}
-
-/* Remove all default spacing from sidebar elements */
-.sidebar ul,
-.sidebar ol,
-.sidebar li {
-    margin: 0 !important;
-    padding: 0 !important;
-    list-style: none !important;
-}
-
-/* Ensure nav items have no extra spacing */
-.sidebar .nav-item:first-child {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-}
-
-.sidebar .nav-item:last-child {
-    margin-bottom: 0 !important;
-    padding-bottom: 0 !important;
-}
-
-/* Remove gap between scrollbar and sidebar edge */
-.sidebar {
-    padding-right: 0 !important;
-    padding-left: 0 !important;
-}
-
-[dir="rtl"] .sidebar {
-    padding-right: 0 !important;
-}
-
-[dir="ltr"] .sidebar {
-    padding-left: 0 !important;
-}
-
-/* RTL Support - Sidebar Position */
-[dir="rtl"] .sidebar,
-[dir="rtl"] body .sidebar {
-    right: 0 !important;
-    left: auto !important;
-}
-
-[dir="ltr"] .sidebar,
-[dir="ltr"] body .sidebar {
-    left: 0 !important;
-    right: auto !important;
-}
-
-/* Sidebar Closed State - Hide Completely */
-body.sidebar-closed .sidebar,
-body.sidebar-closed aside.sidebar,
-body.sidebar-closed .sidebar.sidebar-fixed,
-body.sidebar-closed .sidebar.sidebar-pills {
-    transform: translateX(100%) !important;
-}
-
-[dir="rtl"] body.sidebar-closed .sidebar,
-[dir="rtl"] body.sidebar-closed aside.sidebar,
-[dir="rtl"] body.sidebar-closed .sidebar.sidebar-fixed,
-[dir="rtl"] body.sidebar-closed .sidebar.sidebar-pills {
-    transform: translateX(-100%) !important;
-}
-
-/* Sidebar Nav Container - No Padding/Margin */
-body .sidebar .nav,
-body .sidebar .navbar-nav,
-body aside .nav,
-body aside .navbar-nav,
-.sidebar .nav,
-.sidebar .navbar-nav,
-.sidebar .sidebar-nav,
-.sidebar ul,
-.sidebar ul.nav,
-.sidebar ul.navbar-nav {
-    padding: 0 !important;
-    margin: 0 !important;
-    list-style: none !important;
-    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-}
-
-/* Sidebar Brand/Header - Updated for Dark */
-body .sidebar .sidebar-brand,
-body .sidebar .sidebar-header,
-.sidebar .sidebar-brand,
-.sidebar .sidebar-header {
-    padding: 1.5rem 1.25rem !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    position: relative !important;
-}
-
-/* Sidebar Nav - Minimal padding for toggle button - No Gaps */
-.sidebar .sidebar-nav,
-.sidebar .nav,
-.sidebar .navbar-nav {
-    padding-top: 0.5rem !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    padding-bottom: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-}
-
-body .sidebar .sidebar-brand .sidebar-brand-full,
-body .sidebar .sidebar-header .sidebar-logo-text,
-.sidebar .sidebar-brand .sidebar-brand-full,
-.sidebar .sidebar-header .sidebar-logo-text {
-    color: #ffffff !important;
-    font-size: 18px !important;
-    font-weight: 700 !important;
-    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-}
-
-/* Sidebar Logo */
-.sidebar-logo-wrapper {
-    padding: 1.5rem !important;
-    text-align: center !important;
-    border-bottom: 1px solid #e5e7eb !important;
-    margin-bottom: 1rem !important;
-}
-
-.sidebar-logo {
-    max-width: 120px !important;
-    height: auto !important;
-    display: block !important;
-    margin: 0 auto !important;
-}
-
-.sidebar-logo-link {
-    display: block !important;
-    text-decoration: none !important;
-}
-
-/* Nav Items - High Specificity - No Extra Margins */
-body .sidebar .nav-item,
-body aside .nav-item,
-.sidebar .nav-item,
-.nav-item {
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* Nav Links - High Specificity to Override CoreUI - No Extra Margins */
-body .sidebar .nav-link,
-body .sidebar .navbar-nav .nav-link,
-body aside .nav-link,
-body aside .navbar-nav .nav-link,
-.sidebar .nav-link,
-.sidebar .navbar-nav .nav-link,
-.sidebar.sidebar-pills .nav-link,
-.nav-link {
-    padding: 12px 20px !important;
-    color: rgba(255, 255, 255, 0.85) !important;
-    font-size: 14px !important;
-    font-weight: 500 !important;
-    border-radius: 8px !important;
-    margin: 0 12px 4px 12px !important;
-    transition: all 0.2s ease !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    box-sizing: border-box !important;
-}
-
-/* Nav Link Hover - High Specificity */
-body .sidebar .nav-link:hover,
-body .sidebar .navbar-nav .nav-link:hover,
-body aside .nav-link:hover,
-body aside .navbar-nav .nav-link:hover,
-.sidebar .nav-link:hover,
-.sidebar .navbar-nav .nav-link:hover,
-.sidebar.sidebar-pills .nav-link:hover,
-.nav-link:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: #ffffff !important;
-    transform: translateX(-4px) !important;
-}
-
-/* Nav Link Active - High Specificity */
-body .sidebar .nav-link.active,
-body .sidebar .nav-link[aria-current="page"],
-body .sidebar .navbar-nav .nav-link.active,
-body .sidebar .navbar-nav .nav-link[aria-current="page"],
-body aside .nav-link.active,
-body aside .nav-link[aria-current="page"],
-.sidebar .nav-link.active,
-.sidebar .nav-link[aria-current="page"],
-.sidebar.sidebar-pills .nav-link.active,
-.nav-link.active,
-.nav-link[aria-current="page"] {
-    background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%) !important;
-    color: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(111, 106, 248, 0.4) !important;
-}
-
-body .sidebar .nav-link.active:hover,
-body .sidebar .nav-link[aria-current="page"]:hover,
-body .sidebar .navbar-nav .nav-link.active:hover,
-body .sidebar .navbar-nav .nav-link[aria-current="page"]:hover,
-body aside .nav-link.active:hover,
-body aside .nav-link[aria-current="page"]:hover,
-.sidebar .nav-link.active:hover,
-.sidebar .nav-link[aria-current="page"]:hover,
-.sidebar.sidebar-pills .nav-link.active:hover,
-.nav-link.active:hover,
-.nav-link[aria-current="page"]:hover {
-    background: linear-gradient(135deg, #5b56d6 0%, #6b6be8 100%) !important;
-    transform: translateX(-4px) !important;
-}
-
-/* Nav Icons - High Specificity */
-body .sidebar .nav-link i,
-body .sidebar .nav-link .nav-icon,
-body .sidebar .nav-link .la,
-body aside .nav-link i,
-body aside .nav-link .nav-icon,
-body aside .nav-link .la,
-.sidebar .nav-link i,
-.sidebar .nav-link .nav-icon,
-.sidebar .nav-link .la,
-.nav-link i,
-.nav-link .nav-icon,
-.nav-link .la {
-    font-size: 18px !important;
-    width: 24px !important;
-    text-align: center !important;
-    color: inherit !important;
-}
-
-/* Sidebar Divider - Removed duplicate, see below */
-
-/* Dropdown Menu in Sidebar */
-.sidebar .nav-dropdown,
-.sidebar .dropdown-menu {
-    background: #f9fafb !important;
-    border: none !important;
-    border-radius: 12px !important;
-    margin: 4px 8px !important;
-    padding: 8px !important;
-    box-shadow: none !important;
-}
-
-.sidebar .nav-dropdown .nav-link {
-    padding: 10px 16px !important;
-    margin: 2px 0 !important;
-    font-size: 13px !important;
-}
-
-.sidebar .nav-dropdown .nav-link:hover {
-    background: rgba(111, 106, 248, 0.1) !important;
-    color: #6f6af8 !important;
-}
-
-/* RTL Support */
-[dir="rtl"] .nav-link:hover {
-    transform: translateX(4px) !important;
-}
-
-[dir="rtl"] .nav-link.active:hover,
-[dir="rtl"] .nav-link[aria-current="page"]:hover {
-    transform: translateX(4px) !important;
-}
-
-/* Sidebar Search Bar */
-.sidebar-search {
-    padding: 1rem 1.25rem !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-.sidebar-search-input {
-    width: 100% !important;
-    padding: 10px 16px 10px 40px !important;
-    background: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 8px !important;
-    color: #ffffff !important;
-    font-size: 14px !important;
-    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    transition: all 0.2s ease !important;
-}
-
-.sidebar-search-input::placeholder {
-    color: rgba(255, 255, 255, 0.6) !important;
-}
-
-.sidebar-search-input:focus {
-    background: rgba(255, 255, 255, 0.15) !important;
-    border-color: rgba(111, 106, 248, 0.5) !important;
-    outline: none !important;
-    box-shadow: 0 0 0 3px rgba(111, 106, 248, 0.1) !important;
-}
-
-.sidebar-search-wrapper {
-    position: relative !important;
-}
-
-.sidebar-search-icon {
-    position: absolute !important;
-    right: 12px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    color: rgba(255, 255, 255, 0.6) !important;
-    font-size: 16px !important;
-}
-
-/* ============================================
-   Header - Hidden (Each page has its own header)
-   ============================================ */
-
-/* Hide Global Header - Each page has its own header */
-header.app-header,
-header.navbar,
+/* Hide Default Header completely as requested */
+header.app-header, 
 .app-header {
     display: none !important;
     visibility: hidden !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
 }
 
-/* ============================================
-   Sidebar Toggle Button - Hidden
-   ============================================ */
-
-/* Hide all toggle buttons */
-button[data-toggle="sidebar-show"],
-button[data-toggle="sidebar-lg-show"],
-.sidebar-toggler,
-.navbar-toggler.sidebar-toggler,
-.sidebar-toggle-btn,
-#sidebarToggle {
-    display: none !important;
-    visibility: hidden !important;
+/* Custom Mobile Toggle Button - Floating */
+.mobile-sidebar-toggle {
+    display: none;
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 60px;
+    height: 60px;
+    background: var(--primary-deep);
+    color: white !important;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    z-index: 1100;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-/* ============================================
-   Menu Section Labels
-   ============================================ */
-
-.menu-section-label {
-    padding: 20px 20px 10px 20px !important;
-    color: rgba(255, 255, 255, 0.7) !important;
-    font-size: 11px !important;
-    font-weight: 700 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1.2px !important;
-    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    margin: 0 !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
-    list-style: none !important;
-    display: block !important;
+@media (max-width: 991.98px) {
+    .mobile-sidebar-toggle {
+        display: flex;
+    }
 }
 
-.menu-section-label:first-child {
-    border-top: none !important;
-    padding-top: 20px !important;
+.mobile-sidebar-toggle:hover {
+    transform: scale(1.1) rotate(90deg);
 }
 
-.menu-category-arrow {
-    font-size: 12px !important;
-    transition: transform 0.3s ease !important;
+.sidebar .nav-link, 
+.sidebar .nav-link span, 
+.sidebar .nav-link i,
+.sidebar .nav-item,
+.sidebar .nav-title {
+    color: #ffffff !important; /* خط أبيض ناصع لكل العناصر */
+    opacity: 1 !important; /* إلغاء الشفافية ليكون اللون أبيض صريح */
 }
 
-.menu-category-arrow.collapsed {
-    transform: rotate(-90deg) !important;
-}
-
-.menu-category-items {
-    max-height: 1000px !important;
-    overflow: hidden !important;
-    transition: max-height 0.3s ease !important;
-}
-
-.menu-category-items.collapsed {
-    max-height: 0 !important;
-}
-
-/* Sidebar Header */
-.sidebar-header {
-    padding: 1.5rem 1.25rem !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+.sidebar .nav-link {
+    border-radius: 12px !important;
+    margin: 4px 12px !important;
+    padding: 10px 15px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
     display: flex !important;
     align-items: center !important;
-    justify-content: space-between !important;
+    gap: 10px !important;
 }
 
-.sidebar-logo-text {
-    color: #ffffff !important;
-    font-size: 18px !important;
-    font-weight: 700 !important;
-    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-}
-
-/* Nav Icons - Updated for Dark Sidebar */
-body .sidebar .nav-link i,
-body .sidebar .nav-link .nav-icon,
-body .sidebar .nav-link .la,
-body aside .nav-link i,
-body aside .nav-link .nav-icon,
-body aside .nav-link .la,
-.sidebar .nav-link i,
-.sidebar .nav-link .nav-icon,
-.sidebar .nav-link .la,
-.nav-link i,
-.nav-link .nav-icon,
-.nav-link .la {
-    font-size: 18px !important;
-    width: 24px !important;
-    text-align: center !important;
-    color: inherit !important;
-}
-
-/* Sidebar Divider - Updated for Dark */
-.sidebar-divider {
-    height: 1px !important;
+.sidebar .nav-link:hover {
     background: rgba(255, 255, 255, 0.15) !important;
-    margin: 16px 20px !important;
-    border: none !important;
-    list-style: none !important;
-    padding: 0 !important;
+    transform: translateX(-5px) !important;
 }
 
-/* Dropdown Menu in Sidebar - Updated for Dark */
-.sidebar .nav-dropdown,
-.sidebar .dropdown-menu {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: none !important;
-    border-radius: 8px !important;
-    margin: 4px 12px !important;
-    padding: 8px !important;
-    box-shadow: none !important;
+.sidebar .nav-link.active {
+    background: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    font-weight: 700 !important;
 }
 
-.sidebar .nav-dropdown .nav-link {
-    padding: 10px 16px !important;
-    margin: 2px 0 !important;
-    font-size: 13px !important;
-    color: rgba(255, 255, 255, 0.75) !important;
+.sidebar .nav-title {
+    color: rgba(255, 255, 255, 0.5) !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    padding: 25px 25px 10px !important;
+    font-size: 11px !important;
 }
 
-.sidebar .nav-dropdown .nav-link:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: #ffffff !important;
+.sidebar-header {
+    padding: 30px 20px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    margin-bottom: 15px !important;
+}
+
+/* تحسين شكل السكرول بار في المنيو */
+.sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
 }
 
 /* ============================================
-   App Body - Flexbox Layout
+   Page Headers - رؤوس الصفحات الموحدة
    ============================================ */
-
-/* App Body - Flexbox Container */
-.app-body {
-    display: flex !important;
-    flex-direction: row !important;
-    min-height: 100vh !important;
-    transition: margin-right 0.3s ease !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* RTL: Sidebar on Right, Content on Left - Zero Gap */
-[dir="rtl"] .app-body {
-    margin-right: 270px !important;
-    margin-left: 0 !important;
-    padding: 0 !important;
-}
-
-/* LTR: Sidebar on Left, Content on Right - Zero Gap */
-[dir="ltr"] .app-body {
-    margin-left: 270px !important;
-    margin-right: 0 !important;
-    padding: 0 !important;
-}
-
-/* App Body - Sidebar Closed (Content Expands) */
-[dir="rtl"] body.sidebar-closed .app-body,
-[dir="rtl"] .sidebar-closed .app-body {
-    margin-right: 0 !important;
-}
-
-[dir="ltr"] body.sidebar-closed .app-body,
-[dir="ltr"] .sidebar-closed .app-body {
-    margin-left: 0 !important;
-}
-
-/* Main Content Area - Zero Gap with Sidebar */
-.app-body .main {
-    flex: 1 !important;
-    width: 100% !important;
-    transition: all 0.3s ease !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    position: relative !important;
-    z-index: 1 !important;
-    background: #ffffff !important;
-    box-sizing: border-box !important;
-}
-
-/* Remove any gaps in container-fluid */
-.app-body .main .container-fluid {
-    margin: 0 !important;
-    padding: 1.5rem !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-}
-
-/* Ensure no gap between sidebar and main content */
-[dir="rtl"] .app-body .main {
-    margin-right: 0 !important;
-    border-right: none !important;
-    padding-right: 0 !important;
-}
-
-[dir="ltr"] .app-body .main {
-    margin-left: 0 !important;
-    border-left: none !important;
-    padding-left: 0 !important;
-}
-
-/* إزالة أي مساحة أو حدود بين السايدبار والمحتوى */
-[dir="rtl"] .app-body .main .container-fluid {
-    padding-right: 1.5rem !important;
-    padding-left: 1.5rem !important;
-    margin-right: 0 !important;
-    margin-left: 0 !important;
-}
-
-[dir="ltr"] .app-body .main .container-fluid {
-    padding-left: 1.5rem !important;
-    padding-right: 1.5rem !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-}
-
-/* إزالة أي box-shadow أو border من السايدبار */
-body .sidebar::before,
-body .sidebar::after,
-.sidebar::before,
-.sidebar::after {
-    display: none !important;
-    content: none !important;
-}
-
-/* إزالة أي خط عمودي أو border من السايدبار */
-body .sidebar,
-.sidebar {
-    border-right: none !important;
-    border-left: none !important;
-    outline: none !important;
-}
-
-[dir="rtl"] body .sidebar,
-[dir="rtl"] .sidebar {
-    border-right: none !important;
-    border-left: none !important;
-}
-
-[dir="ltr"] body .sidebar,
-[dir="ltr"] .sidebar {
-    border-left: none !important;
-    border-right: none !important;
-}
-
-/* التأكد من أن المحتوى يبدأ من الحافة مباشرة */
-.app-body .main {
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* إزالة أي margin أو padding إضافي من row و col */
-.app-body .main .row,
-.app-body .main .col-md-12,
-.app-body .main .col-12 {
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-}
-
-/* التأكد من أن header يظهر بشكل صحيح */
-section.header-operation-unified {
+section.header-operation,
+section.header-operation.container-fluid,
+.page-header {
+    background: var(--primary-deep) !important; /* لون سادة ملكي */
+    border-radius: 20px !important;
+    padding: 1.5rem 2rem !important;
     margin-bottom: 2rem !important;
-    width: 100% !important;
-    display: block !important;
+    box-shadow: var(--shadow-md) !important;
     position: relative !important;
-    z-index: 1 !important;
+    overflow: visible !important; /* مهم جداً للـ dropdown */
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
-/* إزالة أي مساحة إضافية من العناصر الأساسية */
-body {
-    margin: 0 !important;
-    padding: 0 !important;
+/* إزالة أي تأثيرات نبض أو تدرجات خلفية */
+section.header-operation::before,
+.page-header::before {
+    display: none !important;
 }
 
-/* التأكد من أن المحتوى يبدأ من الحافة مباشرة */
-.app-body .main .container-fluid .row {
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+section.header-operation h1,
+.page-header-title {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
 }
 
-.app-body .main .container-fluid .row > [class*="col-"] {
-    padding-left: 15px !important;
-    padding-right: 15px !important;
+section.header-operation i,
+.page-header-icon {
+    color: #ffffff !important;
+    opacity: 0.9;
 }
 
-/* إزالة أي margin أو padding إضافي من العناصر */
-.app-body .main .container-fluid > *:first-child {
-    margin-top: 0 !important;
+/* تحسين الأزرار داخل الهيدر لتكون متناسقة */
+section.header-operation .btn-primary,
+section.header-operation .btn-success,
+.page-header-actions .btn {
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
-.app-body .main .container-fluid > *:last-child {
-    margin-bottom: 0 !important;
+/* ============================================
+   Main Content Area - مساحة المحتوى الرئيسية
+   ============================================ */
+.main {
+    background-color: var(--bg-light) !important;
+    padding: 20px !important;
+    overflow: visible !important;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .nav-link {
-        padding: 10px 16px !important;
-        font-size: 13px !important;
-    }
-    
-    .nav-link i,
-    .nav-link .nav-icon,
-    .nav-link .la {
-        font-size: 16px !important;
-        width: 20px !important;
-    }
-    
-    .sidebar-toggle-btn {
-        display: block !important;
-    }
+.container-fluid {
+    max-width: 100% !important;
+    overflow: visible !important; 
+}
+
+/* تحسين شكل الفلاتر لتكون متناسقة مع الهوية */
+.filter-card, 
+.navbar-filters {
+    background: #ffffff !important;
+    border-radius: var(--card-radius) !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: var(--shadow-sm) !important;
+    margin-bottom: 25px !important;
+    overflow: visible !important; 
+}
+
+/* تحسين شكل الجداول لتكون عائمة */
+.table-container, 
+.dataTables_wrapper,
+.clients-table-wrapper {
+    background: #ffffff !important;
+    border-radius: var(--card-radius) !important;
+    padding: 25px !important;
+    box-shadow: var(--shadow-md) !important;
+    border: 1px solid #f1f5f9 !important;
+    overflow: visible !important; 
+}
+
+/* توحيد لون خلفية رؤوس الجداول */
+table.dataTable thead tr,
+table.clients-table thead tr {
+    background: var(--primary-deep) !important; /* اللون الموحد */
+}
+
+table.dataTable thead th,
+table.clients-table thead th {
+    background: var(--primary-deep) !important; /* اللون الموحد */
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border: none !important;
+    padding: 15px !important;
+}
+
+/* ============================================
+   Cards & Tables - البطاقات والجداول العائمة
+   ============================================ */
+.card {
+    border: none !important;
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--shadow-sm) !important;
+    transition: box-shadow 0.3s ease;
+    overflow: visible !important; 
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md) !important;
+}
+
+.table-wrapper {
+    background: #fff;
+    border-radius: var(--card-radius);
+    padding: 20px;
+    box-shadow: var(--shadow-md);
+    overflow: visible !important;
+}
+
+table.dataTable tbody td {
+    padding: 12px 15px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    vertical-align: middle !important;
+    overflow: visible !important; 
+}
+
+/* ============================================
+   Forms & Inputs - النماذج وحقول الإدخال
+   ============================================ */
+.form-control, .form-select, .select2-container--bootstrap .select2-selection {
+    border-radius: var(--input-radius) !important;
+    border: 1.5px solid #e2e8f0 !important;
+    padding: 10px 15px !important;
+    height: auto !important;
+    background-color: #fff !important;
+    transition: all 0.2s ease !important;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-deep) !important;
+    box-shadow: 0 0 0 4px rgba(30, 58, 95, 0.1) !important;
+}
+
+label {
+    font-weight: 700 !important;
+    color: var(--primary-deep) !important;
+    margin-bottom: 8px !important;
+}
+
+/* ============================================
+   Buttons - الأزرار العصرية
+   ============================================ */
+.btn {
+    border-radius: 10px !important;
+    padding: 10px 20px !important;
+    font-weight: 700 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-primary {
+    background: var(--primary-deep) !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(30, 58, 95, 0.3) !important;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(30, 58, 95, 0.4) !important;
+    background: #254a7a !important;
+}
+
+.btn-success {
+    background: var(--success-gradient) !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3) !important;
+}
+
+/* ============================================
+   Login Page - صفحة تسجيل الدخول
+   ============================================ */
+.login-page {
+    background: var(--primary-deep) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-box {
+    width: 450px !important;
+}
+
+.login-box .card {
+    padding: 20px !important;
+    box-shadow: var(--shadow-lg) !important;
+    overflow: hidden !important;
+}
+
+/* ============================================
+   Dropdown Fixes - إصلاحات القوائم المنسدلة
+   ============================================ */
+.table-responsive {
+    overflow: visible !important;
+}
+
+.dropdown-menu {
+    z-index: 1060 !important;
+    box-shadow: var(--shadow-lg) !important;
+    border: 1px solid #f1f5f9 !important;
+    border-radius: 12px !important;
+    position: absolute !important;
+    display: none;
+}
+
+.dropdown-menu.show {
+    display: block !important;
+}
+
+/* ضمان عدم اختفاء القائمة خلف الصفوف الأخرى */
+tr:hover {
+    z-index: 50 !important;
+    position: relative !important;
+}
+
+.btn-group.show {
+    z-index: 1000 !important;
+}
+
+/* Fix for Bootstrap 4 dropdowns in table-responsive */
+.table-responsive {
+    position: relative;
 }

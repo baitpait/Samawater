@@ -8,12 +8,12 @@
     
     <style>
         /* ============================================
-           Login Page - Unified Design
+           Login Page - Sama Water Branding
            ============================================ */
         body {
             margin: 0;
-            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            font-family: 'Cairo', sans-serif !important;
+            background: var(--primary-deep) !important;
             min-height: 100vh;
             direction: rtl;
             display: flex;
@@ -29,13 +29,13 @@
             border-radius: 28px;
             display: flex;
             overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
         }
 
         /* القسم الأيسر - Branding */
         .left-panel {
             width: 45%;
-            background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%);
+            background: var(--primary-gradient);
             padding: 60px 40px;
             position: relative;
             text-align: center;
@@ -53,36 +53,33 @@
             right: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-            animation: pulse 3s ease-in-out infinite;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
         }
 
         @keyframes pulse {
-            0%, 100% {
-                opacity: 0.5;
-            }
-            50% {
-                opacity: 0.8;
-            }
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
         }
 
         .left-panel img.logo {
-            width: 180px;
+            width: 220px;
             margin-bottom: 30px;
             position: relative;
             z-index: 1;
-            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.1));
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
         }
 
         .brand-text {
-            font-size: 32px;
-            font-weight: 800;
+            font-size: 36px;
+            font-weight: 900;
             color: #fff;
             margin-top: 20px;
             position: relative;
             z-index: 1;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             font-family: 'Cairo', sans-serif;
+            letter-spacing: 1px;
         }
 
         /* القسم الأيمن - Login Form */
@@ -103,73 +100,77 @@
         .login-header-icon {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%);
-            border-radius: 20px;
+            background: var(--primary-gradient);
+            border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 20px;
-            box-shadow: 0 10px 30px rgba(111, 106, 248, 0.3);
+            box-shadow: 0 15px 35px rgba(111, 106, 248, 0.3);
+            transform: rotate(-5deg);
         }
 
         .login-header-icon i {
             font-size: 36px;
             color: #fff;
             font-weight: 900;
+            transform: rotate(5deg);
         }
 
         .title {
             font-size: 32px;
             font-weight: 800;
             margin-bottom: 10px;
-            color: #1A1A1A;
+            color: var(--primary-deep);
             text-align: center;
             font-family: 'Cairo', sans-serif;
         }
 
         .subtitle {
-            color: #6b7280;
+            color: #64748b;
             margin-bottom: 40px;
             font-size: 16px;
             text-align: center;
             font-family: 'Cairo', sans-serif;
         }
 
-        /* Form Inputs - Unified Design */
+        /* Form Inputs */
         .input-wrapper {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 15px;
             margin-bottom: 28px;
             position: relative;
         }
 
-
         .input-icon-box {
             width: 56px;
             height: 56px;
-            background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%);
+            background: #f1f5f9;
             border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            box-shadow: 0 4px 15px rgba(111, 106, 248, 0.2);
             transition: all 0.3s ease;
+            border: 1.5px solid #e2e8f0;
         }
 
         .input-wrapper:focus-within .input-icon-box {
-            transform: translateY(-2px) scale(1.05);
-            box-shadow: 0 6px 20px rgba(111, 106, 248, 0.3);
+            background: var(--primary-gradient);
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(111, 106, 248, 0.2);
         }
 
         .input-wrapper i {
-            color: #fff;
+            color: #64748b;
             font-size: 22px;
             transition: all 0.3s ease;
         }
 
         .input-wrapper:focus-within i {
+            color: #fff;
             transform: scale(1.1);
         }
 
@@ -177,86 +178,53 @@
         .modern-input {
             flex: 1;
             height: 56px;
-            padding: 0 24px 0 50px;
+            padding: 0 20px;
             border-radius: 16px;
-            background: #f8f9fa;
-            border: 2px solid #e5e7eb;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
             font-size: 16px;
             font-family: 'Cairo', sans-serif;
             transition: all 0.3s ease;
-            color: #1f2937;
-        }
-
-        /* Password Toggle Box - مثل input-icon-box */
-        .password-toggle-box {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            box-shadow: 0 4px 15px rgba(111, 106, 248, 0.2);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .password-toggle-box:hover {
-            transform: translateY(-2px) scale(1.05);
-            box-shadow: 0 6px 20px rgba(111, 106, 248, 0.3);
-        }
-
-        /* Password Toggle Button - داخل البوكس */
-        .password-toggle {
-            background: transparent !important;
-            border: none !important;
-            padding: 0 !important;
-            cursor: pointer !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            width: 100% !important;
-            height: 100% !important;
-            color: #fff !important;
-            transition: all 0.2s ease !important;
-        }
-
-        .password-toggle i {
-            font-size: 22px !important;
-            color: #fff !important;
-            transition: all 0.3s ease !important;
-        }
-
-        .password-toggle-box:hover i {
-            transform: scale(1.1);
-        }
-
-        .password-toggle:active {
-            transform: scale(0.95);
+            color: #1e293b;
         }
 
         .input-box:focus,
         .modern-input:focus {
-            border-color: #6f6af8;
+            border-color: var(--primary-light);
             background: #fff;
             box-shadow: 0 0 0 4px rgba(111, 106, 248, 0.1);
             outline: none;
         }
 
-        .input-box::placeholder,
-        .modern-input::placeholder {
-            color: #9ca3af;
+        /* Password Toggle Box */
+        .password-toggle-box {
+            background: #f1f5f9;
+            cursor: pointer;
         }
 
-        /* Checkbox - Remember Me */
+        .password-toggle {
+            background: transparent !important;
+            border: none !important;
+            width: 100%;
+            height: 100%;
+            color: #64748b;
+        }
+
+        .input-wrapper:focus-within .password-toggle-box {
+            background: var(--primary-gradient);
+        }
+
+        .input-wrapper:focus-within .password-toggle {
+            color: #fff;
+        }
+
+        /* Checkbox */
         .checkbox-wrapper {
             display: flex;
             align-items: center;
             margin-bottom: 30px;
             font-size: 15px;
-            color: #374151;
-            font-family: 'Cairo', sans-serif;
+            color: #475569;
         }
 
         .checkbox-wrapper input[type="checkbox"] {
@@ -264,59 +232,31 @@
             height: 20px;
             margin-left: 10px;
             cursor: pointer;
-            accent-color: #6f6af8;
+            accent-color: var(--primary-light);
         }
 
-        .checkbox-wrapper label {
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        /* Login Button - Unified Design */
-        .btn-login,
+        /* Login Button */
         .btn-login-unified {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            background: var(--success-gradient);
             width: 100%;
             height: 56px;
-            padding: 15px;
             border-radius: 16px;
             color: white;
             border: none;
             font-size: 18px;
             font-weight: 700;
-            font-family: 'Cairo', sans-serif;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
         }
 
-        .btn-login:hover,
         .btn-login-unified:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
-        }
-
-        .btn-login:active,
-        .btn-login-unified:active {
-            transform: translateY(0);
-        }
-
-        /* Error Messages */
-        .alert {
-            border-radius: 12px;
-            padding: 1rem 1.5rem;
-            margin-bottom: 1.5rem;
-            font-family: 'Cairo', sans-serif;
-            border: none;
-        }
-
-        .alert-danger {
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-            color: #991b1b;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
         }
 
         /* Footer */
@@ -324,78 +264,21 @@
             text-align: center;
             margin-top: 40px;
             padding-top: 30px;
-            border-top: 1px solid #e5e7eb;
-            color: #6b7280;
+            border-top: 1px solid #f1f5f9;
+            color: #94a3b8;
             font-size: 14px;
-            font-family: 'Cairo', sans-serif;
         }
 
         .login-footer a {
-            color: #6f6af8;
+            color: var(--primary-light);
             text-decoration: none;
             font-weight: 600;
         }
 
-        .login-footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Hide Backpack default footer */
-        footer.app-footer,
-        .app-footer,
-        footer.sticky-footer,
-        .sticky-footer {
-            display: none !important;
-            visibility: hidden !important;
-        }
-
         /* Responsive */
         @media (max-width: 968px) {
-            .login-wrapper {
-                flex-direction: column;
-                max-width: 500px;
-            }
-
-            .left-panel {
-                width: 100%;
-                padding: 40px 30px;
-            }
-
-            .right-panel {
-                width: 100%;
-                padding: 40px 30px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            body {
-                padding: 1rem;
-            }
-
-            .login-wrapper {
-                border-radius: 20px;
-            }
-
-            .left-panel {
-                padding: 30px 20px;
-            }
-
-            .right-panel {
-                padding: 30px 20px;
-            }
-
-            .title {
-                font-size: 24px;
-            }
-
-            .login-header-icon {
-                width: 64px;
-                height: 64px;
-            }
-
-            .login-header-icon i {
-                font-size: 28px;
-            }
+            .login-wrapper { flex-direction: column; max-width: 500px; }
+            .left-panel, .right-panel { width: 100%; padding: 40px 30px; }
         }
     </style>
 @endsection
@@ -404,25 +287,24 @@
 <div class="login-wrapper">
     <!-- LEFT SIDE - Branding -->
     <div class="left-panel">
-        <img class="logo" src="{{ asset('logo/Logo-2.png') }}" alt="Eleyyaa Logo">
-        <div class="brand-text">لوحة التحكم</div>
+        <img class="logo" src="{{ asset('logo/Logo-2.png') }}" alt="Sama Water Logo">
+        <div class="brand-text">مياه سما</div>
+        <p style="color: rgba(255,255,255,0.8); margin-top: 10px; font-weight: 500;">نقاء يستحق الثقة</p>
     </div>
 
     <!-- RIGHT SIDE - Login Form -->
     <div class="right-panel">
         <div class="login-header">
             <div class="login-header-icon">
-                <i class="la la-lock"></i>
+                <i class="la la-shield-alt"></i>
             </div>
             <div class="title">تسجيل الدخول</div>
-            <div class="subtitle">أدخل بياناتك للوصول إلى لوحة التحكم</div>
+            <div class="subtitle">مرحباً بك مجدداً في نظام مياه سما</div>
         </div>
 
         @if ($errors->any())
-        <div class="alert alert-danger">
-            <i class="la la-exclamation-circle"></i>
-            <strong>حدث خطأ:</strong>
-            <ul class="mb-0 mt-2" style="padding-right: 1.5rem;">
+        <div class="alert alert-danger" style="background: #fef2f2; color: #991b1b; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+            <ul class="mb-0" style="padding-right: 20px;">
                 @foreach ($errors->all() as $error)
                 <li>{{ $error }}</li>
                 @endforeach
@@ -435,11 +317,11 @@
 
             <div class="input-wrapper">
                 <div class="input-icon-box">
-                    <i class="la la-envelope"></i>
+                    <i class="la la-user"></i>
                 </div>
                 <input 
                     type="text" 
-                    class="input-box modern-input" 
+                    class="input-box" 
                     name="{{ $username }}" 
                     placeholder="رقم الهاتف أو البريد الإلكتروني"
                     value="{{ old($username) }}"
@@ -450,18 +332,13 @@
 
             <div class="input-wrapper">
                 <div class="input-icon-box password-toggle-box">
-                    <button 
-                        type="button" 
-                        class="password-toggle" 
-                        id="passwordToggle" 
-                        aria-label="إظهار/إخفاء كلمة المرور"
-                    >
+                    <button type="button" class="password-toggle" id="passwordToggle">
                         <i class="la la-eye" id="passwordToggleIcon"></i>
                     </button>
                 </div>
                 <input 
                     type="password" 
-                    class="input-box modern-input" 
+                    class="input-box" 
                     name="password" 
                     id="password"
                     placeholder="كلمة المرور"
@@ -471,84 +348,32 @@
 
             <div class="checkbox-wrapper">
                 <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-                <label for="remember">تذكرني</label>
+                <label for="remember">تذكرني على هذا الجهاز</label>
             </div>
 
-            <button type="submit" class="btn-login btn-login-unified">
+            <button type="submit" class="btn-login-unified">
                 <i class="la la-sign-in-alt"></i>
-                تسجيل الدخول
+                دخول للنظام
             </button>
         </form>
 
         <div class="login-footer">
-            تم التطوير بواسطة <a href="https://baitpait.com/" target="_blank">بيت البرمجيات وتكنولوجيا المعلومات</a>
+            تم التطوير بواسطة <a href="https://baitpait.com/" target="_blank">بيت البرمجيات</a>
         </div>
     </div>
 </div>
 
 <script>
-    // Password Toggle Functionality - Fast & Smooth
-    (function() {
-        function initPasswordToggle() {
-            const passwordInput = document.getElementById('password');
-            const passwordToggle = document.getElementById('passwordToggle');
-            const passwordToggleIcon = document.getElementById('passwordToggleIcon');
-
-            if (!passwordInput || !passwordToggle || !passwordToggleIcon) {
-                // Retry after a short delay if elements not found
-                setTimeout(initPasswordToggle, 100);
-                return;
-            }
-
-            // Ensure toggle is visible
-            passwordToggle.style.display = 'flex';
-            passwordToggle.style.visibility = 'visible';
-            passwordToggle.style.opacity = '1';
-            passwordToggle.style.zIndex = '100';
-
-            // Fast toggle with smooth animation
-            passwordToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Quick toggle
-                const isPassword = passwordInput.type === 'password';
-                passwordInput.type = isPassword ? 'text' : 'password';
-                
-                // Smooth icon transition
-                if (isPassword) {
-                    passwordToggleIcon.classList.remove('la-eye');
-                    passwordToggleIcon.classList.add('la-eye-slash');
-                    passwordToggle.setAttribute('aria-label', 'إخفاء كلمة المرور');
-                } else {
-                    passwordToggleIcon.classList.remove('la-eye-slash');
-                    passwordToggleIcon.classList.add('la-eye');
-                    passwordToggle.setAttribute('aria-label', 'إظهار كلمة المرور');
-                }
-                
-                // Focus back to input for better UX
-                passwordInput.focus();
-            });
-
-            // Keyboard support (Enter/Space)
-            passwordToggle.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    passwordToggle.click();
-                }
-            });
-
-            // Make toggle focusable
-            passwordToggle.setAttribute('tabindex', '0');
-        }
-
-        // Initialize on DOM ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initPasswordToggle);
+    document.getElementById('passwordToggle').addEventListener('click', function() {
+        const passwordInput = document.getElementById('password');
+        const icon = document.getElementById('passwordToggleIcon');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.replace('la-eye', 'la-eye-slash');
         } else {
-            initPasswordToggle();
+            passwordInput.type = 'password';
+            icon.classList.replace('la-eye-slash', 'la-eye');
         }
-    })();
+    });
 </script>
 @endsection
-

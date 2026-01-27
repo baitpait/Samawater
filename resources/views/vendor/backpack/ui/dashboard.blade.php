@@ -1,13 +1,14 @@
 @extends(backpack_view('blank'))
 
 @section('header')
-    <section class="header-operation container-fluid animated fadeIn d-flex mb-2 align-items-center d-print-none" bp-section="page-header" style="background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%); border-radius: 20px; padding: 1.5rem 2rem; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(111, 106, 248, 0.3); width: 100%; display: flex; align-items: center; justify-content: space-between; position: relative; overflow: visible;">
+    <section class="header-operation container-fluid animated fadeIn d-flex mb-2 align-items-center d-print-none" bp-section="page-header" style="background: var(--primary-deep); border-radius: 20px; padding: 1.5rem 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-md); width: 100%; display: flex; align-items: center; justify-content: space-between; position: relative; overflow: visible;">
         <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 1;">
-            <div style="width: 56px; height: 56px; background: rgba(255, 255, 255, 0.2); border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); display: flex; align-items: center; justify-content: center;">
+            <div style="width: 56px; height: 56px; background: rgba(255, 255, 255, 0.1); border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center;">
                 <i class="la la-home" style="font-size: 28px; color: #fff; font-weight: 900;"></i>
             </div>
             <div>
-                <h1 class="text-capitalize mb-0" bp-section="page-heading" style="color: #fff; font-size: 24px; font-weight: 700; margin: 0; font-family: 'Cairo', sans-serif;">الرئيسية</h1>
+                <h1 class="text-capitalize mb-0" bp-section="page-heading" style="color: #fff; font-size: 24px; font-weight: 700; margin: 0; font-family: 'Cairo', sans-serif;">لوحة التحكم</h1>
+                <p style="color: rgba(255,255,255,0.7); margin: 0; font-size: 14px;">مرحباً بك في نظام مياه سما 💧</p>
             </div>
         </div>
     </section>
@@ -440,21 +441,21 @@
         right: 0;
         width: 4px;
         height: 100%;
-        background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%);
+        background: var(--primary-deep);
         transition: width 0.3s ease;
     }
 
     .stat-card-green::before {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        background: var(--success-gradient);
     }
 
     .dashboard-stat-card:hover {
         transform: translateY(-6px);
-        box-shadow: 0 12px 30px rgba(111, 106, 248, 0.2);
+        box-shadow: var(--shadow-lg) !important;
     }
 
     .stat-card-green:hover {
-        box-shadow: 0 12px 30px rgba(16, 185, 129, 0.2);
+        box-shadow: var(--shadow-lg) !important;
     }
 
     .stat-card-content {
@@ -470,17 +471,16 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 15px rgba(111, 106, 248, 0.25);
+        box-shadow: var(--shadow-sm);
         flex-shrink: 0;
     }
 
     .icon-box-purple {
-        background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%);
+        background: var(--primary-deep);
     }
 
     .icon-box-green {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
+        background: var(--success-gradient);
     }
 
     .stat-icon-box i {
@@ -553,11 +553,11 @@
         width: 40px;
         height: 40px;
         border-radius: 12px;
-        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        background: var(--primary-deep);
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 15px rgba(251, 191, 36, 0.25);
+        box-shadow: var(--shadow-sm);
     }
 
     .table-card-icon i {
@@ -582,19 +582,20 @@
         border-radius: 10px;
         font-weight: 600;
         font-size: 14px;
-        background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%);
+        background: var(--primary-deep);
         color: #fff;
         text-decoration: none;
         transition: all 0.2s ease;
-        box-shadow: 0 2px 8px rgba(111, 106, 248, 0.25);
+        box-shadow: var(--shadow-sm);
         font-family: 'Cairo', sans-serif;
     }
 
     .btn-view-all:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(111, 106, 248, 0.35);
+        box-shadow: var(--shadow-md);
         color: #fff;
         text-decoration: none;
+        background: #254a7a;
     }
 
     .table-card-body {
@@ -661,9 +662,9 @@
         border-radius: 8px;
         font-weight: 600;
         font-size: 12px;
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        background: var(--success-gradient);
         color: #fff;
-        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+        box-shadow: var(--shadow-sm);
     }
 
     .badge-info-custom {
@@ -672,9 +673,9 @@
         border-radius: 8px;
         font-weight: 600;
         font-size: 12px;
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        background: var(--primary-deep);
         color: #fff;
-        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+        box-shadow: var(--shadow-sm);
     }
 
     .badge-balance-positive {
@@ -683,9 +684,9 @@
         border-radius: 8px;
         font-weight: 600;
         font-size: 12px;
-        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        background: var(--primary-deep);
         color: #fff;
-        box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+        box-shadow: var(--shadow-sm);
     }
 
     .badge-balance-negative {
@@ -694,9 +695,9 @@
         border-radius: 8px;
         font-weight: 600;
         font-size: 12px;
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        background: var(--danger-color);
         color: #fff;
-        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+        box-shadow: var(--shadow-sm);
     }
 
     .badge-balance-zero {
@@ -705,9 +706,9 @@
         border-radius: 8px;
         font-weight: 600;
         font-size: 12px;
-        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        background: #64748b;
         color: #fff;
-        box-shadow: 0 2px 8px rgba(107, 114, 128, 0.25);
+        box-shadow: var(--shadow-sm);
     }
 
     .btn-view-client {
@@ -719,11 +720,11 @@
         border-radius: 8px;
         font-weight: 600;
         font-size: 13px;
-        background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%);
+        background: var(--primary-deep);
         color: #fff;
         text-decoration: none;
         transition: all 0.2s ease;
-        box-shadow: 0 2px 8px rgba(111, 106, 248, 0.25);
+        box-shadow: var(--shadow-sm);
         font-family: 'Cairo', sans-serif;
     }
     
@@ -734,9 +735,10 @@
 
     .btn-view-client:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(111, 106, 248, 0.35);
+        box-shadow: var(--shadow-md);
         color: #fff;
         text-decoration: none;
+        background: #254a7a;
     }
 
     .badge-success-custom {
@@ -745,9 +747,9 @@
         border-radius: 8px;
         font-weight: 600;
         font-size: 12px;
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        background: var(--success-gradient);
         color: #fff;
-        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+        box-shadow: var(--shadow-sm);
     }
 
     .badge-info-custom {
@@ -756,9 +758,9 @@
         border-radius: 8px;
         font-weight: 600;
         font-size: 12px;
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        background: var(--primary-deep);
         color: #fff;
-        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+        box-shadow: var(--shadow-sm);
     }
 
     .badge-balance-positive {
@@ -767,9 +769,9 @@
         border-radius: 8px;
         font-weight: 600;
         font-size: 12px;
-        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        background: var(--primary-deep);
         color: #fff;
-        box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+        box-shadow: var(--shadow-sm);
     }
 
     .badge-balance-negative {
@@ -778,9 +780,9 @@
         border-radius: 8px;
         font-weight: 600;
         font-size: 12px;
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        background: var(--danger-color);
         color: #fff;
-        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+        box-shadow: var(--shadow-sm);
     }
 
     .badge-balance-zero {
@@ -789,9 +791,9 @@
         border-radius: 8px;
         font-weight: 600;
         font-size: 12px;
-        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        background: #64748b;
         color: #fff;
-        box-shadow: 0 2px 8px rgba(107, 114, 128, 0.25);
+        box-shadow: var(--shadow-sm);
     }
 
     .btn-view-client {
@@ -803,11 +805,11 @@
         border-radius: 8px;
         font-weight: 600;
         font-size: 13px;
-        background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%);
+        background: var(--primary-deep);
         color: #fff;
         text-decoration: none;
         transition: all 0.2s ease;
-        box-shadow: 0 2px 8px rgba(111, 106, 248, 0.25);
+        box-shadow: var(--shadow-sm);
         font-family: 'Cairo', sans-serif;
     }
     
@@ -818,9 +820,10 @@
 
     .btn-view-client:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(111, 106, 248, 0.35);
+        box-shadow: var(--shadow-md);
         color: #fff;
         text-decoration: none;
+        background: #254a7a;
     }
 
     /* ============================================
@@ -857,11 +860,11 @@
         width: 40px;
         height: 40px;
         border-radius: 12px;
-        background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%);
+        background: var(--primary-deep);
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 15px rgba(111, 106, 248, 0.25);
+        box-shadow: var(--shadow-sm);
     }
 
     .chart-card-icon i {
@@ -933,7 +936,7 @@ new Chart(document.getElementById('overallBottlesChart'), {
         datasets: [{
             label: 'عدد القوارير',
             data: [{{ $overallEmpty }}, {{ $customerBottles }}, {{ $totalSystemBottles }}],
-            backgroundColor: ['#ef4444', '#22c55e', '#7c7cff'],
+            backgroundColor: ['#ef4444', '#059669', '#1e3a5f'],
             borderRadius: 8
         }]
     },
@@ -955,7 +958,7 @@ new Chart(document.getElementById('cityPieChart'), {
         labels: @json($labelsCities),
         datasets: [{
             data: @json($valuesCities),
-            backgroundColor: ['#7c7cff', '#22c55e', '#34d399', '#fbbf24', '#ef4444', '#8b5cf6']
+            backgroundColor: ['#1e3a5f', '#059669', '#34d399', '#fbbf24', '#ef4444', '#64748b']
         }]
     },
     options: {
@@ -998,7 +1001,7 @@ new Chart(document.getElementById('subscriptionStatusChart'), {
         datasets: [{
             label: 'عدد العملاء',
             data: @json(array_column($subscriptionStatusStats, 'count')),
-            backgroundColor: '#7c7cff',
+            backgroundColor: '#1e3a5f',
             borderRadius: 8
         }]
     },

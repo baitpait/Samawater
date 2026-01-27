@@ -7,6 +7,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use App\Models\Delivery;
 use App\Models\InventoryItem;
 use App\Models\ClientPayment;
+use App\Models\Client;
 use App\Http\Requests\DeliveryRequest;
 use Illuminate\Http\Request;
 
@@ -217,25 +218,7 @@ class DeliveryCrudController extends CrudController
             ])
             ->label('العبوات الفارغة');
 
-        CRUD::field('required_amount')
-            ->type('number')
-            ->default(0)
-            ->attributes([
-                'min' => 0,
-                'step' => '0.01',
-                'required' => 'required',
-                'id' => 'required_amount_field'
-            ])
-            ->label('المبلغ المطلوب')
-            ->hint('المبلغ الكامل المطلوب من المشترك');
-
-        CRUD::field('inventory_item_id')
-            ->type('hidden')
-            ->default(1)
-            ->attributes([
-                'value' => 1
-            ]);
-
+        // المبلغ المدفوع أولاً
         CRUD::field('paymant')
             ->type('number')
             ->default(0)
@@ -246,19 +229,27 @@ class DeliveryCrudController extends CrudController
                 'id' => 'paymant_field'
             ])
             ->label('المبلغ المدفوع')
-            ->hint('المبلغ الذي دفعه المشترك فعلياً');
+            ->hint('المبلغ الذي دفعه المشترك فعلياً')
+            ->wrapper(['class' => 'form-group col-sm-12 mb-4']);
 
-        // إضافة اختيار إرسال رسالة واتساب
-        CRUD::field('send_whatsapp')
-            ->type('checkbox')
-            ->label('إرسال إشعار واتساب للعميل')
-            ->default(1)
-            ->hint('سيتم فتح تبويب جديد لإرسال الرسالة بعد الحفظ');
+        // المبلغ المطلوب ثانياً
+        CRUD::field('required_amount')
+            ->type('number')
+            ->default(0)
+            ->attributes([
+                'min' => 0,
+                'step' => '0.01',
+                'required' => 'required',
+                'id' => 'required_amount_field'
+            ])
+            ->label('المبلغ المطلوب')
+            ->hint('المبلغ الكامل المطلوب من المشترك')
+            ->wrapper(['class' => 'form-group col-sm-12 mb-4']);
 
-        // حقل JavaScript لإظهار الدين المتبقي
+        // حقل JavaScript لإظهار الدين المتبقي - تم نقله هنا ليكون أسفل المبلغ المطلوب
         CRUD::field('remaining_debt')
             ->type('custom_html')
-            ->value('<div class="form-group">
+            ->value('<div class="form-group col-sm-12 mb-4">
                 <label class="control-label">الدين المتبقي</label>
                 <div class="form-control" id="remaining_debt_display" style="background-color: #f8f9fa; font-weight: bold; color: #dc3545;">
                     0.00
@@ -295,6 +286,13 @@ class DeliveryCrudController extends CrudController
             });
             </script>');
 
+        CRUD::field('inventory_item_id')
+            ->type('hidden')
+            ->default(1)
+            ->attributes([
+                'value' => 1
+            ]);
+
         $loggedDistributor = null;
         $loggedUser = backpack_user();
         if ($loggedUser && $loggedUser->isDistributor()) {
@@ -330,6 +328,20 @@ class DeliveryCrudController extends CrudController
                     return $query->orderBy('name')->get();
                 });
         }
+
+        // إضافة اختيار إرسال رسالة واتساب (تم نقله للأسفل وتعديل التصميم)
+        CRUD::field('send_whatsapp')
+            ->type('custom_html')
+            ->value('<div class="form-group col-sm-12 mb-3 mt-4" style="padding-top: 20px; border-top: 2px solid #6f6af820;">
+                <div class="form-check d-flex align-items-center p-0" style="gap: 20px;">
+                    <input type="checkbox" name="send_whatsapp" id="send_whatsapp_check" value="1" checked 
+                        style="width: 25px; height: 25px; cursor: pointer; accent-color: #6f6af8; margin: 0;">
+                    <label class="form-check-label" for="send_whatsapp_check" 
+                        style="font-size: 16px; font-weight: 700; color: #374151; cursor: pointer; margin: 0; user-select: none;">
+                        إرسال إشعار واتساب للعميل ✨
+                    </label>
+                </div>
+            </div>');
     }
 
     protected function setupUpdateOperation()
@@ -378,7 +390,7 @@ class DeliveryCrudController extends CrudController
         }
         
         // إرجاع delivery_on_demand إلى false بعد التسليم
-        $client = \App\Models\Client::find($delivery->client_id);
+        $client = Client::find($delivery->client_id);
         if ($client && $client->delivery_on_demand) {
             $client->delivery_on_demand = false;
             $client->save();
@@ -617,7 +629,7 @@ class DeliveryCrudController extends CrudController
         }
         
         // إرجاع delivery_on_demand إلى false بعد تحديث التسليم
-        $client = \App\Models\Client::find($entry->client_id);
+        $client = Client::find($entry->client_id);
         if ($client && $client->delivery_on_demand) {
             $client->delivery_on_demand = false;
             $client->save();
