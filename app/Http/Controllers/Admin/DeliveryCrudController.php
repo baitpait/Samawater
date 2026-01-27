@@ -413,16 +413,18 @@ class DeliveryCrudController extends CrudController
             $parentClient = $client->getParentClient();
             $totalBalance = $parentClient ? $parentClient->balance : 0;
             
-            $message = "مرحباً بك عميلنا العزيز: {$client->name}\n\n";
-            $message .= "تم تسجيل عملية تسليم مياه بنجاح ✅\n";
-            $message .= "--------------------------\n";
-            $message .= "📦 العبوات المستلمة: {$delivery->bottle_received}\n";
-            $message .= "🔄 العبوات الفارغة: {$delivery->bottle_empty}\n";
+            $message = "مرحباً بك عميلنا العزيز: {$client->name} ✨\n\n";
+            $message .= "يسرّنا في مياه سما 💧 إبلاغك بإتمام عملية توريد المياه بنجاح. نحن ملتزمون دائماً بتقديم أفضل خدمة تليق بك.\n\n";
+            $message .= "تفاصيل العملية الأخيرة:\n";
+            $message .= "━━━━━━━━━━━━━━━━\n";
+            $message .= "📦 العبوات الجديدة: {$delivery->bottle_received} عبوة\n";
+            $message .= "🔄 العبوات المسترجعة: {$delivery->bottle_empty} عبوة\n";
             $message .= "💰 المبلغ المطلوب: {$delivery->required_amount}\n";
             $message .= "💵 المبلغ المدفوع: {$delivery->paymant}\n";
-            $message .= "--------------------------\n";
-            $message .= "📉 الدين المتبقي الإجمالي: {$totalBalance}\n\n";
-            $message .= "شكراً لتعاملك مع مياه سما 💧";
+            $message .= "━━━━━━━━━━━━━━━━\n";
+            $message .= "📊 رصيد حسابك الإجمالي: {$totalBalance}\n\n";
+            $message .= "نشكرك على ثقتك الدائمة بـ مياه سما.. خيارك الأمثل للنقاء والانتعاش 🌊\n\n";
+            $message .= "لأي استفسار، نحن دائماً في خدمتك.";
 
             $whatsappUrl = "https://wa.me/{$phone}?text=" . urlencode($message);
             
