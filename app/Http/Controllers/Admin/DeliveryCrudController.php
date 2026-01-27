@@ -403,6 +403,33 @@ class DeliveryCrudController extends CrudController
         }
         
         \Alert::success('تم إنشاء التسليم بنجاح.')->flash();
+
+        // تجهيز رسالة الوتس اب
+        if ($client && $client->phone_one) {
+            $phone = preg_replace('/[^0-9]/', '', $client->phone_one);
+            // إضافة كود الدولة إذا لم يكن موجوداً (مثال: 966 للسعودية أو 970 لفلسطين)
+            // سأفترض أن الأرقام مخزنة بكود الدولة أو بدونه، وسأتركها كما هي حالياً
+            
+            $parentClient = $client->getParentClient();
+            $totalBalance = $parentClient ? $parentClient->balance : 0;
+            
+            $message = "مرحباً بك عميلنا العزيز: {$client->name}\n\n";
+            $message .= "تم تسجيل عملية تسليم مياه بنجاح ✅\n";
+            $message .= "--------------------------\n";
+            $message .= "📦 العبوات المستلمة: {$delivery->bottle_received}\n";
+            $message .= "🔄 العبوات الفارغة: {$delivery->bottle_empty}\n";
+            $message .= "💰 المبلغ المطلوب: {$delivery->required_amount}\n";
+            $message .= "💵 المبلغ المدفوع: {$delivery->paymant}\n";
+            $message .= "--------------------------\n";
+            $message .= "📉 الدين المتبقي الإجمالي: {$totalBalance}\n\n";
+            $message .= "شكراً لتعاملك مع مياه سما 💧";
+
+            $whatsappUrl = "https://wa.me/{$phone}?text=" . urlencode($message);
+            
+            // تخزين الرابط في السيشن ليقوم الجافاسكريبت بفتحه
+            session()->flash('whatsapp_url', $whatsappUrl);
+        }
+
         return redirect($this->crud->route);
     }
 

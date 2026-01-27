@@ -18,6 +18,19 @@
 <script src="{{ asset('vendor/datatables-responsive/responsive.bootstrap5.min.js') }}"></script>
 <script src="{{ asset('vendor/datatables-fixedheader/dataTables.fixedHeader.min.js') }}"></script>
 
+{{-- WhatsApp Auto-Open Script --}}
+@if(session('whatsapp_url'))
+<script>
+    (function() {
+        // فتح رابط الوتس اب في تبويب جديد فور الحفظ
+        var whatsappUrl = "{{ session('whatsapp_url') }}";
+        if (whatsappUrl) {
+            window.open(whatsappUrl, '_blank');
+        }
+    })();
+</script>
+@endif
+
 {{-- 5. Load remaining scripts from theme config --}}
 @if (backpack_theme_config('scripts') && count(backpack_theme_config('scripts')))
     @foreach (backpack_theme_config('scripts') as $path)
