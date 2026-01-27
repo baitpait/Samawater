@@ -174,6 +174,12 @@ Route::get('/distributors-list', [\App\Http\Controllers\Admin\DistributorListCon
     ->name('distributors.list');
     
     Route::post('cash-withdraw', [CashWithdrawController::class, 'store']);
+    Route::get('clear-whatsapp-session', function() {
+        session()->forget('whatsapp_url');
+        session()->forget('whatsapp_url_persistent');
+        return response()->json(['status' => true]);
+    });
+
     Route::crud('client-type', ClientTypeCrudController::class);
     Route::crud('client', ClientCrudController::class);
     Route::crud('city', CityCrudController::class);

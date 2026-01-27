@@ -19,13 +19,23 @@
 <script src="{{ asset('vendor/datatables-fixedheader/dataTables.fixedHeader.min.js') }}"></script>
 
 {{-- WhatsApp Auto-Open Script --}}
-@if(session('whatsapp_url'))
+@if(session('whatsapp_url') || session('whatsapp_url_persistent'))
 <script>
     (function() {
         // فتح رابط الوتس اب في تبويب جديد فور الحفظ
-        var whatsappUrl = "{{ session('whatsapp_url') }}";
+        var whatsappUrl = "{{ session('whatsapp_url') ?: session('whatsapp_url_persistent') }}";
+        console.log("Attempting to open WhatsApp: ", whatsappUrl);
         if (whatsappUrl) {
-            window.open(whatsappUrl, '_blank');
+            // مسح الرابط من السيشن عبر AJAX لضمان عدم فتحه مرة أخرى عند التحديث
+            fetch("{{ url('admin/clear-whatsapp-session') }}");
+            
+            // محاولة الفتح
+            var win = window.open(whatsappUrl, '_blank');
+            if (win) {
+                win.focus();
+            } else {
+                alert('الرجاء السماح للنوافذ المنبثقة (Popups) لفتح رسالة الوتس اب تلقائياً');
+            }
         }
     })();
 </script>

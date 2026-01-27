@@ -248,6 +248,13 @@ class DeliveryCrudController extends CrudController
             ->label('المبلغ المدفوع')
             ->hint('المبلغ الذي دفعه المشترك فعلياً');
 
+        // إضافة اختيار إرسال رسالة واتساب
+        CRUD::field('send_whatsapp')
+            ->type('checkbox')
+            ->label('إرسال إشعار واتساب للعميل')
+            ->default(1)
+            ->hint('سيتم فتح تبويب جديد لإرسال الرسالة بعد الحفظ');
+
         // حقل JavaScript لإظهار الدين المتبقي
         CRUD::field('remaining_debt')
             ->type('custom_html')
@@ -404,11 +411,9 @@ class DeliveryCrudController extends CrudController
         
         \Alert::success('تم إنشاء التسليم بنجاح.')->flash();
 
-        // تجهيز رسالة الوتس اب
-        if ($client && $client->phone_one) {
+        // تجهيز رسالة الوتس اب (فقط إذا تم اختيار الشيك بوكس)
+        if ($request->input('send_whatsapp') == 1 && $client && $client->phone_one) {
             $phone = preg_replace('/[^0-9]/', '', $client->phone_one);
-            // إضافة كود الدولة إذا لم يكن موجوداً (مثال: 966 للسعودية أو 970 لفلسطين)
-            // سأفترض أن الأرقام مخزنة بكود الدولة أو بدونه، وسأتركها كما هي حالياً
             
             $parentClient = $client->getParentClient();
             $totalBalance = $parentClient ? $parentClient->balance : 0;
@@ -428,8 +433,12 @@ class DeliveryCrudController extends CrudController
 
             $whatsappUrl = "https://wa.me/{$phone}?text=" . urlencode($message);
             
+            // تسجيل لوج للتحقق من الرابط
+            \Log::info("WhatsApp URL generated: " . $whatsappUrl);
+            
             // تخزين الرابط في السيشن ليقوم الجافاسكريبت بفتحه
             session()->flash('whatsapp_url', $whatsappUrl);
+            session()->put('whatsapp_url_persistent', $whatsappUrl);
         }
 
         return redirect($this->crud->route);
