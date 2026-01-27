@@ -19,6 +19,14 @@
                 </div>
                 <h1 class="text-capitalize mb-0" bp-section="page-heading" style="color: #fff; font-size: 24px; font-weight: 700; margin: 0; font-family: 'Cairo', sans-serif;">قائمة التسليم</h1>
             </div>
+            <div>
+                @php
+                    $bulkEntryUrl = route('delivery.bulk-entry', request()->query());
+                @endphp
+                <a href="{{ $bulkEntryUrl }}" class="btn btn-light" style="color: #6f6af8; font-weight: 600;">
+                    <i class="la la-table"></i> إدخال جماعي
+                </a>
+            </div>
         </div>
     </section>
 

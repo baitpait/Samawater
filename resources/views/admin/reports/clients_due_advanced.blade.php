@@ -503,7 +503,11 @@
 
 @push('after_scripts')
 <script>
-jQuery(document).ready(function($) {
+(function () {
+    if (typeof window.jQuery === 'undefined') {
+        return;
+    }
+    window.jQuery(function ($) {
     function fixDropdownPosition() {
         $('.table-clean .dropdown-menu').each(function() {
             var $dropdown = $(this);
@@ -662,7 +666,8 @@ jQuery(document).ready(function($) {
     $(window).on('resize', function() {
         fixDropdownPosition();
     });
-});
+    });
+})();
 </script>
 @endpush
 

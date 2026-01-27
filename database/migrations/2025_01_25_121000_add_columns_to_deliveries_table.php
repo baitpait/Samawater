@@ -19,9 +19,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // التحقق من وجود الجدول أولاً
+        // تأكد من وجود جدول clients قبل إنشاء القيود
+        if (!Schema::hasTable('clients')) {
+            Schema::create('clients', function (Blueprint $table) {
+                $table->id();
+                $table->timestamps();
+            });
+        }
+
+        // تأكد من وجود جدول deliveries قبل إضافة الأعمدة
         if (!Schema::hasTable('deliveries')) {
-            return; // الجدول غير موجود، سيتم إنشاؤه في migration آخر
+            Schema::create('deliveries', function (Blueprint $table) {
+                $table->id();
+                $table->timestamps();
+            });
         }
 
         Schema::table('deliveries', function (Blueprint $table) {

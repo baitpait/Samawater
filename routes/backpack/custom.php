@@ -27,6 +27,26 @@ use App\Http\Controllers\Admin\ClientBalanceReportController;
 use App\Http\Controllers\Admin\ClientDepositCrudController;
 use App\Http\Middleware\CheckUserManagementPermission;
 
+// ============================================
+// Auth Routes (Custom - Phone Login Support)
+// ============================================
+Route::group([
+    'prefix' => config('backpack.base.route_prefix', 'admin'),
+    'middleware' => config('backpack.base.web_middleware', 'web'),
+], function () {
+    // Custom login routes with phone support
+    Route::get('login', [\App\Http\Controllers\Auth\BackpackAuthController::class, 'showLoginForm'])
+        ->name('backpack.auth.login');
+    Route::post('login', [\App\Http\Controllers\Auth\BackpackAuthController::class, 'login'])
+        ->name('backpack.auth.login.post');
+    
+    // Logout routes - support both GET and POST
+    Route::get('logout', [\App\Http\Controllers\Auth\BackpackAuthController::class, 'logout'])
+        ->name('backpack.auth.logout');
+    Route::post('logout', [\App\Http\Controllers\Auth\BackpackAuthController::class, 'logout'])
+        ->name('backpack.auth.logout.post');
+});
+
 Route::group([
     'prefix' => config('backpack.base.route_prefix', 'admin'),
     'middleware' => array_merge(
@@ -34,6 +54,15 @@ Route::group([
         (array) config('backpack.base.middleware_key', 'admin')
     ),
 ], function () {
+    
+    // Custom dashboard route
+    Route::get('dashboard', [\App\Http\Controllers\Admin\AdminController::class, 'dashboard'])
+        ->name('backpack.dashboard');
+    
+    // Redirect /admin/account to /admin/edit-account-info
+    Route::get('account', function () {
+        return redirect(route('backpack.account.info'));
+    })->name('backpack.account');
     
     // Delivery routes are handled by Backpack CRUD automatically
 
@@ -58,6 +87,22 @@ Route::get(
     'delivery-list',
     [\App\Http\Controllers\Admin\DeliveryListController::class, 'index']
 )->name('delivery.list');
+
+// صفحة الإدخال الجماعي للتسليمات (Excel-like)
+Route::get(
+    'delivery/bulk-entry',
+    [\App\Http\Controllers\Admin\BulkDeliveryController::class, 'index']
+)->name('delivery.bulk-entry');
+
+Route::post(
+    'delivery/bulk-entry/single',
+    [\App\Http\Controllers\Admin\BulkDeliveryController::class, 'storeSingle']
+)->name('delivery.bulk-store-single');
+
+Route::post(
+    'delivery/bulk-entry/bulk',
+    [\App\Http\Controllers\Admin\BulkDeliveryController::class, 'storeBulk']
+)->name('delivery.bulk-store-bulk');
 
 Route::get(
     'reports/clients-due-advanced/export/excel',
@@ -169,3 +214,4 @@ Route::get('/distributors-list', [\App\Http\Controllers\Admin\DistributorListCon
     Route::get('reports/client-balance', [ClientBalanceReportController::class, 'index'])
         ->name('reports.client-balance');
 });
+Route::get('diagnosis', 'App\Http\Controllers\Admin\DiagnosisController@index');

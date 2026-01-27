@@ -23,6 +23,9 @@ class UserCrudController extends CrudController
 
     protected function setupListOperation()
     {
+        // Eager loading للعلاقات لتحسين الأداء
+        $this->crud->addClause('with', ['role', 'distributor']);
+
         CRUD::column('name')
             ->label('الاسم');
 
@@ -33,6 +36,11 @@ class UserCrudController extends CrudController
             ->type('relationship')
             ->attribute('display_name')
             ->label('نوع المستخدم');
+
+        CRUD::column('distributor')
+            ->type('relationship')
+            ->attribute('name')
+            ->label('الموزع');
 
         CRUD::column('created_at')
             ->type('datetime')
@@ -68,6 +76,16 @@ class UserCrudController extends CrudController
                 // افتراضي: نوع "مستخدم" (ليس super_admin)
                 return \App\Models\Role::where('name', 'admin')->first()?->id;
             });
+
+        CRUD::field('distributor_id')
+            ->label('الموزع (للموزعين فقط)')
+            ->type('select')
+            ->model('App\Models\Distributor')
+            ->attribute('name')
+            ->options(function ($query) {
+                return $query->orderBy('name')->get();
+            })
+            ->allows_null(true);
     }
 
     protected function setupUpdateOperation()
@@ -96,6 +114,7 @@ class UserCrudController extends CrudController
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'role_id' => 'required|exists:roles,id',
+            'distributor_id' => 'nullable|exists:distributors,id',
         ]);
 
         $request->merge([
@@ -115,6 +134,7 @@ class UserCrudController extends CrudController
             'email' => 'required|string|email|max:255|unique:users,email,' . $id,
             'password' => 'nullable|string|min:8',
             'role_id' => 'required|exists:roles,id',
+            'distributor_id' => 'nullable|exists:distributors,id',
         ]);
 
         // إذا لم يتم إدخال كلمة مرور جديدة، احذفها من الطلب

@@ -16,47 +16,94 @@
 @section('content')
 <div class="container-fluid py-4">
 
+@php
+    $isDistributor = backpack_user()?->isDistributor() ?? false;
+@endphp
+@if ($isDistributor)
+    <div class="row g-4">
+        <div class="col-md-4">
+            <a href="{{ backpack_url('client') }}" class="text-decoration-none">
+                <div class="dashboard-stat-card stat-card-purple">
+                    <div class="stat-card-content">
+                        <div class="stat-icon-box icon-box-purple">
+                            <i class="la la-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h6 class="stat-label">المشتركين</h6>
+                            <h3 class="stat-value">عرض القائمة</h3>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="{{ route('delivery.list') }}" class="text-decoration-none">
+                <div class="dashboard-stat-card stat-card-green">
+                    <div class="stat-card-content">
+                        <div class="stat-icon-box icon-box-green">
+                            <i class="la la-truck"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h6 class="stat-label">قائمة التسليم</h6>
+                            <h3 class="stat-value">عرض القائمة</h3>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="{{ route('reports.clients_delivery_overview') }}" class="text-decoration-none">
+                <div class="dashboard-stat-card stat-card-purple">
+                    <div class="stat-card-content">
+                        <div class="stat-icon-box icon-box-purple">
+                            <i class="la la-list"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h6 class="stat-label">التسليمات</h6>
+                            <h3 class="stat-value">عرض القائمة</h3>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+@else
+
     {{-- ======================= حساب البيانات ======================= --}}
     @php
-        use App\Models\Client;
-        use App\Models\City;
-        use App\Models\Delivery;
-        use App\Models\Distributor;
-        use App\Models\ClientStatus;
-        use App\Models\SubscriptionStatus;
-        use Illuminate\Support\Facades\DB;
-
         // ===== إحصائيات القوارير =====
-        $overallEmpty = Delivery::sum('bottle_empty');
+        $overallEmpty = \App\Models\Delivery::sum('bottle_empty');
         $customerBottles =
-            Client::sum('bottle_balance') +
-            Delivery::sum('bottle_received') -
-            Delivery::sum('bottle_empty');
+            \App\Models\Client::sum('bottle_balance') +
+            \App\Models\Delivery::sum('bottle_received') -
+            \App\Models\Delivery::sum('bottle_empty');
         $totalSystemBottles = $customerBottles + $overallEmpty;
 
         // ===== إحصائيات التسليمات =====
-        $deliveriesToday = Delivery::whereDate('created_at', today())->count();
-        $deliveriesThisMonth = Delivery::whereYear('created_at', now()->year)
+        $deliveriesToday = \App\Models\Delivery::whereDate('created_at', today())->count();
+        $deliveriesThisMonth = \App\Models\Delivery::whereYear('created_at', now()->year)
             ->whereMonth('created_at', now()->month)
             ->count();
-        $deliveriesLastMonth = Delivery::whereYear('created_at', now()->subMonth()->year)
+        $deliveriesLastMonth = \App\Models\Delivery::whereYear('created_at', now()->subMonth()->year)
             ->whereMonth('created_at', now()->subMonth()->month)
             ->count();
 
         // ===== إحصائيات العملاء =====
-        $totalClients = Client::count();
+        $totalClients = \App\Models\Client::count();
         // حساب العملاء المستحقين بدون استخدام View
         try {
             // حساب بسيط: العملاء الذين لديهم اشتراك نشط
-            $clientsDueCount = Client::where('subscription_status_id', 1)->count();
+            $clientsDueCount = \App\Models\Client::where('subscription_status_id', 1)->count();
         } catch(\Exception $e) {
             $clientsDueCount = 0;
         }
-        $activeClients = Client::where('subscription_status_id', 1)->count();
+        $activeClients = \App\Models\Client::where('subscription_status_id', 1)->count();
 
         // ===== إحصائيات حسب حالة الالتزام =====
         try {
-            $clientStatuses = ClientStatus::orderBy('min_percentage')->get();
+            $clientStatuses = \App\Models\ClientStatus::orderBy('min_percentage')->get();
         } catch(\Exception $e) {
             $clientStatuses = collect([]);
         }
@@ -64,7 +111,7 @@
         foreach ($clientStatuses as $status) {
             try {
                 // حساب بسيط: استخدام subscription_status_id كبديل
-                $count = Client::where('subscription_status_id', $status->id ?? 1)->count();
+                $count = \App\Models\Client::where('subscription_status_id', $status->id ?? 1)->count();
             } catch(\Exception $e) {
                 $count = 0;
             }
@@ -78,10 +125,10 @@
         }
 
         // ===== إحصائيات حسب حالة الاشتراك =====
-        $subscriptionStatuses = SubscriptionStatus::orderBy('id')->get();
+        $subscriptionStatuses = \App\Models\SubscriptionStatus::orderBy('id')->get();
         $subscriptionStatusStats = [];
         foreach ($subscriptionStatuses as $status) {
-            $count = Client::where('subscription_status_id', $status->id)->count();
+            $count = \App\Models\Client::where('subscription_status_id', $status->id)->count();
             $subscriptionStatusStats[] = [
                 'name' => $status->status_name,
                 'count' => $count
@@ -89,13 +136,13 @@
         }
 
         // ===== إحصائيات المدن =====
-        $cityStats = City::withCount('clients')->get()->sortByDesc('clients_count');
+        $cityStats = \App\Models\City::withCount('clients')->get()->sortByDesc('clients_count');
         $topCities = $cityStats->take(6);
         $labelsCities = $topCities->pluck('city_name')->toArray();
         $valuesCities = $topCities->pluck('clients_count')->toArray();
 
         // ===== العملاء الذين استلموا اليوم (أول 10) =====
-        $clientsReceivedToday = Delivery::whereDate('delivery_date', today())
+        $clientsReceivedToday = \App\Models\Delivery::whereDate('delivery_date', today())
             ->with(['client.city', 'client.subscriptionType', 'distributor'])
             ->orderByDesc('delivery_date')
             ->orderByDesc('id')
@@ -143,7 +190,7 @@
                     </div>
                     <div class="stat-info">
                         <h6 class="stat-label">عدد الموزعين</h6>
-                        <h3 class="stat-value">{{ number_format(Distributor::count()) }}</h3>
+                        <h3 class="stat-value">{{ number_format(\App\Models\Distributor::count()) }}</h3>
                     </div>
                 </div>
             </div>
@@ -157,7 +204,7 @@
                     </div>
                     <div class="stat-info">
                         <h6 class="stat-label">عدد المدن</h6>
-                        <h3 class="stat-value">{{ number_format(City::count()) }}</h3>
+                        <h3 class="stat-value">{{ number_format(\App\Models\City::count()) }}</h3>
                     </div>
                 </div>
             </div>

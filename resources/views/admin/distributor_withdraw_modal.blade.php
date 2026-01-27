@@ -182,11 +182,11 @@
         
         if (useJQuery && $j) {
             $j('#withdrawModal').modal('hide');
-        } else if (typeof bootstrap !== 'undefined') {
+        } else if (typeof window.bootstrap !== 'undefined' && window.bootstrap && window.bootstrap.Modal) {
             if (withdrawModalInstance) {
                 withdrawModalInstance.hide();
             } else {
-                var modal = bootstrap.Modal.getInstance(modalElement);
+                var modal = window.bootstrap.Modal.getInstance(modalElement);
                 if (modal) {
                     modal.hide();
                 } else {
@@ -223,8 +223,17 @@
         if (!modalElement) return;
         
         // تهيئة Bootstrap Modal
-        if (typeof bootstrap !== 'undefined' && !withdrawModalInstance) {
-            withdrawModalInstance = new bootstrap.Modal(modalElement, {
+        
+        if (typeof window.bootstrap !== 'undefined' && window.bootstrap && window.bootstrap.Modal && !withdrawModalInstance) {
+            withdrawModalInstance = new window.bootstrap.Modal(modalElement, {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            });
+            
+        } else if (typeof window.bootstrap !== 'undefined' && !withdrawModalInstance) {
+            
+            withdrawModalInstance = new window.bootstrap.Modal(modalElement, {
                 backdrop: true,
                 keyboard: true,
                 focus: true
@@ -280,8 +289,8 @@
                     $j('#withdrawModal').modal('show');
                 } else if (withdrawModalInstance) {
                     withdrawModalInstance.show();
-                } else if (typeof bootstrap !== 'undefined') {
-                    var modal = new bootstrap.Modal(modalElement);
+                } else if (typeof window.bootstrap !== 'undefined' && window.bootstrap && window.bootstrap.Modal) {
+                    var modal = new window.bootstrap.Modal(modalElement);
                     modal.show();
                     withdrawModalInstance = modal;
                 } else {

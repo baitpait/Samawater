@@ -29,7 +29,7 @@ class SubscriptionTypeCrudController extends CrudController
         CRUD::setEntityNameStrings(' نوع اشتراك', 'انواع الاشتراكات');
     }
 
-protected function setupListOperation()
+    protected function setupListOperation()
     {
         CRUD::column('type_name')->label('اسم الاشتراك');
         CRUD::column('description')->label('الوصف');

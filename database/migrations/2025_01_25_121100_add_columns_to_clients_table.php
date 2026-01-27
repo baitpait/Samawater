@@ -27,9 +27,30 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // التحقق من وجود الجدول أولاً
+        // تأكد من وجود الجدول قبل إضافة الأعمدة
         if (!Schema::hasTable('clients')) {
-            return; // الجدول غير موجود، سيتم إنشاؤه في migration آخر
+            Schema::create('clients', function (Blueprint $table) {
+                $table->id();
+                $table->timestamps();
+            });
+        }
+
+        if (!Schema::hasTable('subscription_types')) {
+            Schema::create('subscription_types', function (Blueprint $table) {
+                $table->id();
+                $table->string('type_name')->nullable();
+                $table->string('description')->nullable();
+                $table->integer('distribution_days')->nullable();
+                $table->timestamps();
+            });
+        }
+
+        if (!Schema::hasTable('subscription_statuses')) {
+            Schema::create('subscription_statuses', function (Blueprint $table) {
+                $table->id();
+                $table->string('status_name')->nullable();
+                $table->timestamps();
+            });
         }
 
         Schema::table('clients', function (Blueprint $table) {

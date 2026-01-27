@@ -1,13 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Distributor;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\View;
 
+/**
+ * Business Purpose: عرض قائمة الموزعين بواجهة مخصصة مع بحث وترتيب آمن.
+ */
 class DistributorListController
 {
+    private const SORTABLE_COLUMNS = [
+        'id',
+        'name',
+        'phone',
+        'balance',
+    ];
+
+    /**
+     * Business Purpose: جلب قائمة الموزعين مع دعم البحث والترتيب والـ pagination.
+     */
     public function index(Request $request)
     {
         $query = Distributor::query();
@@ -17,14 +31,15 @@ class DistributorListController
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%')
-                  ->orWhere('phone', 'like', '%' . $search . '%')
-                  ->orWhere('username', 'like', '%' . $search . '%');
+                  ->orWhere('phone', 'like', '%' . $search . '%');
             });
         }
 
         // الترتيب
         $sortBy = $request->get('sort_by', 'id');
         $sortDir = $request->get('sort_dir', 'desc');
+        $sortBy = in_array($sortBy, self::SORTABLE_COLUMNS, true) ? $sortBy : 'id';
+        $sortDir = $sortDir === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortBy, $sortDir);
 
         // Pagination

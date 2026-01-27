@@ -441,7 +441,7 @@
                     type="text" 
                     class="input-box modern-input" 
                     name="{{ $username }}" 
-                    placeholder="البريد الإلكتروني"
+                    placeholder="رقم الهاتف أو البريد الإلكتروني"
                     value="{{ old($username) }}"
                     required
                     autofocus

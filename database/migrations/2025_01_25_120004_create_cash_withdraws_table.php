@@ -11,6 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('distributors')) {
+            Schema::create('distributors', function (Blueprint $table) {
+                $table->id();
+                $table->timestamps();
+            });
+        }
+
         if (!Schema::hasTable('cash_withdraws')) {
             Schema::create('cash_withdraws', function (Blueprint $table) {
                 $table->id();

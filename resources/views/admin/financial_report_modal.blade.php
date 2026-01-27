@@ -2,7 +2,8 @@
      id="financialReportModal"
      tabindex="-1"
      role="dialog"
-     aria-hidden="true">
+     aria-hidden="true"
+     style="display: none;">
 
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"
          role="document">

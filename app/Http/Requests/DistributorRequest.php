@@ -1,17 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Hash;
 
 class DistributorRequest extends FormRequest
 {
+    /**
+     * Business Purpose: تحديد صلاحية المستخدم لإدارة بيانات الموزعين.
+     */
     public function authorize()
     {
         return backpack_auth()->check();
     }
 
+    /**
+     * Business Purpose: فرض قواعد تحقق تضمن صحة بيانات الموزع وعدم تكرارها.
+     *
+     * @return array<string, string>
+     */
     public function rules()
     {
         // الحصول على ID من الـ route (في حالة التحديث)
@@ -19,50 +28,56 @@ class DistributorRequest extends FormRequest
         
         return [
             'name'     => 'required|string|max:255',
-            'phone'    => 'required|string|max:20',
-            'username' => 'required|string|max:50|unique:distributors,username,' . $id,
+            'phone'    => 'required|string|max:20|unique:distributors,phone,' . $id,
             // في حالة التحديث (عند وجود ID)، كلمة المرور اختيارية
             // في حالة الإنشاء (عند عدم وجود ID)، كلمة المرور مطلوبة
             'password_hash' => $id ? 'nullable|min:6' : 'required|min:6',
             'status'   => 'required|in:0,1',
         ];
     }
+
+    /**
+     * Business Purpose: تجاهل كلمة المرور إذا كانت فارغة أثناء التحديث.
+     */
     protected function passedValidation()
     {
-        // إذا كانت كلمة المرور مملوءة، قم بتشفيرها
         if ($this->filled('password_hash') && !empty($this->password_hash)) {
-            $this->merge([
-                'password_hash' => bcrypt($this->password_hash),
-            ]);
-        } else {
-            // إذا كانت فارغة (خاصة في حالة التحديث)، احذفها من الطلب تماماً
-            // هذا يضمن عدم تحديث كلمة المرور في قاعدة البيانات
-            $this->request->remove('password_hash');
-            // أيضاً قم بإزالتها من البيانات المدمجة
-            $data = $this->all();
-            unset($data['password_hash']);
-            $this->replace($data);
+            return;
         }
+
+        // إذا كانت فارغة (خاصة في حالة التحديث)، احذفها من الطلب تماماً
+        $this->request->remove('password_hash');
+        $data = $this->all();
+        unset($data['password_hash']);
+        $this->replace($data);
     }
 
+    /**
+     * Business Purpose: تسمية الحقول برسائل عربية واضحة للمستخدم.
+     *
+     * @return array<string, string>
+     */
     public function attributes()
     {
         return [
             'name'     => 'اسم الموزع',
             'phone'    => 'رقم الهاتف',
-            'username' => 'اسم المستخدم',
             'password_hash' => 'كلمة المرور',
             'status'   => 'الحالة',
         ];
     }
 
+    /**
+     * Business Purpose: رسائل تحقق واضحة تمنع تكرار البيانات الحرجة.
+     *
+     * @return array<string, string>
+     */
     public function messages()
     {
         return [
             'name.required' => 'يرجى إدخال اسم الموزع',
             'phone.required' => 'يرجى إدخال رقم الهاتف',
-            'username.required' => 'يرجى إدخال اسم المستخدم',
-            'username.unique' => 'اسم المستخدم مستخدم بالفعل',
+            'phone.unique' => 'رقم الهاتف مستخدم بالفعل',
             'password_hash.required' => 'يرجى إدخال كلمة المرور',
             'password_hash.min' => 'كلمة المرور يجب أن تكون على الأقل 6 أحرف',
             'status.required' => 'يرجى اختيار الحالة',

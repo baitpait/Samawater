@@ -19,7 +19,6 @@ return [
     // if it exists, otherwise it will load it from the fallback namespace.
 
     'view_namespace' => 'backpack.theme-coreuiv2::',
-    'view_namespace' => 'backpack.theme-coreuiv2::',
     /*
     |--------------------------------------------------------------------------
     | Look & feel customizations
@@ -94,7 +93,12 @@ return [
 
     // CSS files that are loaded in all pages, using Laravel's asset() helper
     'styles' => [
-        // 'css/unified-forms.css', // سيتم تحميله عبر @push في views
+        'css/unified-forms.css',
+        'vendor/select2/css/select2.min.css',
+        'vendor/noty/noty.css',
+        'vendor/datatables/dataTables.bootstrap5.min.css',
+        'vendor/datatables-responsive/responsive.bootstrap5.min.css',
+        'vendor/datatables-fixedheader/fixedHeader.bootstrap5.min.css',
     ],
 
     // CSS files that are loaded in all pages, using Laravel's mix() helper
@@ -114,10 +118,27 @@ return [
 
     // JS files that are loaded in all pages, using Laravel's asset() helper
     'scripts' => [
-        // 'js/example.js',
+        // 'js/sidebar-toggle.js', // Loaded via theme_scripts.blade.php instead
         // 'https://cdn.jsdelivr.net/npm/vue@2.4.4/dist/vue.min.js',
         // 'https://cdn.jsdelivr.net/npm/react@16/umd/react.production.min.js',
         // 'https://cdn.jsdelivr.net/npm/react-dom@16/umd/react-dom.production.min.js',
+        'js/early-guards.js',
+        'vendor/jquery/jquery.min.js',
+        'vendor/popper/popper.min.js',
+        'vendor/bootstrap/bootstrap.min.js',
+        'vendor/coreui/coreui.js',
+        'js/sidebar-toggle.js',
+        'js/amd-define-shim.js',
+        'vendor/select2/js/select2.full.min.js',
+        'js/backpack-guards.js',
+        'vendor/datatables/jquery.dataTables.min.js',
+        'vendor/datatables/dataTables.bootstrap5.min.js',
+        'vendor/datatables-responsive/dataTables.responsive.min.js',
+        'vendor/datatables-responsive/responsive.bootstrap5.min.js',
+        'vendor/datatables-fixedheader/dataTables.fixedHeader.min.js',
+        'vendor/noty/noty.min.js',
+        'vendor/sweetalert/sweetalert.min.js',
+        'js/datatables-fix.js',
     ],
 
     // JS files that are loaded in all pages, using Laravel's mix() helper

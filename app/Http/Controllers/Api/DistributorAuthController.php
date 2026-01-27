@@ -12,11 +12,23 @@ class DistributorAuthController extends Controller
    public function login(Request $request)
    {
     $request->validate([
-        'username' => 'required',
-        'password' => 'required',
+        'phone' => 'nullable|string',
+        'username' => 'nullable|string',
+        'password' => 'required|string',
     ]);
 
-    $distributor = Distributor::where('username', $request->username)->first();
+    $loginValue = $request->phone ?: $request->username;
+
+    if (empty($loginValue)) {
+        return response()->json([
+            'status' => false,
+            'message' => 'يرجى إدخال رقم الهاتف أو اسم المستخدم',
+        ], 422);
+    }
+
+    $distributor = Distributor::where('phone', $loginValue)
+        ->orWhere('username', $loginValue)
+        ->first();
 
     if (!$distributor || !Hash::check($request->password, $distributor->password_hash)) {
         return response()->json([

@@ -371,17 +371,27 @@
 @endsection
 
 @section('after_scripts')
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
     const modalEl = document.getElementById('editDeliveryModal');
-    const modal = new bootstrap.Modal(modalEl, {
-        backdrop: false, // تمنع الإغلاق عند الضغط خارج المودال
-        keyboard: true
-    });
+    let modal = null;
+    if (window.bootstrap && typeof window.bootstrap.Modal === 'function') {
+        modal = new window.bootstrap.Modal(modalEl, {
+            backdrop: false,
+            keyboard: true
+        });
+    }
+    const showModal = function () {
+        if (modal) {
+            modal.show();
+            return;
+        }
+        if (window.jQuery && window.jQuery.fn && typeof window.jQuery.fn.modal === 'function') {
+            window.jQuery(modalEl).modal({ backdrop: false, keyboard: true });
+            window.jQuery(modalEl).modal('show');
+        }
+    };
 
     document.querySelectorAll('.edit-delivery-btn').forEach(btn => {
         btn.addEventListener('click', function () {
@@ -431,7 +441,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 
                 console.log('📝 تم ملء الحقول، جارٍ فتح الـ Modal...');
-                modal.show();
+                showModal();
             })
             .catch(err => {
                 console.error('❌ فشل جلب البيانات:', err);
@@ -977,10 +987,6 @@ nav.d-flex.justify-items-center.justify-content-between > div.d-none.flex-sm-fil
         0 30px 80px rgba(0, 0, 0, 0.45),
         0 0 0 1px rgba(255, 255, 255, 0.06);
 }
-const modal = new bootstrap.Modal(modalElement, {
-    backdrop: true, // ❗ لا تستخدم false
-    keyboard: true
-});
 .modal {
     z-index: 1055;
 }

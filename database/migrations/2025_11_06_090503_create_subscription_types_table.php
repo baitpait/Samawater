@@ -16,6 +16,9 @@ return new class extends Migration
         if (!Schema::hasTable('subscription_types')) {
             Schema::create('subscription_types', function (Blueprint $table) {
                 $table->id();
+                $table->string('type_name')->nullable();
+                $table->string('description')->nullable();
+                $table->integer('distribution_days')->nullable();
                 $table->timestamps();
             });
         }

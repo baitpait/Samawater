@@ -17,6 +17,13 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('vendors')) {
+            Schema::create('vendors', function (Blueprint $table) {
+                $table->id();
+                $table->timestamps();
+            });
+        }
+
         if (!Schema::hasTable('vendor_payments')) {
             Schema::create('vendor_payments', function (Blueprint $table) {
                 $table->id();

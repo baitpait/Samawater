@@ -169,7 +169,11 @@
 
 @push('after_scripts')
 <script>
-    $(document).ready(function() {
+    (function () {
+        if (typeof window.jQuery === 'undefined') {
+            return;
+        }
+        window.jQuery(function ($) {
         // الحصول على URL parameters
         var urlParams = new URLSearchParams(window.location.search);
         
@@ -184,7 +188,15 @@
         
         // البحث عن DataTable بعد تحميله
         function attachAjaxParams() {
+            
             try {
+                if (!$.fn || !$.fn.DataTable) {
+                    
+                    if (Object.keys(ajaxParams).length > 0) {
+                        setTimeout(attachAjaxParams, 200);
+                    }
+                    return;
+                }
                 var table = $('#crudTable').DataTable();
                 
                 if (table && $.fn.DataTable.isDataTable('#crudTable')) {
@@ -223,7 +235,8 @@
         $(document).on('crudTableLoaded', function() {
             attachAjaxParams();
         });
-    });
+        });
+    })();
 </script>
 @endpush
 

@@ -1,11 +1,6 @@
 @section('after_styles')
     {{-- Unified Forms Design System - الهوية البصرية الموحدة --}}
     <link rel="stylesheet" href="{{ asset('css/unified-forms.css') }}?v={{ time() }}">
-    
-    {{-- DATA TABLES --}}
-    @basset('https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css')
-    @basset('https://cdn.datatables.net/fixedheader/3.3.1/css/fixedHeader.dataTables.min.css')
-    @basset('https://cdn.datatables.net/responsive/2.4.0/css/responsive.dataTables.min.css')
 
     {{-- CRUD LIST CONTENT - crud_list_styles stack --}}
     @stack('crud_list_styles')

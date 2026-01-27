@@ -8,6 +8,7 @@ use App\Models\Delivery;
 use App\Models\InventoryItem;
 use App\Models\ClientPayment;
 use App\Http\Requests\DeliveryRequest;
+use Illuminate\Http\Request;
 
 class DeliveryCrudController extends CrudController
 {
@@ -22,6 +23,14 @@ class DeliveryCrudController extends CrudController
         CRUD::setModel(Delivery::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/delivery');
         CRUD::setEntityNameStrings('توصيل', 'التوصيلات');
+    }
+
+    /**
+     * Redirect list page to the custom delivery list.
+     */
+    public function index(Request $request)
+    {
+        return redirect()->route('delivery.list', $request->query());
     }
 
     protected function setupListOperation()
@@ -148,32 +157,38 @@ class DeliveryCrudController extends CrudController
     {
         CRUD::setValidation(DeliveryRequest::class);
 
+        // Ensure AMD define exists before Select2 i18n script loads
+        CRUD::addField([
+            'name' => 'amd_define_shim',
+            'type' => 'custom_html',
+            'value' => '<script>// Removed window.define.amd=true as it breaks DataTables</script>',
+        ]);
+
         // إذا كان هناك client_id في query parameter، نحدد المشترك تلقائياً
         $clientId = request()->query('client_id');
         
-        // استخدام select_from_array لتجنب استخدام select2 تلقائياً
-        $clientOptions = ['' => '-- اختر المشترك --'];
-        
-        // إذا كان هناك client_id محدد مسبقاً (في حالة التعديل أو من query parameter)، نضيفه للخيارات
         $selectedId = $clientId ?: (request()->route('id') ? \App\Models\Delivery::find(request()->route('id'))?->client_id : null);
-        if ($selectedId) {
-            $client = \App\Models\Client::find($selectedId);
-            if ($client) {
-                $clientOptions[$client->id] = $client->name . ($client->contract_no ? ' (' . $client->contract_no . ')' : '') . ($client->phone_one ? ' - ' . $client->phone_one : '');
+
+        $clientOptions = ['' => '-- اختر المشترك --'];
+        $clients = \App\Models\Client::query()->orderBy('name')->get();
+        foreach ($clients as $client) {
+            $label = $client->name;
+            if (!empty($client->contract_no)) {
+                $label .= ' (' . $client->contract_no . ')';
             }
+            if (!empty($client->phone_one)) {
+                $label .= ' - ' . $client->phone_one;
+            }
+            $clientOptions[$client->id] = $label;
         }
-        
+
         CRUD::field('client_id')
             ->type('select_from_array')
             ->label('المشترك')
-            ->default($clientId)
             ->options($clientOptions)
+            ->default($selectedId)
             ->attributes([
                 'required' => 'required',
-                'data-ajax-url' => url('admin/api/search-clients'),
-                'data-minimum-input-length' => '2',
-                'data-placeholder' => 'ابحث عن المشترك بالاسم أو رقم الهاتف أو رقم العقد',
-                'class' => 'form-control client-select-ajax'
             ]);
 
         CRUD::field('delivery_date')
@@ -273,17 +288,41 @@ class DeliveryCrudController extends CrudController
             });
             </script>');
 
-        CRUD::field('distributor_id')
-            ->type('select')
-            ->model('App\Models\Distributor')
-            ->attribute('name')
-            ->label('الموزع')
-            ->attributes([
-                'required' => 'required'
-            ])
-            ->options(function ($query) {
-                return $query->orderBy('name')->get();
-            });
+        $loggedDistributor = null;
+        $loggedUser = backpack_user();
+        if ($loggedUser && $loggedUser->isDistributor()) {
+            $loggedDistributor = $loggedUser->distributor;
+        }
+
+        if ($loggedDistributor) {
+            CRUD::field('distributor_display')
+                ->type('custom_html')
+                ->value('<div class="form-group">
+                    <label class="control-label">الموزع</label>
+                    <div class="form-control" style="background-color: #f8f9fa; font-weight: 600;">
+                        ' . e($loggedDistributor->name) . '
+                    </div>
+                </div>');
+
+            CRUD::field('distributor_id')
+                ->type('hidden')
+                ->default($loggedDistributor->id)
+                ->attributes([
+                    'value' => $loggedDistributor->id,
+                ]);
+        } else {
+            CRUD::field('distributor_id')
+                ->type('select')
+                ->model('App\Models\Distributor')
+                ->attribute('name')
+                ->label('الموزع')
+                ->attributes([
+                    'required' => 'required',
+                ])
+                ->options(function ($query) {
+                    return $query->orderBy('name')->get();
+                });
+        }
     }
 
     protected function setupUpdateOperation()

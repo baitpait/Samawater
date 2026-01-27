@@ -61,9 +61,13 @@ class DeliveryListController extends Controller
             $dueClientsQuery->where('clients.subscription_type_id', $request->subscription_type_id);
         }
 
-        if ($request->filled('min_days')) {
+        $minDays = $request->filled('min_days') ? (int) $request->min_days : null;
+        if ($request->has('search') && $minDays === null) {
+            $minDays = 1;
+        }
+        if ($minDays !== null) {
             $operator = $request->get('days_operator', '>=');
-            $dueClientsQuery->where('days_since_last_delivery', $operator, $request->min_days);
+            $dueClientsQuery->where('days_since_last_delivery', $operator, $minDays);
         }
 
         if ($request->filled('subscription_status_name')) {
@@ -86,59 +90,107 @@ class DeliveryListController extends Controller
         $totalBottleReceived = 0;
         $totalBottleEmpty = 0;
 
+        /* ===============================
+           البيانات للفلاتر
+        =============================== */
+        $cities = City::orderBy('city_name')->get();
+        
+        // أنواع الاشتراك
+        $subscriptionTypes = SubscriptionType::orderBy('type_name')->get();
+        
+        // حالات الالتزام
+        $clientStatuses = ClientStatus::orderBy('status_name')->get();
+        
+        // حالات الاشتراك
+        $subscriptionStatuses = SubscriptionStatus::orderBy('status_name')->get();
+        
+        // الموزعين
+        $distributors = \App\Models\Distributor::orderBy('name')->get();
+
         // عرض النتائج فقط بعد الضغط على زر البحث
         if ($request->has('search')) {
+            // إذا لا توجد أي تسليمات في النظام، لا نعرض أي مشتركين
+            if (!\App\Models\Delivery::query()->exists()) {
+                $perPage = $request->get('per_page', 10);
+                $perPage = in_array($perPage, [10, 50, 100, 'all'], true) ? $perPage : 10;
+                $page = $request->get('page', 1);
+                $clients = new LengthAwarePaginator(
+                    collect(),
+                    0,
+                    $perPage === 'all' ? 1 : $perPage,
+                    $page,
+                    ['path' => $request->url(), 'query' => $request->query()]
+                );
+                $totalBottleReceived = 0;
+                $totalBottleEmpty = 0;
+
+                return view('admin.delivery_list', compact(
+                    'clients',
+                    'cities',
+                    'subscriptionTypes',
+                    'clientStatuses',
+                    'subscriptionStatuses',
+                    'distributors',
+                    'totalBottleReceived',
+                    'totalBottleEmpty'
+                ));
+            }
+
             // 1. جلب المشتركين من VClientsDueByTypeDaysIds
             $dueClients = $dueClientsQuery->get();
             
             // 2. جلب المشتركين الذين delivery_on_demand = true (تسليم حسب الطلب)
-            $onDemandClientsQuery = \App\Models\Client::query()
-                ->where('delivery_on_demand', true)
-                ->leftJoin('cities', 'cities.id', '=', 'clients.city_id')
-                ->leftJoin('subscription_types', 'subscription_types.id', '=', 'clients.subscription_type_id')
-                ->leftJoin('subscription_statuses', 'subscription_statuses.id', '=', 'clients.subscription_status_id')
-                ->leftJoin('client_statuses', function($join) {
-                    $join->on(DB::raw('0'), '>=', 'client_statuses.min_percentage')
-                         ->on(DB::raw('0'), '<=', 'client_statuses.max_percentage');
-                })
-                ->leftJoin('delivery', 'delivery.client_id', '=', 'clients.id')
-                ->leftJoin('distributors', 'distributors.id', '=', 'clients.distributor_id')
-                ->select(
-                    'clients.id as client_id',
-                    'clients.contract_no',
-                    'clients.name as client_name',
-                    'clients.phone_one',
-                    'clients.phone_two',
-                    'clients.city_id',
-                    'cities.city_name',
-                    'clients.subscription_status_id',
-                    'subscription_statuses.status_name as subscription_status_name',
-                    'subscription_types.type_name as subscription_type_name',
-                    'subscription_types.distribution_days',
-                    'clients.subscription_start_date',
-                    DB::raw('period_diff(date_format(curdate(),\'%Y%m\'),date_format(clients.subscription_start_date,\'%Y%m\')) as subscription_months'),
-                    DB::raw('max(delivery.delivery_date) as last_delivery_date'),
-                    DB::raw('count(delivery.id) as total_deliveries'),
-                    DB::raw('COALESCE(to_days(curdate()) - to_days(max(delivery.delivery_date)), 999) as days_since_last_delivery'),
-                    'clients.latitude',
-                    'clients.longitude',
-                    'clients.address',
-                    'clients.notes',
-                    DB::raw('coalesce(clients.bottle_balance,0) as bottle_balance_stored'),
-                    DB::raw('0 as total_bottle_received'),
-                    DB::raw('0 as total_bottle_empty'),
-                    DB::raw('coalesce(clients.bottle_balance,0) as bottle_on_hand_calculated'),
-                    DB::raw('0 as percentage_delivery_rate'),
-                    'client_statuses.status_name as client_status_name',
-                    'clients.image as client_image',
-                    'clients.client_type',
-                    'distributors.name as distributor_name',
-                    'subscription_types.id as subscription_type_id'
-                )
-                ->groupBy('clients.id', 'clients.contract_no', 'clients.name', 'clients.phone_one', 'clients.phone_two', 'clients.city_id', 'cities.city_name', 'clients.subscription_status_id', 'subscription_statuses.status_name', 'subscription_types.type_name', 'subscription_types.distribution_days', 'clients.subscription_start_date', 'clients.latitude', 'clients.longitude', 'clients.address', 'clients.notes', 'clients.bottle_balance', 'client_statuses.status_name', 'clients.image', 'clients.client_type', 'distributors.name', 'subscription_types.id');
+            $onDemandClientsQuery = null;
+            $hasAnyDelivery = \App\Models\Delivery::query()->exists();
+            if ($hasAnyDelivery) {
+                $onDemandClientsQuery = \App\Models\Client::query()
+                    ->where('delivery_on_demand', true)
+                    ->leftJoin('cities', 'cities.id', '=', 'clients.city_id')
+                    ->leftJoin('subscription_types', 'subscription_types.id', '=', 'clients.subscription_type_id')
+                    ->leftJoin('subscription_statuses', 'subscription_statuses.id', '=', 'clients.subscription_status_id')
+                    ->leftJoin('client_statuses', function($join) {
+                        $join->on(DB::raw('0'), '>=', 'client_statuses.min_percentage')
+                             ->on(DB::raw('0'), '<=', 'client_statuses.max_percentage');
+                    })
+                    ->leftJoin('deliveries', 'deliveries.client_id', '=', 'clients.id')
+                    ->leftJoin('distributors', 'distributors.id', '=', 'clients.distributor_id')
+                    ->select(
+                        'clients.id as client_id',
+                        'clients.contract_no',
+                        'clients.name as client_name',
+                        'clients.phone_one',
+                        'clients.phone_two',
+                        'clients.city_id',
+                        'cities.city_name',
+                        'clients.subscription_status_id',
+                        'subscription_statuses.status_name as subscription_status_name',
+                        'subscription_types.type_name as subscription_type_name',
+                        'subscription_types.distribution_days',
+                        'clients.subscription_start_date',
+                        DB::raw('period_diff(date_format(curdate(),\'%Y%m\'),date_format(clients.subscription_start_date,\'%Y%m\')) as subscription_months'),
+                        DB::raw('max(deliveries.delivery_date) as last_delivery_date'),
+                        DB::raw('count(deliveries.id) as total_deliveries'),
+                        DB::raw('COALESCE(to_days(curdate()) - to_days(max(deliveries.delivery_date)), 999) as days_since_last_delivery'),
+                        'clients.latitude',
+                        'clients.longitude',
+                        'clients.address',
+                        'clients.notes',
+                        DB::raw('coalesce(clients.bottle_balance,0) as bottle_balance_stored'),
+                        DB::raw('0 as total_bottle_received'),
+                        DB::raw('0 as total_bottle_empty'),
+                        DB::raw('coalesce(clients.bottle_balance,0) as bottle_on_hand_calculated'),
+                        DB::raw('0 as percentage_delivery_rate'),
+                        'client_statuses.status_name as client_status_name',
+                        'clients.image as client_image',
+                        'clients.client_type',
+                        'distributors.name as distributor_name',
+                        'subscription_types.id as subscription_type_id'
+                    )
+                    ->groupBy('clients.id', 'clients.contract_no', 'clients.name', 'clients.phone_one', 'clients.phone_two', 'clients.city_id', 'cities.city_name', 'clients.subscription_status_id', 'subscription_statuses.status_name', 'subscription_types.type_name', 'subscription_types.distribution_days', 'clients.subscription_start_date', 'clients.latitude', 'clients.longitude', 'clients.address', 'clients.notes', 'clients.bottle_balance', 'client_statuses.status_name', 'clients.image', 'clients.client_type', 'distributors.name', 'subscription_types.id');
+            }
             
             // تطبيق نفس الفلاتر على onDemandClientsQuery
-            if ($request->filled('q')) {
+            if ($onDemandClientsQuery && $request->filled('q')) {
                 $q = $request->q;
                 $onDemandClientsQuery->where(function ($sub) use ($q) {
                     $sub->where('clients.name', 'like', "%{$q}%")
@@ -148,17 +200,25 @@ class DeliveryListController extends Controller
                         ->orWhere('clients.address', 'like', "%{$q}%");
                 });
             }
-            if ($request->filled('city_id')) {
+            if ($onDemandClientsQuery && $request->filled('city_id')) {
                 $onDemandClientsQuery->where('clients.city_id', $request->city_id);
             }
-            if ($request->filled('subscription_type_id')) {
+            if ($onDemandClientsQuery && $request->filled('subscription_type_id')) {
                 $onDemandClientsQuery->where('clients.subscription_type_id', $request->subscription_type_id);
             }
-            if ($request->filled('subscription_status_id')) {
+            if ($onDemandClientsQuery && $request->filled('subscription_status_id')) {
                 $onDemandClientsQuery->where('clients.subscription_status_id', $request->subscription_status_id);
             }
+
+            if ($onDemandClientsQuery && $minDays !== null) {
+                $operator = $request->get('days_operator', '>=');
+                $onDemandClientsQuery->havingRaw(
+                    'COALESCE(to_days(curdate()) - to_days(max(deliveries.delivery_date)), 999) ' . $operator . ' ?',
+                    [$minDays]
+                );
+            }
             
-            $onDemandClients = $onDemandClientsQuery->get();
+            $onDemandClients = $onDemandClientsQuery ? $onDemandClientsQuery->get() : collect();
             
             // 3. دمج النتائج وإزالة التكرار (بناءً على client_id)
             $allClients = $dueClients->merge($onDemandClients)
@@ -198,23 +258,6 @@ class DeliveryListController extends Controller
                 );
             }
         }
-
-        /* ===============================
-           البيانات للفلاتر
-        =============================== */
-        $cities = City::orderBy('city_name')->get();
-        
-        // أنواع الاشتراك من View
-        $subscriptionTypes = SubscriptionType::orderBy('type_name')->get();
-        
-        // حالات الالتزام من View
-        $clientStatuses = ClientStatus::orderBy('status_name')->get();
-        
-        // حالات الاشتراك من View
-        $subscriptionStatuses = SubscriptionStatus::orderBy('status_name')->get();
-        
-        // الموزعين
-        $distributors = \App\Models\Distributor::orderBy('name')->get();
 
         return view('admin.delivery_list', compact(
             'clients',

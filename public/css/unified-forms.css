@@ -842,7 +842,12 @@ input[type="file"]::file-selector-button:hover {
    Sidebar Menu (القائمة الجانبية)
    ============================================ */
 
-/* Sidebar Container - CoreUI v2 Specific - High Specificity */
+/* ============================================
+   Sidebar - Simple Fixed Design
+   تصميم Sidebar بسيط وثابت
+   ============================================ */
+
+/* Sidebar Container - Fixed Width - Zero Gaps */
 body .sidebar,
 body .sidebar.sidebar-fixed,
 body .navbar-vertical,
@@ -850,20 +855,177 @@ body aside,
 body aside.sidebar,
 body .sidebar.sidebar-pills,
 .sidebar.sidebar-pills {
-    background: #ffffff !important;
-    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.05) !important;
-    border-right: 1px solid #e5e7eb !important;
+    width: 270px !important;
+    background: linear-gradient(180deg, #1e3a5f 0%, #1a2f4a 100%) !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-right: none !important;
+    border-left: none !important;
     font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    color: #ffffff !important;
+    transition: transform 0.3s ease !important;
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    height: 100vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    z-index: 1000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
 }
 
-/* Sidebar Nav Container */
+/* Custom Scrollbar for Sidebar - No Gap, Sticky to Edge */
+.sidebar::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 3px 0 0 3px !important;
+    transition: background 0.2s ease !important;
+    margin: 4px 0 !important;
+}
+
+[dir="rtl"] .sidebar::-webkit-scrollbar-thumb {
+    border-radius: 0 3px 3px 0 !important;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Firefox Scrollbar */
+.sidebar {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent !important;
+}
+
+/* Ensure no gap between scrollbar and content */
+.sidebar * {
+    box-sizing: border-box !important;
+}
+
+/* Remove all default spacing from sidebar elements */
+.sidebar ul,
+.sidebar ol,
+.sidebar li {
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+}
+
+/* Ensure nav items have no extra spacing */
+.sidebar .nav-item:first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.sidebar .nav-item:last-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Remove gap between scrollbar and sidebar edge */
+.sidebar {
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+}
+
+[dir="rtl"] .sidebar {
+    padding-right: 0 !important;
+}
+
+[dir="ltr"] .sidebar {
+    padding-left: 0 !important;
+}
+
+/* RTL Support - Sidebar Position */
+[dir="rtl"] .sidebar,
+[dir="rtl"] body .sidebar {
+    right: 0 !important;
+    left: auto !important;
+}
+
+[dir="ltr"] .sidebar,
+[dir="ltr"] body .sidebar {
+    left: 0 !important;
+    right: auto !important;
+}
+
+/* Sidebar Closed State - Hide Completely */
+body.sidebar-closed .sidebar,
+body.sidebar-closed aside.sidebar,
+body.sidebar-closed .sidebar.sidebar-fixed,
+body.sidebar-closed .sidebar.sidebar-pills {
+    transform: translateX(100%) !important;
+}
+
+[dir="rtl"] body.sidebar-closed .sidebar,
+[dir="rtl"] body.sidebar-closed aside.sidebar,
+[dir="rtl"] body.sidebar-closed .sidebar.sidebar-fixed,
+[dir="rtl"] body.sidebar-closed .sidebar.sidebar-pills {
+    transform: translateX(-100%) !important;
+}
+
+/* Sidebar Nav Container - No Padding/Margin */
 body .sidebar .nav,
 body .sidebar .navbar-nav,
 body aside .nav,
 body aside .navbar-nav,
 .sidebar .nav,
+.sidebar .navbar-nav,
+.sidebar .sidebar-nav,
+.sidebar ul,
+.sidebar ul.nav,
+.sidebar ul.navbar-nav {
+    padding: 0 !important;
+    margin: 0 !important;
+    list-style: none !important;
+    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+/* Sidebar Brand/Header - Updated for Dark */
+body .sidebar .sidebar-brand,
+body .sidebar .sidebar-header,
+.sidebar .sidebar-brand,
+.sidebar .sidebar-header {
+    padding: 1.5rem 1.25rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    position: relative !important;
+}
+
+/* Sidebar Nav - Minimal padding for toggle button - No Gaps */
+.sidebar .sidebar-nav,
+.sidebar .nav,
 .sidebar .navbar-nav {
-    padding: 0.5rem 0 !important;
+    padding-top: 0.5rem !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-bottom: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+body .sidebar .sidebar-brand .sidebar-brand-full,
+body .sidebar .sidebar-header .sidebar-logo-text,
+.sidebar .sidebar-brand .sidebar-brand-full,
+.sidebar .sidebar-header .sidebar-logo-text {
+    color: #ffffff !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
     font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
 }
 
@@ -887,15 +1049,16 @@ body aside .navbar-nav,
     text-decoration: none !important;
 }
 
-/* Nav Items - High Specificity */
+/* Nav Items - High Specificity - No Extra Margins */
 body .sidebar .nav-item,
 body aside .nav-item,
 .sidebar .nav-item,
 .nav-item {
-    margin-bottom: 4px !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
-/* Nav Links - High Specificity to Override CoreUI */
+/* Nav Links - High Specificity to Override CoreUI - No Extra Margins */
 body .sidebar .nav-link,
 body .sidebar .navbar-nav .nav-link,
 body aside .nav-link,
@@ -905,16 +1068,17 @@ body aside .navbar-nav .nav-link,
 .sidebar.sidebar-pills .nav-link,
 .nav-link {
     padding: 12px 20px !important;
-    color: #374151 !important;
+    color: rgba(255, 255, 255, 0.85) !important;
     font-size: 14px !important;
     font-weight: 500 !important;
-    border-radius: 12px !important;
-    margin: 0 8px 4px 8px !important;
+    border-radius: 8px !important;
+    margin: 0 12px 4px 12px !important;
     transition: all 0.2s ease !important;
     display: flex !important;
     align-items: center !important;
     gap: 12px !important;
     font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    box-sizing: border-box !important;
 }
 
 /* Nav Link Hover - High Specificity */
@@ -926,8 +1090,8 @@ body aside .navbar-nav .nav-link:hover,
 .sidebar .navbar-nav .nav-link:hover,
 .sidebar.sidebar-pills .nav-link:hover,
 .nav-link:hover {
-    background: linear-gradient(135deg, rgba(111, 106, 248, 0.1) 0%, rgba(124, 124, 255, 0.1) 100%) !important;
-    color: #6f6af8 !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
     transform: translateX(-4px) !important;
 }
 
@@ -945,7 +1109,7 @@ body aside .nav-link[aria-current="page"],
 .nav-link[aria-current="page"] {
     background: linear-gradient(135deg, #6f6af8 0%, #7c7cff 100%) !important;
     color: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(111, 106, 248, 0.3) !important;
+    box-shadow: 0 4px 12px rgba(111, 106, 248, 0.4) !important;
 }
 
 body .sidebar .nav-link.active:hover,
@@ -982,13 +1146,7 @@ body aside .nav-link .la,
     color: inherit !important;
 }
 
-/* Sidebar Divider */
-.sidebar-divider {
-    height: 1px !important;
-    background: #e5e7eb !important;
-    margin: 12px 16px !important;
-    border: none !important;
-}
+/* Sidebar Divider - Removed duplicate, see below */
 
 /* Dropdown Menu in Sidebar */
 .sidebar .nav-dropdown,
@@ -1022,6 +1180,355 @@ body aside .nav-link .la,
     transform: translateX(4px) !important;
 }
 
+/* Sidebar Search Bar */
+.sidebar-search {
+    padding: 1rem 1.25rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.sidebar-search-input {
+    width: 100% !important;
+    padding: 10px 16px 10px 40px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 8px !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    transition: all 0.2s ease !important;
+}
+
+.sidebar-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.sidebar-search-input:focus {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(111, 106, 248, 0.5) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(111, 106, 248, 0.1) !important;
+}
+
+.sidebar-search-wrapper {
+    position: relative !important;
+}
+
+.sidebar-search-icon {
+    position: absolute !important;
+    right: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 16px !important;
+}
+
+/* ============================================
+   Header - Hidden (Each page has its own header)
+   ============================================ */
+
+/* Hide Global Header - Each page has its own header */
+header.app-header,
+header.navbar,
+.app-header {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* ============================================
+   Sidebar Toggle Button - Hidden
+   ============================================ */
+
+/* Hide all toggle buttons */
+button[data-toggle="sidebar-show"],
+button[data-toggle="sidebar-lg-show"],
+.sidebar-toggler,
+.navbar-toggler.sidebar-toggler,
+.sidebar-toggle-btn,
+#sidebarToggle {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* ============================================
+   Menu Section Labels
+   ============================================ */
+
+.menu-section-label {
+    padding: 20px 20px 10px 20px !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.2px !important;
+    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    margin: 0 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+    list-style: none !important;
+    display: block !important;
+}
+
+.menu-section-label:first-child {
+    border-top: none !important;
+    padding-top: 20px !important;
+}
+
+.menu-category-arrow {
+    font-size: 12px !important;
+    transition: transform 0.3s ease !important;
+}
+
+.menu-category-arrow.collapsed {
+    transform: rotate(-90deg) !important;
+}
+
+.menu-category-items {
+    max-height: 1000px !important;
+    overflow: hidden !important;
+    transition: max-height 0.3s ease !important;
+}
+
+.menu-category-items.collapsed {
+    max-height: 0 !important;
+}
+
+/* Sidebar Header */
+.sidebar-header {
+    padding: 1.5rem 1.25rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+.sidebar-logo-text {
+    color: #ffffff !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+/* Nav Icons - Updated for Dark Sidebar */
+body .sidebar .nav-link i,
+body .sidebar .nav-link .nav-icon,
+body .sidebar .nav-link .la,
+body aside .nav-link i,
+body aside .nav-link .nav-icon,
+body aside .nav-link .la,
+.sidebar .nav-link i,
+.sidebar .nav-link .nav-icon,
+.sidebar .nav-link .la,
+.nav-link i,
+.nav-link .nav-icon,
+.nav-link .la {
+    font-size: 18px !important;
+    width: 24px !important;
+    text-align: center !important;
+    color: inherit !important;
+}
+
+/* Sidebar Divider - Updated for Dark */
+.sidebar-divider {
+    height: 1px !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    margin: 16px 20px !important;
+    border: none !important;
+    list-style: none !important;
+    padding: 0 !important;
+}
+
+/* Dropdown Menu in Sidebar - Updated for Dark */
+.sidebar .nav-dropdown,
+.sidebar .dropdown-menu {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    margin: 4px 12px !important;
+    padding: 8px !important;
+    box-shadow: none !important;
+}
+
+.sidebar .nav-dropdown .nav-link {
+    padding: 10px 16px !important;
+    margin: 2px 0 !important;
+    font-size: 13px !important;
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.sidebar .nav-dropdown .nav-link:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+}
+
+/* ============================================
+   App Body - Flexbox Layout
+   ============================================ */
+
+/* App Body - Flexbox Container */
+.app-body {
+    display: flex !important;
+    flex-direction: row !important;
+    min-height: 100vh !important;
+    transition: margin-right 0.3s ease !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* RTL: Sidebar on Right, Content on Left - Zero Gap */
+[dir="rtl"] .app-body {
+    margin-right: 270px !important;
+    margin-left: 0 !important;
+    padding: 0 !important;
+}
+
+/* LTR: Sidebar on Left, Content on Right - Zero Gap */
+[dir="ltr"] .app-body {
+    margin-left: 270px !important;
+    margin-right: 0 !important;
+    padding: 0 !important;
+}
+
+/* App Body - Sidebar Closed (Content Expands) */
+[dir="rtl"] body.sidebar-closed .app-body,
+[dir="rtl"] .sidebar-closed .app-body {
+    margin-right: 0 !important;
+}
+
+[dir="ltr"] body.sidebar-closed .app-body,
+[dir="ltr"] .sidebar-closed .app-body {
+    margin-left: 0 !important;
+}
+
+/* Main Content Area - Zero Gap with Sidebar */
+.app-body .main {
+    flex: 1 !important;
+    width: 100% !important;
+    transition: all 0.3s ease !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative !important;
+    z-index: 1 !important;
+    background: #ffffff !important;
+    box-sizing: border-box !important;
+}
+
+/* Remove any gaps in container-fluid */
+.app-body .main .container-fluid {
+    margin: 0 !important;
+    padding: 1.5rem !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure no gap between sidebar and main content */
+[dir="rtl"] .app-body .main {
+    margin-right: 0 !important;
+    border-right: none !important;
+    padding-right: 0 !important;
+}
+
+[dir="ltr"] .app-body .main {
+    margin-left: 0 !important;
+    border-left: none !important;
+    padding-left: 0 !important;
+}
+
+/* إزالة أي مساحة أو حدود بين السايدبار والمحتوى */
+[dir="rtl"] .app-body .main .container-fluid {
+    padding-right: 1.5rem !important;
+    padding-left: 1.5rem !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+}
+
+[dir="ltr"] .app-body .main .container-fluid {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* إزالة أي box-shadow أو border من السايدبار */
+body .sidebar::before,
+body .sidebar::after,
+.sidebar::before,
+.sidebar::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* إزالة أي خط عمودي أو border من السايدبار */
+body .sidebar,
+.sidebar {
+    border-right: none !important;
+    border-left: none !important;
+    outline: none !important;
+}
+
+[dir="rtl"] body .sidebar,
+[dir="rtl"] .sidebar {
+    border-right: none !important;
+    border-left: none !important;
+}
+
+[dir="ltr"] body .sidebar,
+[dir="ltr"] .sidebar {
+    border-left: none !important;
+    border-right: none !important;
+}
+
+/* التأكد من أن المحتوى يبدأ من الحافة مباشرة */
+.app-body .main {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* إزالة أي margin أو padding إضافي من row و col */
+.app-body .main .row,
+.app-body .main .col-md-12,
+.app-body .main .col-12 {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* التأكد من أن header يظهر بشكل صحيح */
+section.header-operation-unified {
+    margin-bottom: 2rem !important;
+    width: 100% !important;
+    display: block !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* إزالة أي مساحة إضافية من العناصر الأساسية */
+body {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* التأكد من أن المحتوى يبدأ من الحافة مباشرة */
+.app-body .main .container-fluid .row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+.app-body .main .container-fluid .row > [class*="col-"] {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+}
+
+/* إزالة أي margin أو padding إضافي من العناصر */
+.app-body .main .container-fluid > *:first-child {
+    margin-top: 0 !important;
+}
+
+.app-body .main .container-fluid > *:last-child {
+    margin-bottom: 0 !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .nav-link {
@@ -1034,5 +1541,9 @@ body aside .nav-link .la,
     .nav-link .la {
         font-size: 16px !important;
         width: 20px !important;
+    }
+    
+    .sidebar-toggle-btn {
+        display: block !important;
     }
 }

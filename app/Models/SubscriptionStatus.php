@@ -16,6 +16,8 @@ class SubscriptionStatus extends Model
         'status_name'
     ];
 
+    // protected $guarded = ['id'];
+
     /**
      * العلاقة مع المشتركين
      */

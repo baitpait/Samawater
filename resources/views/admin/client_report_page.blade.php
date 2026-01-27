@@ -854,11 +854,9 @@ function editDelivery(deliveryId) {
         
         // التحقق من وجود Bootstrap (من Backpack أو من CDN)
         let BootstrapModal;
-        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-            BootstrapModal = bootstrap.Modal;
-        } else if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Modal) {
+        if (typeof window.bootstrap !== 'undefined' && window.bootstrap && window.bootstrap.Modal) {
             BootstrapModal = window.bootstrap.Modal;
-        } else if (typeof $ !== 'undefined' && $.fn.modal) {
+        } else if (typeof window.jQuery !== 'undefined' && window.jQuery.fn && window.jQuery.fn.modal) {
             // استخدام jQuery Modal إذا كان متاحاً
             BootstrapModal = null; // سنستخدم jQuery بدلاً من Bootstrap
         } else {
@@ -873,16 +871,16 @@ function editDelivery(deliveryId) {
                 keyboard: true,
                 focus: true
             });
-        } else if (typeof $ !== 'undefined' && $.fn.modal) {
+        } else if (typeof window.jQuery !== 'undefined' && window.jQuery.fn && window.jQuery.fn.modal) {
             // استخدام jQuery Modal
-            $(modalEl).modal({
+            window.jQuery(modalEl).modal({
                 backdrop: true,
                 keyboard: true,
                 show: false
             });
             deliveryModal = {
-                show: function() { $(modalEl).modal('show'); },
-                hide: function() { $(modalEl).modal('hide'); }
+                show: function() { window.jQuery(modalEl).modal('show'); },
+                hide: function() { window.jQuery(modalEl).modal('hide'); }
             };
         }
     }
@@ -926,8 +924,8 @@ function editDelivery(deliveryId) {
             if (deliveryModal && typeof deliveryModal.show === 'function') {
                 deliveryModal.show();
                 console.log('✅ تم فتح الـ Modal');
-            } else if (typeof $ !== 'undefined' && $('#editDeliveryModal').length) {
-                $('#editDeliveryModal').modal('show');
+            } else if (typeof window.jQuery !== 'undefined' && window.jQuery('#editDeliveryModal').length) {
+                window.jQuery('#editDeliveryModal').modal('show');
                 console.log('✅ تم فتح الـ Modal باستخدام jQuery');
             } else {
                 console.error('❌ لا يمكن فتح الـ Modal');
@@ -951,20 +949,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (modalEl) {
         // التحقق من وجود Bootstrap
         let BootstrapModal;
-        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-            BootstrapModal = bootstrap.Modal;
-        } else if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Modal) {
+        if (typeof window.bootstrap !== 'undefined' && window.bootstrap && window.bootstrap.Modal) {
             BootstrapModal = window.bootstrap.Modal;
-        } else if (typeof $ !== 'undefined' && $.fn.modal) {
+        } else if (typeof window.jQuery !== 'undefined' && window.jQuery.fn && window.jQuery.fn.modal) {
             // استخدام jQuery Modal
-            $(modalEl).modal({
+            window.jQuery(modalEl).modal({
                 backdrop: true,
                 keyboard: true,
                 show: false
             });
             deliveryModal = {
-                show: function() { $(modalEl).modal('show'); },
-                hide: function() { $(modalEl).modal('hide'); }
+                show: function() { window.jQuery(modalEl).modal('show'); },
+                hide: function() { window.jQuery(modalEl).modal('hide'); }
             };
             console.log('✅ تم إنشاء jQuery Modal');
             return;

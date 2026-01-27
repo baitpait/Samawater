@@ -32,23 +32,6 @@ class Distributor extends Model
         'password_hash',
         'remember_token',
     ];
-// public function setPasswordHashAttribute($value)
-// {
-//     // ✅ إذا كان نصًا => شفّره
-//     if (!empty($value) && substr($value, 0, 4) !== '$2y$') {
-//         $this->attributes['password_hash'] = Hash::make($value);
-//     }
-
-//     // ✅ إذا كان Hash جاهز => خزنه كما هو
-//     elseif (substr($value, 0, 4) === '$2y$') {
-//         $this->attributes['password_hash'] = $value;
-//     }
-// }
-
-//     protected $hidden = [
-//         'password_hash',
-//     ];
-
     /* ===============================
        العلاقات المالية
        =============================== */

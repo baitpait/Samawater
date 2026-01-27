@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Models\Role;
@@ -15,15 +17,21 @@ class RolesSeeder extends Seeder
         // إنشاء أنواع المستخدمين
         $roles = [
             [
-                'name' => 'super_admin',
+                'name' => Role::NAME_SUPER_ADMIN,
                 'display_name' => 'مسؤول رئيسي',
                 'description' => 'المسؤول الرئيسي - يمكنه إدارة المستخدمين وجميع الصلاحيات',
                 'is_super_admin' => true,
             ],
             [
-                'name' => 'admin',
+                'name' => Role::NAME_ADMIN,
                 'display_name' => 'مسؤول',
                 'description' => 'مسؤول - له كل الصلاحيات إلا إدارة المستخدمين',
+                'is_super_admin' => false,
+            ],
+            [
+                'name' => Role::NAME_DISTRIBUTOR,
+                'display_name' => 'موزع',
+                'description' => 'موزع - صلاحيات محددة لعرض العملاء والتسليمات فقط',
                 'is_super_admin' => false,
             ],
         ];

@@ -13,7 +13,7 @@
                         type="text" 
                         name="search" 
                         class="form-control modern-input" 
-                        placeholder="اسم الموزع، رقم الهاتف، أو اسم المستخدم"
+                        placeholder="اسم الموزع أو رقم الهاتف"
                         value="{{ request('search') }}"
                         style="height: 50px; font-size: 15px; padding: 14px 20px; font-family: 'Cairo', sans-serif; width: 100%;"
                     >

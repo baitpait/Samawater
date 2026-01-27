@@ -316,17 +316,6 @@
                         </a>
                     @endif
                     
-                    @if ($crud->hasAccess('delete'))
-                        <a href="{{ backpack_url('distributor/'.$entry->getKey()) }}" 
-                           class="btn btn-danger"
-                           onclick="event.preventDefault(); if(confirm('هل أنت متأكد من حذف هذا الموزع؟')) { document.getElementById('delete-form-{{ $entry->getKey() }}').submit(); }">
-                            <i class="la la-trash"></i> حذف
-                        </a>
-                        <form id="delete-form-{{ $entry->getKey() }}" action="{{ backpack_url('distributor/'.$entry->getKey()) }}" method="POST" style="display: none;">
-                            @csrf
-                            @method('DELETE')
-                        </form>
-                    @endif
 
                     <button type="button" class="btn btn-warning open-withdraw-modal" 
                             data-id="{{ $entry->getKey() }}" 

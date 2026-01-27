@@ -18,9 +18,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('clients', function (Blueprint $table) {
-            $table->boolean('delivery_on_demand')->default(false)->after('bottle_balance');
-        });
+        if (!Schema::hasTable('clients')) {
+            return;
+        }
+
+        if (!Schema::hasColumn('clients', 'delivery_on_demand')) {
+            Schema::table('clients', function (Blueprint $table) {
+                if (Schema::hasColumn('clients', 'bottle_balance')) {
+                    $table->boolean('delivery_on_demand')->default(false)->after('bottle_balance');
+                } else {
+                    $table->boolean('delivery_on_demand')->default(false);
+                }
+            });
+        }
     }
 
     /**

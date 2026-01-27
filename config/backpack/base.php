@@ -42,7 +42,7 @@ return [
     // Set this to false if you would like to use your own AuthController and PasswordController
     // (you then need to setup your auth routes manually in your routes.php file)
     // Warning: if you disable this, the password recovery routes (below) will be disabled too!
-    'setup_auth_routes' => true,
+    'setup_auth_routes' => false, // تم تعطيله لاستخدام AuthController المخصص
 
     // Set this to false if you would like to skip adding the dashboard routes
     // (you then need to overwrite the login route on your AuthController)
@@ -126,6 +126,9 @@ return [
     // If you need to switch to username, you also need to create that column in your db
     'authentication_column' => 'email',
     'authentication_column_name' => 'Email',
+
+    // Enable phone login for distributors
+    'enable_phone_login' => true,
 
     // Backpack assumes that your "database email column" for operations like Login and Register is called "email".
     // If your database email column have a different name, you can configure it here. Eg: `user_mail`

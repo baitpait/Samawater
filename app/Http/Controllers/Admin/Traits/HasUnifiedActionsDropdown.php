@@ -37,6 +37,8 @@ trait HasUnifiedActionsDropdown
             'name'  => 'actions',
             'label' => 'أجراءات',
             'type'  => 'custom_html',
+            'searchable' => false,
+            'orderable' => false,
             'value' => function ($entry) use ($routePrefix, $deleteMessage) {
                 $editUrl = url(config('backpack.base.route_prefix') . '/' . $routePrefix . '/' . $entry->id . '/edit');
                 $deleteUrl = url(config('backpack.base.route_prefix') . '/' . $routePrefix . '/' . $entry->id);

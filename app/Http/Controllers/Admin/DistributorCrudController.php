@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Distributor;
 use App\Http\Requests\DistributorRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Http\Request;
 
 class DistributorCrudController extends CrudController
 {
@@ -19,6 +21,43 @@ class DistributorCrudController extends CrudController
         CRUD::setModel(\App\Models\Distributor::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/distributor');
         CRUD::setEntityNameStrings('موزع', 'الموزعين');
+    }
+
+    /**
+     * عرض قائمة الموزعين بواجهة مخصصة بدل جدول Backpack.
+     */
+    public function index(Request $request)
+    {
+        $this->crud->hasAccessOrFail('list');
+
+        $query = Distributor::query();
+
+        if ($request->has('search') && $request->search) {
+            $search = (string) $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('phone', 'like', '%' . $search . '%');
+            });
+        }
+
+        $sortBy = $request->get('sort_by', 'id');
+        $sortDir = $request->get('sort_dir', 'desc') === 'asc' ? 'asc' : 'desc';
+
+        $allowedSorts = ['id', 'name', 'phone', 'balance'];
+        if (!in_array($sortBy, $allowedSorts, true)) {
+            $sortBy = 'id';
+        }
+
+        $query->orderBy($sortBy, $sortDir);
+
+        $perPage = (int) $request->get('per_page', 25);
+        if ($perPage < 1) {
+            $perPage = 25;
+        }
+
+        $distributors = $query->paginate($perPage);
+
+        return view('admin.distributors_list', compact('distributors'));
     }
 
     protected function setupListOperation()
@@ -44,8 +83,7 @@ class DistributorCrudController extends CrudController
                 CRUD::addClause(function ($query) use ($search) {
                     $query->where(function($q) use ($search) {
                         $q->where('name', 'like', '%' . $search . '%')
-                          ->orWhere('phone', 'like', '%' . $search . '%')
-                          ->orWhere('username', 'like', '%' . $search . '%');
+                          ->orWhere('phone', 'like', '%' . $search . '%');
                     });
                 });
             }
@@ -75,10 +113,6 @@ class DistributorCrudController extends CrudController
             'label' => 'رقم الهاتف',
         ]);
 
-        CRUD::addColumn([
-            'name' => 'username',
-            'label' => 'اسم المستخدم',
-        ]);
 
         CRUD::addColumn([
             'name' => 'balance',
@@ -127,19 +161,13 @@ class DistributorCrudController extends CrudController
                         <li><a class="dropdown-item" href="'.$clientsUrl.'">
                             <i class="la la-users"></i> العملاء
                         </a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="'.$deleteUrl.'" 
-                           onclick="event.preventDefault(); if(confirm(\'هل أنت متأكد من حذف هذا الموزع؟\')) { document.getElementById(\'delete-form-'.$entry->id.'\').submit(); }">
-                            <i class="la la-trash"></i> حذف
-                        </a></li>
-                        <form id="delete-form-'.$entry->id.'" action="'.$deleteUrl.'" method="POST" style="display: none;">
-                            '.csrf_field().'
-                            '.method_field('DELETE').'
-                        </form>
                     </ul>
                 </div>';
             },
         ]);
+        
+        // إضافة JavaScript لإعادة تهيئة dropdowns بعد تحميل الجدول
+        // سيتم إضافة الـ script عبر view مخصص
     }
 
     protected function setupCreateOperation()
@@ -154,25 +182,52 @@ class DistributorCrudController extends CrudController
 
         CRUD::addField([
             'name' => 'phone',
-            'label' => 'رقم الهاتف',
+            'label' => 'رقم الهاتف (يستخدم لتسجيل الدخول)',
             'type' => 'text',
-        ]);
-
-        CRUD::addField([
-            'name' => 'username',
-            'label' => 'اسم المستخدم',
-            'type' => 'text',
+            'hint' => 'سيتم استخدام رقم الهاتف لتسجيل الدخول',
         ]);
 
         CRUD::addField([
             'name'  => 'password_hash',
             'label' => 'كلمة المرور',
-            'type'  => 'password',
-            'attributes' => [
-                'autocomplete' => 'new-password',
-                'placeholder'  => 'اتركه فارغًا إذا لا تريد تغيير كلمة المرور',
-            ],
+            'type'  => 'custom_html',
+            'value' => '
+                <div class="input-group" style="direction: rtl;">
+                    <input 
+                        type="password" 
+                        name="password_hash" 
+                        id="distributor_password_field" 
+                        class="form-control" 
+                        autocomplete="new-password" 
+                        placeholder="اتركه فارغًا إذا لا تريد تغيير كلمة المرور"
+                        style="border-radius: 0.375rem 0 0 0.375rem; border-left: none; padding-right: 15px;"
+                    />
+                    <button 
+                        class="btn btn-outline-secondary" 
+                        type="button" 
+                        id="toggle-password"
+                        style="border-radius: 0 0.375rem 0.375rem 0; border-right: none; padding: 0 12px; background: #f8f9fa; border-color: #ced4da; color: #6c757d;"
+                        onclick="togglePasswordVisibility()"
+                    >
+                        <i class="la la-eye" id="toggle-icon" style="font-size: 18px;"></i>
+                    </button>
+                </div>
+                <script>
+                function togglePasswordVisibility() {
+                    const passwordField = document.getElementById("distributor_password_field");
+                    const toggleIcon = document.getElementById("toggle-icon");
+                    
+                    if (passwordField.type === "password") {
+                        passwordField.type = "text";
+                        toggleIcon.className = "la la-eye-slash";
+                    } else {
+                        passwordField.type = "password";
+                        toggleIcon.className = "la la-eye";
+                    }
+                }
+                </script>',
         ]);
+
 
         CRUD::addField([
             'name' => 'status',
@@ -191,6 +246,91 @@ class DistributorCrudController extends CrudController
         ]);
     }
 
+    /**
+     * Store a newly created resource in storage.
+     * إنشاء الموزع + إنشاء حساب مستخدم مرتبط تلقائياً
+     */
+    public function store(DistributorRequest $request)
+    {
+        $this->crud->hasAccessOrFail('create');
+
+        try {
+            // التحقق من كلمة المرور قبل الإنشاء
+            if (empty($request->password_hash) || strlen($request->password_hash) < 6) {
+                \Alert::error('خطأ: كلمة المرور يجب أن تكون على الأقل 6 أحرف.')->flash();
+                return redirect($this->crud->route);
+            }
+
+            // تشفير كلمة المرور مرة واحدة فقط
+            $hashedPassword = bcrypt($request->password_hash);
+            
+            // إنشاء الموزع أولاً
+            $distributor = \App\Models\Distributor::create([
+                'name' => $request->name,
+                'phone' => $request->phone,
+                'username' => $request->phone, // استخدام phone كـ username
+                'password_hash' => $hashedPassword,
+                'status' => $request->status ?? 1,
+                'notes' => $request->notes,
+            ]);
+
+            // البحث عن دور "الموزع"
+            $distributorRole = \App\Models\Role::where('name', 'distributor')->first();
+            
+            if (!$distributorRole) {
+                // حذف الموزع إذا فشل إنشاء الدور
+                $distributor->delete();
+                \Alert::error('خطأ: لم يتم العثور على دور "الموزع" في النظام.')->flash();
+                return redirect($this->crud->route);
+            }
+
+            // إنشاء حساب مستخدم للموزع تلقائياً
+            // استخدام phone + @distributor.local كـ email
+            $email = $distributor->phone . '@distributor.local';
+            
+            // التحقق من عدم وجود email مكرر
+            if (\App\Models\User::where('email', $email)->exists()) {
+                // حذف الموزع إذا كان email مكرر
+                $distributor->delete();
+                \Alert::error('خطأ: البريد الإلكتروني "' . $email . '" مستخدم بالفعل.')->flash();
+                return redirect($this->crud->route);
+            }
+            
+            // إنشاء المستخدم بنفس كلمة المرور المشفرة
+            $user = \App\Models\User::create([
+                'name' => $distributor->name,
+                'email' => $email,
+                'password' => $hashedPassword, // استخدام نفس الـ hash
+                'role_id' => $distributorRole->id,
+                'distributor_id' => $distributor->id,
+            ]);
+
+            // التحقق من نجاح الإنشاء
+            if (!$user || !$user->id) {
+                // حذف الموزع إذا فشل إنشاء المستخدم
+                $distributor->delete();
+                \Alert::error('خطأ: فشل إنشاء حساب المستخدم.')->flash();
+                return redirect($this->crud->route);
+            }
+
+            \Alert::success('تم إنشاء الموزع "' . $distributor->name . '" وحساب المستخدم المرتبط بنجاح.')->flash();
+            
+        } catch (\Exception $e) {
+            // في حالة حدوث خطأ، حذف الموزع إذا كان موجوداً
+            if (isset($distributor) && $distributor->id) {
+                $distributor->delete();
+            }
+
+            \Alert::error('خطأ: ' . $e->getMessage())->flash();
+            \Log::error('خطأ في إنشاء موزع', [
+                'error' => $e->getMessage(),
+                'distributor_id' => isset($distributor) ? $distributor->id : null,
+            ]);
+        }
+        
+        return redirect($this->crud->route);
+    }
+
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();
@@ -202,6 +342,104 @@ class DistributorCrudController extends CrudController
                 'placeholder'  => 'اتركه فارغًا إذا لا تريد تغيير كلمة المرور',
             ],
         ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     * تحديث الموزع + تحديث حساب المستخدم المرتبط
+     */
+    public function update(DistributorRequest $request, $id)
+    {
+        $this->crud->hasAccessOrFail('update');
+
+        $distributor = \App\Models\Distributor::findOrFail($id);
+        
+        // تحديث بيانات الموزع
+        $updateData = [
+            'name' => $request->name,
+            'phone' => $request->phone,
+            'username' => $request->phone, // استخدام phone كـ username
+            'status' => $request->status ?? 1,
+            'notes' => $request->notes,
+        ];
+
+        // إذا تم إدخال كلمة مرور جديدة
+        if (!empty($request->password_hash)) {
+            $updateData['password_hash'] = bcrypt($request->password_hash);
+        }
+
+        $distributor->update($updateData);
+
+        // البحث عن المستخدم المرتبط أو إنشاؤه
+        $user = \App\Models\User::where('distributor_id', $distributor->id)->first();
+        $distributorRole = \App\Models\Role::where('name', 'distributor')->first();
+
+        try {
+            if (!$user && $distributorRole) {
+                // إنشاء حساب مستخدم إذا لم يكن موجوداً
+                $email = $distributor->phone . '@distributor.local';
+                
+                // التحقق من عدم وجود email مكرر
+                if (\App\Models\User::where('email', $email)->exists()) {
+                    \Alert::error('خطأ: البريد الإلكتروني "' . $email . '" مستخدم بالفعل.')->flash();
+                    return redirect($this->crud->route);
+                }
+                
+                // استخدام كلمة المرور الجديدة أو الافتراضية
+                $passwordToUse = !empty($request->password_hash) ? $request->password_hash : '123456';
+                $hashedPassword = bcrypt($passwordToUse);
+                
+                $user = \App\Models\User::create([
+                    'name' => $distributor->name,
+                    'email' => $email,
+                    'password' => $hashedPassword,
+                    'role_id' => $distributorRole->id,
+                    'distributor_id' => $distributor->id,
+                ]);
+                
+                // تحديث كلمة مرور الموزع أيضاً
+                if (!empty($request->password_hash)) {
+                    $distributor->password_hash = $hashedPassword;
+                    $distributor->save();
+                }
+                
+                \Alert::success('تم تحديث الموزع وإنشاء حساب المستخدم المرتبط.')->flash();
+            } elseif ($user) {
+                // تحديث حساب المستخدم الموجود
+                $email = $distributor->phone . '@distributor.local';
+                
+                // التحقق من عدم وجود email مكرر (إذا تغير phone)
+                if ($user->email !== $email && \App\Models\User::where('email', $email)->exists()) {
+                    \Alert::error('خطأ: البريد الإلكتروني "' . $email . '" مستخدم بالفعل.')->flash();
+                    return redirect($this->crud->route);
+                }
+                
+                $userUpdate = [
+                    'name' => $distributor->name,
+                    'email' => $email,
+                ];
+                
+                // تحديث كلمة المرور إذا تم إدخالها
+                if (!empty($request->password_hash)) {
+                    $hashedPassword = bcrypt($request->password_hash);
+                    $userUpdate['password'] = $hashedPassword;
+                    // تحديث كلمة مرور الموزع أيضاً
+                    $distributor->password_hash = $hashedPassword;
+                    $distributor->save();
+                }
+                
+                $user->update($userUpdate);
+                \Alert::success('تم تحديث الموزع وحساب المستخدم المرتبط.')->flash();
+            }
+        } catch (\Exception $e) {
+            \Alert::error('خطأ: ' . $e->getMessage())->flash();
+            \Log::error('خطأ في تحديث موزع', [
+                'error' => $e->getMessage(),
+                'distributor_id' => $id,
+            ]);
+        }
+
+        return redirect($this->crud->route);
     }
 
     protected function setupShowOperation()
@@ -221,11 +459,6 @@ class DistributorCrudController extends CrudController
             'tab' => 'البيانات الأساسية',
         ]);
 
-        CRUD::addColumn([
-            'name' => 'username',
-            'label' => 'اسم المستخدم',
-            'tab' => 'البيانات الأساسية',
-        ]);
 
         CRUD::addColumn([
             'name' => 'status',
@@ -288,4 +521,5 @@ class DistributorCrudController extends CrudController
         // Redirect صحيح إلى قائمة الموزعين
         return redirect($this->crud->route);
     }
+
 }

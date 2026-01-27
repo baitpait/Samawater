@@ -16,8 +16,8 @@ class DatabaseSeeder extends Seeder
         // إنشاء أنواع المستخدمين
         $this->call(RolesSeeder::class);
 
-        // إنشاء 10 عملاء تجريبيين
-        $this->call(TestClientsSeeder::class);
+        // إنشاء بيانات تجريبية كاملة
+        $this->call(DemoDataSeeder::class);
 
         // User::factory(10)->create();
 

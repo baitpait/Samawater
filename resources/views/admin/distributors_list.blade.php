@@ -4,6 +4,13 @@
     {{-- Unified Forms Design System - الهوية البصرية الموحدة --}}
     <link rel="stylesheet" href="{{ asset('css/unified-forms.css') }}?v={{ time() }}">
     
+    {{-- تحميل Noty CSS --}}
+    @basset('https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.css')
+    
+    {{-- تحميل jQuery و Noty مبكراً لضمان الترتيب --}}
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/noty@3.2.0-beta-deprecated/lib/noty.min.js"></script>
+    
     {{-- Unified Header Styles --}}
     <style>
         /* ============================================
@@ -126,15 +133,46 @@
         }
         
         /* إخفاء h1 الافتراضي */
-        h1.text-capitalize.mb-0:not(section.header-operation-unified h1) {
+        h1.text-capitalize.mb-0:not(section.header-operation-unified h1),
+        .container-fluid h1:not(section.header-operation-unified h1) {
             display: none !important;
         }
 
         /* إخفاء header الافتراضي من Backpack */
         div.container-fluid.d-flex.justify-content-between.my-3,
         div.container-fluid.d-flex.justify-content-between,
-        section.header-operation:not(.header-operation) {
+        section.header-operation:not(.header-operation-unified) {
             display: none !important;
+        }
+        
+        /* إخفاء أي أزرار إضافة موزع إضافية */
+        .container-fluid a[href*="distributor/create"]:not(.header-operation-unified a),
+        .container-fluid .btn-success:not(.header-operation-unified .btn-success-unified),
+        section.header-operation:not(.header-operation-unified) a[href*="distributor/create"],
+        section.header-operation:not(.header-operation-unified) .btn-success {
+            display: none !important;
+        }
+        
+        /* إخفاء أي headers افتراضية من Backpack */
+        section.header-operation.container-fluid:not(.header-operation-unified),
+        section.header-operation.animated:not(.header-operation-unified),
+        section.header-operation.fadeIn:not(.header-operation-unified),
+        section.header-operation.d-flex:not(.header-operation-unified) {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* التأكد من أن header-operation-unified يظهر بشكل صحيح */
+        section.header-operation-unified {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 10 !important;
         }
         
         /* إخفاء widgets القديمة - فقط العناصر الفارغة */
@@ -263,7 +301,7 @@
                                 type="text" 
                                 name="search" 
                                 class="form-control modern-input" 
-                                placeholder="اسم الموزع، رقم الهاتف، أو اسم المستخدم"
+                                placeholder="اسم الموزع أو رقم الهاتف"
                                 value="{{ request('search') }}"
                                 style="height: 50px; font-size: 15px; padding: 14px 20px; font-family: 'Cairo', sans-serif; display: block !important; visibility: visible !important; opacity: 1 !important; width: 100%;"
                             >
@@ -304,14 +342,6 @@
                                     </a>
                                 </th>
                                 <th>
-                                    <a href="{{ url(config('backpack.base.route_prefix') . '/distributors-list') }}?sort_by=username&sort_dir={{ request('sort_dir') == 'asc' ? 'desc' : 'asc' }}{{ request('search') ? '&search=' . request('search') : '' }}">
-                                        اسم المستخدم
-                                        @if(request('sort_by') == 'username')
-                                            <i class="la la-sort-{{ request('sort_dir') == 'asc' ? 'up' : 'down' }}"></i>
-                                        @endif
-                                    </a>
-                                </th>
-                                <th>
                                     <a href="{{ url(config('backpack.base.route_prefix') . '/distributors-list') }}?sort_by=balance&sort_dir={{ request('sort_dir') == 'asc' ? 'desc' : 'asc' }}{{ request('search') ? '&search=' . request('search') : '' }}">
                                         الرصيد الحالي
                                         @if(request('sort_by') == 'balance')
@@ -327,7 +357,6 @@
                                 <tr>
                                     <td>{{ $distributor->name }}</td>
                                     <td>{{ $distributor->phone }}</td>
-                                    <td>{{ $distributor->username }}</td>
                                     <td style="font-weight: 600; color: #1f2937;">₪ {{ number_format($distributor->balance, 2) }}</td>
                                     <td>
                                         <div class="btn-group unified-actions-dropdown dropdown" style="position: relative;">
@@ -353,25 +382,13 @@
                                                 <li><a class="dropdown-item" href="{{ url(config('backpack.base.route_prefix') . '/distributor/' . $distributor->id . '/clients') }}">
                                                     <i class="la la-users"></i> المشتركين
                                                 </a></li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li><a class="dropdown-item text-danger" href="#" 
-                                                   onclick="event.preventDefault(); if(confirm('هل أنت متأكد من حذف هذا الموزع؟')) { document.getElementById('delete-form-{{ $distributor->id }}').submit(); }">
-                                                    <i class="la la-trash"></i> حذف
-                                                </a></li>
-                                                <form id="delete-form-{{ $distributor->id }}" 
-                                                      action="{{ url(config('backpack.base.route_prefix') . '/distributor/' . $distributor->id) }}" 
-                                                      method="POST" 
-                                                      style="display: none;">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                </form>
                                             </ul>
                                         </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center">لا توجد بيانات</td>
+                                    <td colspan="4" class="text-center">لا توجد بيانات</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -677,17 +694,32 @@
         initBootstrapDropdowns();
     }
     
+    // انتظار تحميل jQuery و Noty قبل التشغيل
+    function waitForLibraries(callback) {
+        if (typeof jQuery !== 'undefined' && typeof Noty !== 'undefined') {
+            callback();
+        } else {
+            setTimeout(function() {
+                waitForLibraries(callback);
+            }, 100);
+        }
+    }
+    
     // تشغيل عند تحميل الصفحة
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
+            waitForLibraries(function() {
+                setTimeout(init, 100);
+                setTimeout(init, 500);
+                setTimeout(init, 1000);
+            });
+        });
+    } else {
+        waitForLibraries(function() {
             setTimeout(init, 100);
             setTimeout(init, 500);
             setTimeout(init, 1000);
         });
-    } else {
-        setTimeout(init, 100);
-        setTimeout(init, 500);
-        setTimeout(init, 1000);
     }
 })();
 </script>
