@@ -33,11 +33,8 @@ class CityCrudController extends CrudController
             'type'  => 'text',
         ]);
 
-        // إضافة عمود الإجراءات الموحد
-        // $this->addUnifiedActionsColumn('city', 'هل أنت متأكد من حذف هذه المدينة؟', 'المدينة');
-        
-        // استخدام الأزرار الافتراضية للتجربة
-        // CRUD::setOperationSetting('lineButtonsAsDropdown', true);
+        // إضافة عمود الإجراءات الموحد مع dropdown menu
+        $this->addUnifiedActionsColumn('city', 'هل أنت متأكد من حذف هذه المدينة؟', 'المدينة');
     }
 
     protected function setupCreateOperation()

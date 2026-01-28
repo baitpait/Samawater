@@ -23,7 +23,7 @@
             margin-bottom: 2rem !important;
             box-shadow: var(--shadow-md) !important;
             position: relative !important;
-            overflow: hidden !important;
+            overflow: visible !important;
             height: auto !important;
             min-height: auto !important;
             max-height: none !important;
@@ -228,6 +228,174 @@
             background: var(--success-gradient) !important;
             color: #fff !important;
         }
+        
+        /* ===============================
+           Users Table - تحسين جدول المستخدمين
+        =============================== */
+        @if(request()->is('*/user') || request()->is('*/user/*'))
+        table.dataTable thead th,
+        table#crudTable thead th {
+            text-align: center !important;
+        }
+        
+        table.dataTable tbody td,
+        table#crudTable tbody td {
+            text-align: center !important;
+            vertical-align: middle !important;
+            padding: 15px 20px !important;
+        }
+        
+        table.dataTable tbody td:first-child,
+        table#crudTable tbody td:first-child {
+            text-align: right !important;
+            font-weight: 600 !important;
+            color: var(--primary-deep) !important;
+        }
+        
+        table.dataTable tbody td:nth-child(2),
+        table#crudTable tbody tbody td:nth-child(2) {
+            text-align: center !important;
+            color: #64748b !important;
+        }
+        
+        table.dataTable tbody td .badge,
+        table#crudTable tbody td .badge {
+            padding: 6px 12px !important;
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            font-size: 13px !important;
+        }
+        
+        table.dataTable tbody td .fw-semibold,
+        table#crudTable tbody td .fw-semibold {
+            font-weight: 600 !important;
+        }
+        
+        table.dataTable tbody tr:hover,
+        table#crudTable tbody tr:hover {
+            background: #f8f6ff !important;
+            transition: background 0.2s ease !important;
+        }
+        @endif
+        
+        /* ===============================
+           Clients Table - تحسين جدول العملاء
+        =============================== */
+        .clients-table-wrapper {
+            background: #ffffff !important;
+            border-radius: 20px !important;
+            padding: 25px !important;
+            box-shadow: var(--shadow-md) !important;
+            border: 1px solid #f1f5f9 !important;
+            overflow-x: auto !important;
+        }
+        
+        .clients-table {
+            width: 100% !important;
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+        }
+        
+        .clients-table thead th {
+            background: var(--primary-deep) !important;
+            color: #ffffff !important;
+            font-size: 15px !important;
+            font-weight: 700 !important;
+            padding: 15px 20px !important;
+            text-align: center !important;
+            border: none !important;
+            white-space: nowrap !important;
+        }
+        
+        .clients-table tbody td {
+            padding: 15px 20px !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            vertical-align: middle !important;
+        }
+        
+        .clients-table tbody tr:hover {
+            background: #f8f6ff !important;
+        }
+        
+        .clients-table tbody tr:last-child td {
+            border-bottom: none !important;
+        }
+        
+        /* ===============================
+           Pagination - إصلاح Pagination
+        =============================== */
+        .pagination-wrapper {
+            margin-top: 30px !important;
+            padding: 20px 0 !important;
+        }
+        
+        .pagination-wrapper .pagination {
+            margin: 0 !important;
+            justify-content: center !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+        }
+        
+        .pagination-wrapper .pagination .page-link,
+        .pagination-wrapper .pagination .page-item .page-link {
+            padding: 10px 16px !important;
+            border-radius: 10px !important;
+            border: 1px solid #e2e8f0 !important;
+            color: var(--primary-deep) !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            background: #ffffff !important;
+            min-width: 42px !important;
+            height: 42px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease !important;
+        }
+        
+        .pagination-wrapper .pagination .page-link:hover {
+            background: var(--primary-deep) !important;
+            color: #ffffff !important;
+            border-color: var(--primary-deep) !important;
+            transform: translateY(-2px) !important;
+        }
+        
+        .pagination-wrapper .pagination .page-item.active .page-link {
+            background: var(--primary-deep) !important;
+            color: #ffffff !important;
+            border-color: var(--primary-deep) !important;
+            box-shadow: 0 4px 12px rgba(111, 106, 248, 0.3) !important;
+        }
+        
+        .pagination-wrapper .pagination .page-item.disabled .page-link {
+            opacity: 0.5 !important;
+            cursor: not-allowed !important;
+            background: #f8f9fa !important;
+            color: #6c757d !important;
+        }
+        
+        /* إخفاء الأسهم الكبيرة */
+        .pagination-wrapper .pagination .page-link svg,
+        .pagination-wrapper .pagination .page-link i[class*="chevron"],
+        .pagination-wrapper .pagination .page-link i[class*="arrow"] {
+            font-size: 14px !important;
+            width: auto !important;
+            height: auto !important;
+            margin: 0 !important;
+        }
+        
+        /* إصلاح أي عناصر pagination كبيرة */
+        .pagination-wrapper * {
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        
+        /* إخفاء أي عناصر pagination غير مرئية */
+        .pagination-wrapper .pagination .page-item:not(.active):not(:hover) .page-link {
+            opacity: 1 !important;
+        }
     </style>
 @endsection
 
@@ -278,6 +446,23 @@
                 @elseif((request()->is('*/client') || request()->is('*/client/*')) && $crud->hasAccess('create'))
                 <a href="{{ backpack_url('client/create') }}" class="btn btn-primary-unified" style="background: rgba(255,255,255,0.1) !important; border: 1px solid rgba(255,255,255,0.2) !important; border-radius: 12px; padding: 10px 20px; font-weight: 700;">
                     <i class="la la-plus"></i> إضافة عميل
+                </a>
+                @elseif((request()->is('*/client-type') || request()->is('*/client-type/*')) && $crud->hasAccess('create'))
+                <a href="{{ backpack_url('client-type/create') }}" class="btn btn-success-unified">
+                    <i class="la la-plus"></i> إضافة نوع عميل
+                </a>
+                @elseif($crud->hasAccess('create'))
+                @php
+                    // إزالة prefix من route لتجنب التكرار مع backpack_url()
+                    $routePath = $crud->route;
+                    $prefix = config('backpack.base.route_prefix', 'admin');
+                    // إذا كان route يبدأ بـ prefix، أزل prefix
+                    if (strpos($routePath, $prefix . '/') === 0) {
+                        $routePath = substr($routePath, strlen($prefix) + 1);
+                    }
+                @endphp
+                <a href="{{ backpack_url($routePath . '/create') }}" class="btn btn-success-unified">
+                    <i class="la la-plus"></i> إضافة
                 </a>
                 @endif
             </div>
@@ -335,10 +520,9 @@
                             <tr>
                                 <th class="ps-4">معلومات العميل</th>
                                 <th>الموقع</th>
-                                <th>الهاتف</th>
-                                <th>معلومات الاشتراك</th>
-                                <th>نسبة الالتزام</th>
-                                <th class="pe-4">إجراءات</th>
+                                <th class="text-center">الهاتف</th>
+                                <th class="text-center">معلومات الاشتراك</th>
+                                <th class="pe-4 text-center">إجراءات</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -352,40 +536,34 @@
                                         <div class="fw-semibold">{{ $client->city ? $client->city->city_name : '-' }}</div>
                                         <div class="text-muted small">{{ $client->address }}</div>
                                     </td>
-                                    <td>{{ $client->phone_one }}</td>
-                                    <td>
-                                        <span class="badge bg-primary-deep text-white">{{ $client->subscriptionType ? $client->subscriptionType->type_name : '-' }}</span>
-                                        <span class="badge bg-success text-white">{{ $client->subscriptionStatus ? $client->subscriptionStatus->status_name : '-' }}</span>
+                                    <td class="text-center">{{ $client->phone_one }}</td>
+                                    <td class="text-center" style="text-align: center !important;">
+                                        <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                                            <span class="badge bg-primary-deep text-white">{{ $client->subscriptionType ? $client->subscriptionType->type_name : '-' }}</span>
+                                            <span class="badge bg-success text-white">{{ $client->subscriptionStatus ? $client->subscriptionStatus->status_name : '-' }}</span>
+                                        </div>
                                     </td>
-                                    <td>
-                                        @php
-                                            $percentage = 0;
-                                            if ($client->subscription_start_date && $client->subscriptionType && $client->subscriptionType->distribution_days > 0) {
-                                                $days = \Carbon\Carbon::parse($client->subscription_start_date)->diffInDays(now());
-                                                $expected = floor($days / $client->subscriptionType->distribution_days);
-                                                if ($expected > 0) $percentage = round(($client->deliveries->count() / $expected) * 100, 1);
-                                            }
-                                        @endphp
-                                        <span class="badge bg-{{ $percentage >= 80 ? 'success' : ($percentage >= 50 ? 'warning' : 'danger') }} text-white">{{ $percentage }}%</span>
-                                    </td>
-                                    <td class="pe-4">
+                                    <td class="pe-4 text-center">
                                         <a href="{{ backpack_url('client/' . $client->id . '/show') }}" class="btn btn-sm btn-primary"><i class="la la-eye"></i></a>
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6" class="text-center py-5 text-muted">لا توجد بيانات</td></tr>
+                                <tr><td colspan="5" class="text-center py-5 text-muted">لا توجد بيانات</td></tr>
                             @endforelse
                         </tbody>
                     </table>
                     </div>
                     @if($perPage !== 'all' && $clients->hasPages())
-                        <div class="mt-4">{{ $clients->appends(request()->query())->links() }}</div>
+                        <div class="mt-4 pagination-wrapper" style="display: flex; justify-content: center; align-items: center;">
+                            {{ $clients->appends(request()->query())->links('pagination::bootstrap-4') }}
+                        </div>
                     @endif
                 </div>
             </div>
         @endif
 
-        @if(!request()->is('*/delivery') || request()->is('*/delivery/*'))
+        {{-- الجدول الافتراضي لـ CRUD - يظهر فقط إذا لم تكن صفحة العملاء أو التسليم --}}
+        @if(!request()->is('*/client') && !request()->is('*/client/*') && !request()->is('*/delivery') && !request()->is('*/delivery/*'))
             <div class="{{ backpack_theme_config('classes.tableWrapper') }}">
                 <table id="crudTable" class="table table-clean align-middle mb-0" cellspacing="0">
                 <thead>
@@ -419,5 +597,44 @@
               });
           }
       });
+      
+      // إخفاء عمود الإجراءات الافتراضي إذا كان هناك عمود actions مخصص (dropdown menu)
+      (function() {
+          function hideDefaultActionsColumn() {
+              // التحقق من وجود عمود actions مخصص (يحتوي على unified-actions-dropdown)
+              const hasCustomActionsColumn = document.querySelector('th[data-column-name="actions"]') !== null;
+              
+              if (hasCustomActionsColumn) {
+                  // البحث عن عمود الإجراءات الافتراضي (data-action-column="true")
+                  const defaultActionColumn = document.querySelector("th[data-action-column=\"true\"]");
+                  if (defaultActionColumn) {
+                      const columnIndex = Array.from(defaultActionColumn.parentElement.children).indexOf(defaultActionColumn);
+                      defaultActionColumn.style.display = "none";
+                      
+                      // إخفاء الخلايا المقابلة في tbody
+                      document.querySelectorAll("#crudTable tbody tr").forEach(function(row) {
+                          const cell = row.children[columnIndex];
+                          if (cell && !cell.querySelector(".unified-actions-dropdown")) {
+                              cell.style.display = "none";
+                          }
+                      });
+                  }
+              }
+          }
+          
+          // تنفيذ فوراً
+          if (document.readyState === "loading") {
+              document.addEventListener("DOMContentLoaded", hideDefaultActionsColumn);
+          } else {
+              hideDefaultActionsColumn();
+          }
+          
+          // تنفيذ بعد رسم DataTable
+          if (typeof jQuery !== "undefined" && jQuery("#crudTable").length) {
+              jQuery("#crudTable").on("draw.dt", function() {
+                  setTimeout(hideDefaultActionsColumn, 100);
+              });
+          }
+      })();
   </script>
 @endsection

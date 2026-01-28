@@ -93,7 +93,182 @@
             border: 1px solid #e2e8f0;
             border-radius: 16px;
             box-shadow: var(--shadow-md);
+            width: 100%;
+            box-sizing: border-box;
         }
+        
+        .bulk-entry-table {
+            width: 100%;
+            table-layout: auto;
+            min-width: 800px;
+        }
+        
+        /* Responsive Design - Mobile First */
+        @media (max-width: 768px) {
+            .table-wrapper {
+                max-height: none !important;
+                overflow-x: visible !important;
+                overflow-y: visible !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            
+            .bulk-entry-table {
+                display: block !important;
+                width: 100% !important;
+                min-width: 100% !important;
+                max-width: 100% !important;
+                table-layout: fixed !important;
+            }
+            
+            /* Override min-width for mobile */
+            @media (max-width: 768px) {
+                .bulk-entry-table {
+                    min-width: 100% !important;
+                }
+            }
+            
+            .bulk-entry-table thead {
+                display: none !important;
+            }
+            
+            .bulk-entry-table tbody {
+                display: block !important;
+                width: 100% !important;
+            }
+            
+            .bulk-entry-table tr {
+                display: block !important;
+                margin-bottom: 20px !important;
+                background: white !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 12px !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+                padding: 15px !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            
+            .bulk-entry-table td {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                padding: 12px 0 !important;
+                border: none !important;
+                border-bottom: 1px solid #f1f5f9 !important;
+                text-align: right !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            
+            .bulk-entry-table td:last-child {
+                border-bottom: none !important;
+            }
+            
+            .bulk-entry-table td::before {
+                content: attr(data-label) !important;
+                font-weight: 700 !important;
+                color: var(--primary-deep) !important;
+                margin-left: 15px !important;
+                flex-shrink: 0 !important;
+                min-width: 120px !important;
+            }
+            
+            .bulk-entry-table td[data-label=""]::before {
+                display: none !important;
+            }
+            
+            .bulk-entry-table td:has(.save-row-btn) {
+                justify-content: center !important;
+                padding-top: 15px !important;
+            }
+            
+            .bulk-entry-table td:has(.save-row-btn)::before {
+                display: none !important;
+            }
+            
+            .readonly-cell {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+            }
+            
+            .readonly-cell .fw-bold {
+                font-size: 16px !important;
+                margin-bottom: 5px !important;
+            }
+            
+            .readonly-cell small {
+                font-size: 12px !important;
+            }
+            
+            .editable-cell {
+                min-width: auto !important;
+            }
+            
+            .save-row-btn {
+                width: 100% !important;
+                padding: 12px !important;
+                font-size: 14px !important;
+            }
+            
+            .inventory-display {
+                font-size: 16px !important;
+                padding: 12px 20px !important;
+                margin-bottom: 20px !important;
+            }
+            
+            .mb-4.d-flex {
+                flex-direction: column !important;
+                gap: 15px !important;
+                align-items: stretch !important;
+            }
+            
+            #save-all-btn {
+                width: 100% !important;
+                padding: 15px !important;
+            }
+            
+            .container-fluid.pb-4 {
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+            }
+        }
+        
+        /* Tablet - Medium Screens */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .table-wrapper {
+                max-height: 60vh;
+            }
+            
+            .bulk-entry-table th,
+            .bulk-entry-table td {
+                padding: 10px 6px;
+                font-size: 13px;
+            }
+            
+            .bulk-entry-table th {
+                min-width: auto;
+            }
+        }
+        
+        /* Ensure container doesn't overflow */
+        @media (max-width: 768px) {
+            .container-fluid.pb-4 {
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+            }
+            
+            .table-responsive {
+                width: 100% !important;
+                overflow-x: visible !important;
+                overflow-y: visible !important;
+            }
+        }
+        
     </style>
 @endsection
 
@@ -136,6 +311,7 @@
     {{-- الجدول --}}
     @if(count($allClients) > 0)
     <div class="table-wrapper">
+        <div class="table-responsive" style="width: 100%;">
         <table class="bulk-entry-table" id="bulk-entry-table">
             <thead>
                 <tr>
@@ -151,30 +327,30 @@
             <tbody>
                 @foreach($allClients as $client)
                 <tr data-client-id="{{ $client->client_id }}">
-                    <td class="readonly-cell text-right ps-4">
+                    <td class="readonly-cell text-right ps-4" data-label="اسم المشترك">
                         <div class="fw-bold">{{ $client->client_name ?? $client->name ?? '-' }}</div>
                         <small class="text-muted">{{ $client->phone_one ?? '-' }}</small>
                     </td>
-                    <td class="editable-cell" data-field="bottle_received" data-type="number">
+                    <td class="editable-cell" data-field="bottle_received" data-type="number" data-label="العبوات المستلمة">
                         <span class="display-value">0</span>
                         <input type="number" class="edit-input" value="0" min="0" style="display: none;">
                     </td>
-                    <td class="editable-cell" data-field="bottle_empty" data-type="number">
+                    <td class="editable-cell" data-field="bottle_empty" data-type="number" data-label="العبوات الفارغة">
                         <span class="display-value">0</span>
                         <input type="number" class="edit-input" value="0" min="0" style="display: none;">
                     </td>
-                    <td class="editable-cell" data-field="required_amount" data-type="decimal">
+                    <td class="editable-cell" data-field="required_amount" data-type="decimal" data-label="المبلغ المطلوب">
                         <span class="display-value">0.00</span>
                         <input type="number" class="edit-input" value="0.00" min="0" step="0.01" style="display: none;">
                     </td>
-                    <td class="editable-cell" data-field="paymant" data-type="decimal">
+                    <td class="editable-cell" data-field="paymant" data-type="decimal" data-label="المبلغ المدفوع">
                         <span class="display-value">0.00</span>
                         <input type="number" class="edit-input" value="0.00" min="0" step="0.01" style="display: none;">
                     </td>
-                    <td class="readonly-cell debt-cell" data-field="remaining_debt">
+                    <td class="readonly-cell debt-cell" data-field="remaining_debt" data-label="الدين المتبقي">
                         <span class="debt-value">0.00</span>
                     </td>
-                    <td>
+                    <td data-label="">
                         <button type="button" class="btn btn-sm btn-primary save-row-btn" data-client-id="{{ $client->client_id }}">
                             <i class="la la-save"></i> حفظ
                         </button>
@@ -183,6 +359,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
     </div>
     @else
     <div class="card p-5 text-center" style="border-radius: 20px;">

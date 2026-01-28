@@ -3,10 +3,10 @@
 
 <div class="modal fade" id="withdrawModal" tabindex="-1" aria-labelledby="withdrawModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 22px; border: none; overflow: hidden; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);">
+        <div class="modal-content" style="border-radius: 22px; border: none; overflow: visible; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);">
             
             {{-- Unified Header --}}
-            <div class="modal-header" style="background: var(--primary-deep); padding: 1.5rem 2rem; border: none; position: relative; overflow: hidden;">
+            <div class="modal-header" style="background: var(--primary-deep); padding: 1.5rem 2rem; border: none; position: relative; overflow: visible;">
                 <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; position: relative; z-index: 1;">
                     <div style="display: flex; align-items: center; gap: 1rem;">
                         <i class="la la-money-bill" style="font-size: 28px; color: #fff; font-weight: 900;"></i>
@@ -14,7 +14,7 @@
                             سحب أموال
                         </h5>
                     </div>
-                    <button type="button" class="btn-close-custom" data-bs-dismiss="modal" aria-label="Close" style="background: rgba(255, 255, 255, 0.1); border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                    <button type="button" class="btn-close-custom" id="closeWithdrawModal" aria-label="Close" style="background: rgba(255, 255, 255, 0.1); border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; cursor: pointer;">
                         <i class="la la-times"></i>
                     </button>
                 </div>
@@ -77,11 +77,8 @@
 
                 {{-- Unified Footer --}}
                 <div class="modal-footer border-top-0 p-4" style="display: flex; justify-content: flex-end; gap: 10px;">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
-                        إلغاء
-                    </button>
-                    <button type="submit" id="withdrawSubmit" class="btn btn-success px-4">
-                        تأكيد السحب
+                    <button type="submit" id="withdrawSubmit" class="btn btn-success px-4" style="background: linear-gradient(135deg, var(--success-gradient) 0%, #10b981 100%) !important; border: none !important; border-radius: 12px !important; font-weight: 700 !important; padding: 0.75rem 2rem !important;">
+                        <i class="la la-check"></i> تأكيد السحب
                     </button>
                 </div>
 
@@ -106,46 +103,118 @@
         var modalElement = document.getElementById('withdrawModal');
         if (!modalElement) return;
         
-        if (typeof jQuery !== 'undefined' && jQuery.fn.modal) {
-            jQuery('#withdrawModal').modal('hide');
-        } else if (withdrawModalInstance) {
+        if (withdrawModalInstance) {
             withdrawModalInstance.hide();
+        } else if (typeof jQuery !== 'undefined' && jQuery.fn.modal) {
+            jQuery('#withdrawModal').modal('hide');
         } else {
             modalElement.classList.remove('show');
             modalElement.style.display = 'none';
+            modalElement.setAttribute('aria-hidden', 'true');
+            modalElement.removeAttribute('aria-modal');
             const backdrop = document.querySelector('.modal-backdrop');
             if (backdrop) backdrop.remove();
             document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
         }
     }
     
-    function initModal() {
+    function openModal() {
         var modalElement = document.getElementById('withdrawModal');
         if (!modalElement) return;
         
-        if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Modal && !withdrawModalInstance) {
-            withdrawModalInstance = new window.bootstrap.Modal(modalElement);
+        if (withdrawModalInstance) {
+            withdrawModalInstance.show();
+        } else if (typeof jQuery !== 'undefined' && jQuery.fn.modal) {
+            jQuery('#withdrawModal').modal('show');
+        } else {
+            modalElement.classList.add('show');
+            modalElement.style.display = 'block';
+            modalElement.setAttribute('aria-hidden', 'false');
+            modalElement.setAttribute('aria-modal', 'true');
+            
+            // Create backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            document.body.appendChild(backdrop);
+            document.body.classList.add('modal-open');
+        }
+    }
+    
+    // Global function to open modal (for use from other scripts)
+    window.openWithdrawModal = function(id, balance) {
+        if (!id) {
+            console.error('openWithdrawModal: id is required');
+            return;
         }
         
-        // Open Modal Event
+        var modalElement = document.getElementById('withdrawModal');
+        if (!modalElement) {
+            console.error('openWithdrawModal: modal element not found');
+            return;
+        }
+        
+        // Initialize modal instance if not already done
+        if (!withdrawModalInstance) {
+            if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Modal) {
+                withdrawModalInstance = new window.bootstrap.Modal(modalElement);
+            }
+        }
+        
+        // Set form values
+        var distributorIdInput = document.getElementById('withdraw_distributor_id');
+        var currentBalanceSpan = document.getElementById('currentBalance');
+        var withdrawAmountInput = document.getElementById('withdrawAmount');
+        var balanceError = document.getElementById('balanceError');
+        
+        if (distributorIdInput) distributorIdInput.value = id;
+        if (currentBalanceSpan) currentBalanceSpan.textContent = (parseFloat(balance) || 0).toFixed(2);
+        if (withdrawAmountInput) withdrawAmountInput.value = '';
+        if (balanceError) balanceError.classList.add('d-none');
+        
+        isSubmitting = false;
+        const submitBtn = document.getElementById('withdrawSubmit');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="la la-check"></i> تأكيد السحب';
+        }
+        
+        // Open modal
+        openModal();
+    };
+    
+    function initModal() {
+        var modalElement = document.getElementById('withdrawModal');
+        if (!modalElement) {
+            console.error('initModal: modal element not found');
+            return;
+        }
+        
+        // Initialize Bootstrap modal instance
+        if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Modal && !withdrawModalInstance) {
+            withdrawModalInstance = new window.bootstrap.Modal(modalElement, {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            });
+        }
+        
+        // Open Modal Event - Use event delegation for better compatibility
         document.addEventListener('click', function(e) {
-            if (e.target.closest('.open-withdraw-modal')) {
-                var button = e.target.closest('.open-withdraw-modal');
+            var button = e.target.closest('.open-withdraw-modal');
+            if (button) {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 var id = button.getAttribute('data-id');
                 var balance = parseFloat(button.getAttribute('data-balance') || 0);
                 
-                document.getElementById('withdraw_distributor_id').value = id;
-                document.getElementById('currentBalance').textContent = balance.toFixed(2);
-                document.getElementById('withdrawAmount').value = '';
-                document.getElementById('balanceError').classList.add('d-none');
-                
-                isSubmitting = false;
-                const submitBtn = document.getElementById('withdrawSubmit');
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = 'تأكيد السحب';
-                
-                if (withdrawModalInstance) withdrawModalInstance.show();
-                else if (typeof jQuery !== 'undefined') jQuery('#withdrawModal').modal('show');
+                if (id) {
+                    window.openWithdrawModal(id, balance);
+                } else {
+                    console.error('open-withdraw-modal: data-id attribute is missing');
+                }
             }
         });
         
@@ -164,6 +233,25 @@
                 } else {
                     error.classList.add('d-none');
                     submit.disabled = false;
+                }
+            });
+        }
+        
+        // Close Button Event
+        const closeBtn = document.getElementById('closeWithdrawModal');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                closeModal();
+            });
+        }
+        
+        // Close on backdrop click
+        const modalElement = document.getElementById('withdrawModal');
+        if (modalElement) {
+            modalElement.addEventListener('click', function(e) {
+                if (e.target === modalElement) {
+                    closeModal();
                 }
             });
         }

@@ -18,6 +18,9 @@
 <script src="{{ asset('vendor/datatables-responsive/responsive.bootstrap5.min.js') }}"></script>
 <script src="{{ asset('vendor/datatables-fixedheader/dataTables.fixedHeader.min.js') }}"></script>
 
+{{-- 5. Dropdown Fix for Bootstrap 4 --}}
+<script src="{{ asset('js/dropdown-fix.js') }}"></script>
+
 {{-- WhatsApp Auto-Open Script --}}
 @if(session('whatsapp_url') || session('whatsapp_url_persistent'))
 <script>

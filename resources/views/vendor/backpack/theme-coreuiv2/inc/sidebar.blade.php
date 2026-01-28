@@ -1,8 +1,7 @@
 <aside class="sidebar sidebar-fixed sidebar-pills">
-  <div class="sidebar-header" style="padding: 35px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 15px;">
+  <div class="sidebar-header" style="padding: 20px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 15px;">
     <a href="{{ backpack_url('dashboard') }}" style="text-decoration: none; display: block;">
         <img src="{{ asset('logo/Logo-2.png') }}" alt="Sama Water" style="max-width: 150px; filter: drop-shadow(0 8px 15px rgba(0,0,0,0.3)); transition: transform 0.3s ease;">
-        <div style="color: #fff; font-weight: 900; font-size: 22px; margin-top: 15px; letter-spacing: 1.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">مياه سما</div>
     </a>
   </div>
   

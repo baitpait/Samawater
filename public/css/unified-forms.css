@@ -42,7 +42,7 @@ body {
     box-shadow: var(--shadow-lg) !important;
     width: 280px !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    z-index: 1050 !important;
+    z-index: 1030 !important; /* تقليل الـ z-index ليكون تحت النوافذ المنبثقة */
 }
 
 /* Responsive Sidebar */
@@ -157,13 +157,16 @@ header.app-header,
     font-weight: 700 !important;
 }
 
-.sidebar .nav-title {
-    color: rgba(255, 255, 255, 0.5) !important;
-    font-weight: 800 !important;
+.sidebar .nav-title,
+.sidebar .menu-section-label {
+    color: #ffffff !important;
+    font-weight: 900 !important;
     text-transform: uppercase !important;
     letter-spacing: 1.5px !important;
     padding: 25px 25px 10px !important;
-    font-size: 11px !important;
+    font-size: 14px !important;
+    opacity: 1 !important;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
 .sidebar-header {
@@ -379,6 +382,27 @@ label {
 }
 
 /* ============================================
+   Modal Fixes - إصلاحات النوافذ المنبثقة
+   ============================================ */
+.modal-backdrop {
+    z-index: 2040 !important;
+}
+
+.modal {
+    z-index: 2050 !important;
+}
+
+.modal-content {
+    z-index: 2060 !important;
+}
+
+/* ضمان أن النوافذ المنبثقة تعمل بشكل صحيح حتى لو كانت داخل عناصر أخرى */
+body.modal-open .main,
+body.modal-open .app-body {
+    z-index: auto !important;
+}
+
+/* ============================================
    Dropdown Fixes - إصلاحات القوائم المنسدلة
    ============================================ */
 .table-responsive {
@@ -391,11 +415,6 @@ label {
     border: 1px solid #f1f5f9 !important;
     border-radius: 12px !important;
     position: absolute !important;
-    display: none;
-}
-
-.dropdown-menu.show {
-    display: block !important;
 }
 
 /* ضمان عدم اختفاء القائمة خلف الصفوف الأخرى */
@@ -408,7 +427,118 @@ tr:hover {
     z-index: 1000 !important;
 }
 
-/* Fix for Bootstrap 4 dropdowns in table-responsive */
-.table-responsive {
-    position: relative;
+/* ============================================
+   Footer - تذييل الصفحة الموحد
+   ============================================ */
+footer.app-footer,
+.app-footer,
+footer.sticky-footer,
+.sticky-footer {
+    background: linear-gradient(135deg, var(--primary-deep) 0%, #2d4a6b 100%) !important;
+    border-top: none !important;
+    padding: 1.25rem 2rem !important;
+    margin-top: auto !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+footer.app-footer::before,
+.app-footer::before {
+    content: '' !important;
+    position: absolute !important;
+    top: -50% !important;
+    right: -10% !important;
+    width: 300px !important;
+    height: 300px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-radius: 50% !important;
+    z-index: 0 !important;
+}
+
+footer.app-footer::after,
+.app-footer::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: -30% !important;
+    left: -5% !important;
+    width: 200px !important;
+    height: 200px !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    border-radius: 50% !important;
+    z-index: 0 !important;
+}
+
+footer.app-footer .container,
+.app-footer .container,
+footer.app-footer .container-fluid,
+.app-footer .container-fluid {
+    position: relative !important;
+    z-index: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+footer.app-footer p,
+.app-footer p,
+footer.app-footer span,
+.app-footer span,
+footer.app-footer div,
+.app-footer div {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    font-family: 'Cairo', sans-serif !important;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+footer.app-footer a,
+.app-footer a {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    transition: all 0.3s ease !important;
+    position: relative !important;
+    padding: 0 4px !important;
+}
+
+footer.app-footer a::after,
+.app-footer a::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: -2px !important;
+    left: 0 !important;
+    width: 0 !important;
+    height: 2px !important;
+    background: rgba(255, 255, 255, 0.8) !important;
+    transition: width 0.3s ease !important;
+}
+
+footer.app-footer a:hover,
+.app-footer a:hover {
+    color: #fff !important;
+    transform: translateY(-1px) !important;
+}
+
+footer.app-footer a:hover::after,
+.app-footer a:hover::after {
+    width: 100% !important;
+}
+
+/* Responsive Footer */
+@media (max-width: 768px) {
+    footer.app-footer,
+    .app-footer {
+        padding: 1rem 1.5rem !important;
+    }
+    
+    footer.app-footer p,
+    .app-footer p,
+    footer.app-footer span,
+    .app-footer span {
+        font-size: 13px !important;
+    }
 }

@@ -123,7 +123,7 @@ class InvoiceCrudController extends CrudController
                 const invoiceNumberField = document.getElementById("invoice_number_field");
                 if (invoiceNumberField && !invoiceNumberField.value) {
                     // توليد رقم فاتورة جديد عبر AJAX
-                    fetch("' . url(config('backpack.base.route_prefix', 'admin') . '/invoice/generate-number') . '", {
+                    fetch("' . route('invoice.generate-number') . '", {
                         method: "GET",
                         headers: {
                             "X-Requested-With": "XMLHttpRequest",

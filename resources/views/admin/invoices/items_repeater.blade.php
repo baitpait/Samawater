@@ -81,9 +81,30 @@
     </div>
 </div>
 
+@php
+    $inventoryItems = \App\Models\InventoryItem::orderBy('item_name')->get();
+@endphp
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     let itemIndex = {{ isset($invoice) && $invoice->items->count() > 0 ? $invoice->items->count() : 1 }};
+    
+    // قائمة الأصناف المتاحة
+    const inventoryItems = @json($inventoryItems->map(function($item) {
+        return [
+            'name' => $item->item_name,
+            'quantity' => $item->quantity
+        ];
+    }));
+    
+    // دالة لإنشاء select للأصناف
+    function createItemSelect(index) {
+        let options = '<option value="">اختر الصنف</option>';
+        inventoryItems.forEach(function(item) {
+            options += `<option value="${item.name}">${item.name} (متوفر: ${item.quantity})</option>`;
+        });
+        return `<select name="items[${index}][item_name]" class="form-control item-name" required>${options}</select>`;
+    }
     
     // إضافة صنف جديد
     document.getElementById('add-item').addEventListener('click', function() {
@@ -92,14 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
         row.className = 'item-row';
         row.innerHTML = `
             <td>
-                <select name="items[${itemIndex}][item_name]" class="form-control item-name" required>
-                    <option value="">اختر الصنف</option>
-                    @foreach(\App\Models\InventoryItem::orderBy('item_name')->get() as $inventoryItem)
-                        <option value="{{ $inventoryItem->item_name }}">
-                            {{ $inventoryItem->item_name }} (متوفر: {{ $inventoryItem->quantity }})
-                        </option>
-                    @endforeach
-                </select>
+                ${createItemSelect(itemIndex)}
             </td>
             <td>
                 <input type="number" name="items[${itemIndex}][quantity]" class="form-control item-quantity" value="1" min="1" required>

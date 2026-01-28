@@ -26,25 +26,57 @@ class UserCrudController extends CrudController
         // Eager loading للعلاقات لتحسين الأداء
         $this->crud->addClause('with', ['role', 'distributor']);
 
+        // إزالة جميع الأزرار الافتراضية لإخفاء عمود الإجراءات
+        CRUD::removeButton('show');
+        CRUD::removeButton('edit');
+        CRUD::removeButton('delete');
+        CRUD::removeButton('revisions');
+        CRUD::removeButton('reorder');
+
         CRUD::column('name')
-            ->label('الاسم');
+            ->label('الاسم')
+            ->type('text');
 
         CRUD::column('email')
-            ->label('البريد الإلكتروني');
+            ->label('البريد الإلكتروني')
+            ->type('email');
 
         CRUD::column('role')
-            ->type('relationship')
-            ->attribute('display_name')
-            ->label('نوع المستخدم');
+            ->label('نوع المستخدم')
+            ->type('custom_html')
+            ->value(function($entry) {
+                if ($entry->role) {
+                    $badgeColor = $entry->role->name === 'super_admin' ? 'bg-danger' : ($entry->role->name === 'admin' ? 'bg-primary' : 'bg-info');
+                    return '<span class="badge ' . $badgeColor . ' text-white">' . e($entry->role->display_name ?? $entry->role->name) . '</span>';
+                }
+                return '<span class="text-muted">-</span>';
+            })
+            ->searchLogic(function ($query, $column, $searchTerm) {
+                $query->orWhereHas('role', function ($q) use ($searchTerm) {
+                    $q->where('display_name', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('name', 'like', '%' . $searchTerm . '%');
+                });
+            });
 
         CRUD::column('distributor')
-            ->type('relationship')
-            ->attribute('name')
-            ->label('الموزع');
+            ->label('الموزع')
+            ->type('custom_html')
+            ->value(function($entry) {
+                if ($entry->distributor) {
+                    return '<span class="fw-semibold text-primary-deep">' . e($entry->distributor->name) . '</span>';
+                }
+                return '<span class="text-muted">-</span>';
+            })
+            ->searchLogic(function ($query, $column, $searchTerm) {
+                $query->orWhereHas('distributor', function ($q) use ($searchTerm) {
+                    $q->where('name', 'like', '%' . $searchTerm . '%');
+                });
+            });
 
         CRUD::column('created_at')
             ->type('datetime')
-            ->label('تاريخ الإنشاء');
+            ->label('تاريخ الإنشاء')
+            ->format('Y-m-d H:i');
     }
 
     protected function setupCreateOperation()
@@ -70,10 +102,13 @@ class UserCrudController extends CrudController
             ->model('App\Models\Role')
             ->attribute('display_name')
             ->options(function ($query) {
-                return $query->orderBy('display_name')->get();
+                // عرض فقط مسؤول و موزع (استبعاد super_admin)
+                return $query->whereIn('name', ['admin', 'distributor'])
+                    ->orderByRaw("CASE WHEN name = 'admin' THEN 1 ELSE 2 END")
+                    ->get();
             })
             ->default(function() {
-                // افتراضي: نوع "مستخدم" (ليس super_admin)
+                // افتراضي: نوع "مسؤول"
                 return \App\Models\Role::where('name', 'admin')->first()?->id;
             });
 

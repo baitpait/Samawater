@@ -27,7 +27,7 @@ class SubscriptionStatusCrudController extends CrudController
     {
         CRUD::column('status_name')->label('اسم الحالة');
         
-        // إضافة عمود الإجراءات الموحد
+        // إضافة عمود الإجراءات الموحد مع dropdown menu
         $this->addUnifiedActionsColumn('subscription-status', 'هل أنت متأكد من حذف حالة الاشتراك هذه؟', 'حالة الاشتراك');
     }
 

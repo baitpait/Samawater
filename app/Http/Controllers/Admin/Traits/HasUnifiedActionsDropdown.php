@@ -40,8 +40,8 @@ trait HasUnifiedActionsDropdown
             'searchable' => false,
             'orderable' => false,
             'value' => function ($entry) use ($routePrefix, $deleteMessage) {
-                $editUrl = url(config('backpack.base.route_prefix') . '/' . $routePrefix . '/' . $entry->id . '/edit');
-                $deleteUrl = url(config('backpack.base.route_prefix') . '/' . $routePrefix . '/' . $entry->id);
+                $editUrl = backpack_url($routePrefix . '/' . $entry->id . '/edit');
+                $deleteUrl = backpack_url($routePrefix . '/' . $entry->id);
                 
                 return '
                 <div class="btn-group unified-actions-dropdown dropdown" style="position: relative;">

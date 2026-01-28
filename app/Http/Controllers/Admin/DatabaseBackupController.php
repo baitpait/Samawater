@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Carbon\Carbon;
@@ -54,9 +55,21 @@ class DatabaseBackupController
             $this->cleanOldBackups();
             
             // تحميل الملف
+            Log::info('Backup created successfully', ['file' => $fileName]);
             return response()->download($filePath, $fileName)->deleteFileAfterSend(true);
             
         } catch (\Exception $e) {
+            Log::error('Backup failed: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'فشل في إنشاء النسخة الاحتياطية: ' . $e->getMessage()
+                ], 500);
+            }
+            
             \Alert::error('فشل في إنشاء النسخة الاحتياطية: ' . $e->getMessage())->flash();
             return redirect()->back();
         }
@@ -126,9 +139,21 @@ class DatabaseBackupController
             $this->cleanOldBackups();
             
             // تحميل الملف
+            Log::info('Backup created successfully (Laravel method)', ['file' => $fileName]);
             return response()->download($filePath, $fileName)->deleteFileAfterSend(true);
             
         } catch (\Exception $e) {
+            Log::error('Backup failed (Laravel method): ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'فشل في إنشاء النسخة الاحتياطية: ' . $e->getMessage()
+                ], 500);
+            }
+            
             \Alert::error('فشل في إنشاء النسخة الاحتياطية: ' . $e->getMessage())->flash();
             return redirect()->back();
         }

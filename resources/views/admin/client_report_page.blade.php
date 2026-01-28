@@ -60,31 +60,40 @@
             👆 الرجاء اختيار مشترك من القائمة لعرض التقرير
         </div>
     @else
-        {{-- Summary Cards --}}
+        {{-- Summary Cards - تصميم احترافي موحد --}}
         <div class="row g-4 mb-4">
             <div class="col-md-6">
-                <div class="dashboard-stat-card stat-card-purple">
-                    <div class="stat-card-content">
-                        <div class="stat-icon-box" style="background: var(--primary-deep);">
-                            <i class="la la-user"></i>
+                <div class="dashboard-stat-card h-100" style="background: var(--primary-deep) !important; border-radius: 20px; padding: 28px; box-shadow: var(--shadow-md); border: 1px solid rgba(255, 255, 255, 0.05); position: relative; overflow: hidden;">
+                    <div class="stat-card-content" style="display: flex; align-items: center; gap: 20px; position: relative; z-index: 2;">
+                        <div class="stat-icon-box" style="width: 64px; height: 64px; background: rgba(255, 255, 255, 0.1); border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);">
+                            <i class="la la-user" style="font-size: 28px; color: #fff; font-weight: 900;"></i>
                         </div>
                         <div class="stat-info">
-                            <h6 class="stat-label">اسم المشترك</h6>
-                            <h3 class="stat-value" style="font-size: 24px;">{{ $client->name }}</h3>
-                            <small class="text-muted">{{ $client->city->city_name ?? '-' }}</small>
+                            <h6 class="stat-label" style="color: rgba(255, 255, 255, 0.7); font-size: 14px; font-weight: 600; margin-bottom: 8px;">اسم المشترك</h6>
+                            <h3 class="stat-value" style="color: #fff; font-size: 24px; font-weight: 800; margin: 0;">{{ $client->name }}</h3>
+                            <div class="mt-1">
+                                <span class="badge" style="background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 4px 12px; font-weight: 600;">
+                                    <i class="la la-map-marker"></i> {{ $client->city->city_name ?? '-' }}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="dashboard-stat-card stat-card-green">
-                    <div class="stat-card-content">
-                        <div class="stat-icon-box" style="background: var(--success-gradient);">
-                            <i class="la la-truck"></i>
+                <div class="dashboard-stat-card h-100" style="background: var(--primary-deep) !important; border-radius: 20px; padding: 28px; box-shadow: var(--shadow-md); border: 1px solid rgba(255, 255, 255, 0.05); position: relative; overflow: hidden;">
+                    <div class="stat-card-content" style="display: flex; align-items: center; gap: 20px; position: relative; z-index: 2;">
+                        <div class="stat-icon-box" style="width: 64px; height: 64px; background: rgba(255, 255, 255, 0.1); border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);">
+                            <i class="la la-truck" style="font-size: 28px; color: #fff; font-weight: 900;"></i>
                         </div>
                         <div class="stat-info">
-                            <h6 class="stat-label">إجمالي التسليمات</h6>
-                            <h3 class="stat-value">{{ $client->deliveries->count() }}</h3>
+                            <h6 class="stat-label" style="color: rgba(255, 255, 255, 0.7); font-size: 14px; font-weight: 600; margin-bottom: 8px;">إجمالي التسليمات</h6>
+                            <h3 class="stat-value" style="color: #fff; font-size: 32px; font-weight: 800; margin: 0;">{{ number_format($client->deliveries->count()) }}</h3>
+                            <div class="mt-1">
+                                <span style="color: rgba(255, 255, 255, 0.8); font-weight: 600; font-size: 13px;">
+                                    <i class="la la-check-circle"></i> عمليات مكتملة
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -9,7 +9,7 @@
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"
          role="document">
 
-        <div class="modal-content" style="border-radius: 22px; border: none; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.25);">
+        <div class="modal-content" style="border-radius: 22px; border: none; overflow: visible; box-shadow: 0 25px 60px rgba(0,0,0,0.25);">
 
             {{-- ================= Header ================= --}}
             <div class="modal-header" style="background: var(--primary-deep); border-bottom: none; padding: 20px 28px;">

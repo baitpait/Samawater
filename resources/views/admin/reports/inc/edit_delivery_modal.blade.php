@@ -1,7 +1,7 @@
 {{-- Modal for editing delivery --}}
-<div class="modal fade" id="editDeliveryModal" tabindex="-1" aria-hidden="true" style="z-index: 9999 !important;">
-  <div class="modal-dialog modal-dialog-centered" style="z-index: 10000 !important;">
-    <div class="modal-content" style="z-index: 10000 !important; border-radius: 22px; border: none; overflow: hidden; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);">
+<div class="modal fade" id="editDeliveryModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content" style="border-radius: 22px; border: none; overflow: visible; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);">
       <form id="editDeliveryForm">
         <div class="modal-header" style="background: var(--primary-deep); border-bottom: none; padding: 20px 28px;">
           <h5 class="modal-title text-white fw-bold">تعديل التسليم</h5>
@@ -58,6 +58,14 @@
 <script>
 var deliveryModal = null;
 const deliveryEditBaseUrl = '{{ backpack_url("delivery") }}';
+
+// نقل الـ Modal إلى نهاية الـ body لضمان ظهوره فوق الـ backdrop
+document.addEventListener('DOMContentLoaded', function() {
+    const modalEl = document.getElementById('editDeliveryModal');
+    if (modalEl) {
+        document.body.appendChild(modalEl);
+    }
+});
 
 function closeEditModal() {
     if (deliveryModal && typeof deliveryModal.hide === 'function') {

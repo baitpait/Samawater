@@ -35,7 +35,7 @@ class SubscriptionTypeCrudController extends CrudController
         CRUD::column('description')->label('الوصف');
         CRUD::column('distribution_days')->label('عدد الايام');
         
-        // إضافة عمود الإجراءات الموحد
+        // إضافة عمود الإجراءات الموحد مع dropdown menu
         $this->addUnifiedActionsColumn('subscription-type', 'هل أنت متأكد من حذف نوع الاشتراك هذا؟', 'نوع الاشتراك');
     }
 

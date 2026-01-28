@@ -35,7 +35,7 @@ class ClientTypeCrudController extends CrudController
             ],
         ]);
 
-        // إضافة عمود الإجراءات الموحد
+        // إضافة عمود الإجراءات الموحد مع dropdown menu
         $this->addUnifiedActionsColumn('client-type', 'هل أنت متأكد من حذف نوع العميل هذا؟', 'نوع العميل');
     }
 

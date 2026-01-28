@@ -28,7 +28,7 @@
             border-radius: 20px !important;
             border: 1px solid #f1f5f9 !important;
             box-shadow: var(--shadow-sm) !important;
-            overflow: hidden !important;
+            overflow: visible !important;
         }
 
         table.table {
@@ -75,6 +75,51 @@
 @section('content')
 <div class="row" bp-section="crud-operation-show">
 	<div class="{{ $crud->getShowContentClass() }}">
+
+        {{-- أزرار الإجراءات المخصصة للمشتركين --}}
+        @if(request()->is('*/client/*/show'))
+            @php
+                $clientId = $entry->id;
+                $clientName = $entry->name ?? '';
+                $editUrl = backpack_url('client/' . $clientId . '/edit');
+                $reportUrl = route('client.report', ['client_id' => $clientId]);
+                $deliveryUrl = backpack_url('delivery/create?client_id=' . $clientId);
+                $deleteUrl = backpack_url('client/' . $clientId);
+            @endphp
+            <div class="card mb-4" style="border-radius: 20px; border: none; box-shadow: var(--shadow-sm); overflow: visible;">
+                <div class="card-body p-3">
+                    <div class="d-flex flex-wrap gap-2 justify-content-center">
+                        {{-- تعديل --}}
+                        <a href="{{ $editUrl }}" class="btn btn-primary" style="flex: 1; min-width: 120px; background: #7c7cff !important; border: none; border-radius: 12px; font-weight: 700; padding: 12px;">
+                            <i class="la la-edit"></i> تعديل
+                        </a>
+                        
+                        {{-- التسليمات --}}
+                        <a href="{{ $reportUrl }}" class="btn btn-info text-white" style="flex: 1; min-width: 120px; background: #3b82f6 !important; border: none; border-radius: 12px; font-weight: 700; padding: 12px;">
+                            <i class="la la-list"></i> التسليمات
+                        </a>
+                        
+                        {{-- تسليم --}}
+                        <a href="{{ $deliveryUrl }}" class="btn btn-success" style="flex: 1; min-width: 120px; background: #10b981 !important; border: none; border-radius: 12px; font-weight: 700; padding: 12px;">
+                            <i class="la la-truck"></i> تسليم
+                        </a>
+                        
+                        {{-- حذف --}}
+                        <a href="#" 
+                           onclick="event.preventDefault(); if(confirm('هل أنت متأكد من حذف العميل؟')) { document.getElementById('delete-client-form').submit(); }"
+                           class="btn btn-danger" style="flex: 1; min-width: 120px; background: #ef4444 !important; border: none; border-radius: 12px; font-weight: 700; padding: 12px;">
+                            <i class="la la-trash"></i> حذف
+                        </a>
+                        
+                        <form id="delete-client-form" action="{{ $deleteUrl }}" method="POST" style="display: none;">
+                            @csrf
+                            @method('DELETE')
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <div class="card">
             <div class="card-body p-0">
                 @if($crud->tabsEnabled() && count($crud->getUniqueTabNames('columns')))

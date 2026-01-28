@@ -152,9 +152,9 @@ class ExpenseCrudController extends CrudController
             'searchable' => false,
             'escaped' => false,
             'value' => function($entry) {
-                $showUrl = url(config('backpack.base.route_prefix') . '/expense/' . $entry->id . '/show');
-                $editUrl = url(config('backpack.base.route_prefix') . '/expense/' . $entry->id . '/edit');
-                $deleteUrl = url(config('backpack.base.route_prefix') . '/expense/' . $entry->id);
+                $showUrl = backpack_url('expense/' . $entry->id . '/show');
+                $editUrl = backpack_url('expense/' . $entry->id . '/edit');
+                $deleteUrl = backpack_url('expense/' . $entry->id);
                 
                 return '
                 <div class="btn-group unified-actions-dropdown" style="position: relative; z-index: 1000;">

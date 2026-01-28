@@ -15,7 +15,7 @@
             margin-bottom: 2rem !important;
             box-shadow: var(--shadow-md) !important;
             position: relative !important;
-            overflow: hidden !important;
+            overflow: visible !important;
             width: 100% !important;
             display: block !important;
             border: 1px solid rgba(255, 255, 255, 0.05) !important;
@@ -68,7 +68,7 @@
             border-spacing: 0 !important;
             background: #fff !important;
             border-radius: 20px !important;
-            overflow: hidden !important;
+            overflow: visible !important;
             box-shadow: var(--shadow-md) !important;
         }
 

@@ -259,6 +259,15 @@
             box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
         }
 
+        /* Hide Backpack default footer */
+        footer.app-footer,
+        .app-footer,
+        footer.sticky-footer,
+        .sticky-footer {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
         /* Footer */
         .login-footer {
             text-align: center;

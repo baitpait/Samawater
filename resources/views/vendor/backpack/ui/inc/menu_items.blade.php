@@ -22,8 +22,11 @@
             إدارة العملاء
             ============================================ --}}
         <li class="menu-section-label">إدارة العملاء</li>
-        <x-backpack::menu-item title="العملاء" icon="la la-users" :link="backpack_url('client')" />
+        <x-backpack::menu-item title="المشتركين" icon="la la-chart-bar" :link="route('reports.filters')" />
         @if (! $isDistributor)
+            <x-backpack::menu-item title="رصيد المشتركين" icon="la la-wallet" :link="route('reports.client-balance')" />
+            <x-backpack::menu-item title="تقرير العميل" icon="la la-user" :link="route('client.report')" />
+            <x-backpack::menu-item title="التقارير المتقدمة" icon="la la-chart-line" :link="route('reports.advanced')" />
             <x-backpack::menu-item title="نوع المشترك" icon="las la-building" :link="route('client-type.index')" />
             <x-backpack::menu-item title="حالة المشترك" icon="las la-calculator" :link="route('client-status.index')" />
         @endif
@@ -110,24 +113,21 @@
             @if(backpack_user()?->canManageUsers())
                 <x-backpack::menu-item title="المستخدمين" icon="la la-users-cog" :link="backpack_url('user')" />
             @endif
-            <x-backpack::menu-item title="نسخة احتياطية" icon="la la-download" :link="route('backup.download')" />
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('backup.download') }}" 
+                   onclick="return confirm('هل تريد تحميل نسخة احتياطية من قاعدة البيانات؟\n\nسيتم تحميل ملف SQL يحتوي على جميع البيانات.\n\nملاحظة: قد يستغرق التحميل بضع لحظات.');">
+                    <i class="la la-download"></i>
+                    <span>نسخة احتياطية</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="https://wa.me/970599814758" target="_blank" onclick="saveScrollPosition()">
+                    <i class="la la-headset"></i>
+                    <span>الدعم الفني</span>
+                </a>
+            </li>
 
             <li class="sidebar-divider"></li>
-        @endif
-
-        {{-- ============================================
-            التقارير
-            ============================================ --}}
-        <li class="menu-section-label">التقارير</li>
-        <x-backpack::menu-item title="التقارير الإحصائية" icon="la la-chart-bar" :link="route('reports.filters')" />
-        @if (! $isDistributor)
-            <x-backpack::menu-item title="رصيد المشتركين" icon="la la-wallet" :link="route('reports.client-balance')" />
-            <x-backpack::menu-item title="تقرير العميل" icon="la la-user" :link="route('client.report')" />
-            <x-backpack::menu-item title="العملاء المستحقين (متقدم)" icon="la la-exclamation-circle" :link="route('reports.clients_due_advanced')" />
-        @endif
-        <x-backpack::menu-item title="نظرة عامة على التسليمات" icon="la la-eye" :link="route('reports.clients_delivery_overview')" />
-        @if (! $isDistributor)
-            <x-backpack::menu-item title="التقارير المتقدمة" icon="la la-chart-line" :link="route('reports.advanced')" />
         @endif
 
         <li class="sidebar-divider"></li>

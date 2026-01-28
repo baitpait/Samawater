@@ -49,7 +49,7 @@ class ClientStatusCrudController extends CrudController
             ->type('number')
             ->suffix('%');
             
-        // إضافة عمود الإجراءات الموحد
+        // إضافة عمود الإجراءات الموحد مع dropdown menu
         $this->addUnifiedActionsColumn('client-status', 'هل أنت متأكد من حذف حالة العميل هذه؟', 'حالة العميل');
     }
 
