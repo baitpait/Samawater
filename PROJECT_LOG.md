@@ -2,6 +2,17 @@
 
 ---
 
+## [2026-01-27] - إصلاح Pagination على السيرفر + إنهاء الجلسة
+
+- **الهدف:** إصلاح خطأ `View [vendor.pagination.modern] not found` على sama.baitpait.space وإنهاء جلسة التطوير موثّقة.
+- **التغييرات:**
+  - استبدال `vendor.pagination.modern` بـ `pagination::bootstrap-4` في: `reports/filters.blade.php`، `delivery_list.blade.php`، `reports/clients_delivery_overview.blade.php` (القالب modern لم يكن مرفوعاً على الريبو فالسيرفر لا يجده).
+  - توثيق أوامر السيرفر: `git checkout -- server-setup.sh` ثم `git pull origin main` ثم `view:clear` و`cache:clear`.
+- **الملفات المعدلة:** `resources/views/admin/reports/filters.blade.php`, `resources/views/admin/delivery_list.blade.php`, `resources/views/admin/reports/clients_delivery_overview.blade.php`.
+- **إنهاء الجلسة:** جميع تعديلات الجلسة (قوائم CRUD، فلاتر، مجاميع، هوية بصرية، تذييل، pagination) موثّقة أعلاه ومرفوعة على GitHub. السيرفر يُحدَّث عبر `git pull` ثم أوامر الـ artisan حسب الحاجة.
+
+---
+
 ## [2026-01-27] - تحسينات قوائم CRUD، الفلاتر، المجاميع، والهوية البصرية (جلسة توثيق)
 
 - **الهدف:** توحيد تجربة قوائم المدير (أمانات، مصروفات، مدفوعات الموردين، المخزون، المدن)، إضافة فلاتر ومجاميع، وإصلاح التكرار والتمرير والتذييل.
