@@ -554,7 +554,7 @@
                 {{-- Pagination --}}
                 <div class="p-4 border-top">
                     <div class="pagination-modern">
-                        {{ $clients->appends(request()->query())->links('vendor.pagination.modern') }}
+                        {{ $clients->appends(request()->query())->links('pagination::bootstrap-4') }}
                     </div>
                 </div>
             </div>

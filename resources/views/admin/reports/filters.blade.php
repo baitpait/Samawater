@@ -646,7 +646,7 @@
             </div>
             <div class="p-4 border-top">
                 <div class="pagination-modern">
-                    {{ $clients->withQueryString()->links('vendor.pagination.modern') }}
+                    {{ $clients->withQueryString()->links('pagination::bootstrap-4') }}
                 </div>
             </div>
         </div>
