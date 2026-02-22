@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Client;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ClientPaymentRequest extends FormRequest
@@ -14,7 +15,12 @@ class ClientPaymentRequest extends FormRequest
     public function rules()
     {
         return [
-            'client_id' => 'required|exists:clients,id',
+            'client_id' => ['required', 'exists:clients,id', function ($attribute, $value, $fail) {
+                $client = Client::find($value);
+                if (!$client || $client->parent_id !== null) {
+                    $fail('يمكن إنشاء المدفوعات للمشتركين الرئيسيين فقط (الأب).');
+                }
+            }],
             'amount' => 'required|numeric|min:0.01',
             'payment_date' => 'required|date',
             'payment_method' => 'required|in:cash,bank_transfer,check,credit_card,other',

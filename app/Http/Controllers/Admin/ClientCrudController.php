@@ -245,18 +245,6 @@ class ClientCrudController extends CrudController
             ],
 
             [
-                'name'    => 'client_type',
-                'label'   => 'نوع المشترك',
-                'type'    => 'select_from_array',
-                // ✅ نفس القيم المستخدمة في قاعدة البيانات وفي الأعمدة
-                'options' => [
-                    1 => 'فردي',
-                    2 => 'مؤسسة',
-                    3 => 'تجاري',
-                ],
-            ],
-
-            [
                 'name'      => 'subscription_type_id',
                 'label'     => 'نوع الاشتراك',
                 'type'      => 'select',
@@ -322,7 +310,6 @@ class ClientCrudController extends CrudController
             'city_id' => 'required|exists:cities,id',
             'phone_one' => 'nullable|string|max:20',
             'phone_two' => 'nullable|string|max:20',
-            'client_type' => 'nullable|in:1,2,3',
             'subscription_type_id' => 'nullable|exists:subscription_types,id',
             'subscription_status_id' => 'nullable|exists:subscription_statuses,id',
             'bottle_balance' => 'nullable|integer|min:0',
@@ -359,7 +346,7 @@ class ClientCrudController extends CrudController
             'address' => $request->address,
             'phone_one' => $request->phone_one,
             'phone_two' => $request->phone_two,
-            'client_type' => $request->client_type,
+            'client_type' => $request->client_type ?? 1,
             'subscription_type_id' => $request->subscription_type_id,
             'subscription_status_id' => $request->subscription_status_id,
             'subscription_start_date' => $request->subscription_start_date,
@@ -384,6 +371,19 @@ class ClientCrudController extends CrudController
         return redirect($redirectUrl);
     }
 
+    /**
+     * Preserve client_type on update when field is not in form (DB-only).
+     */
+    public function update()
+    {
+        $id = request()->route('id') ?? request()->route('client');
+        $entry = $this->crud->getEntry($id);
+        if ($entry) {
+            request()->merge(['client_type' => $entry->client_type ?? 1]);
+        }
+        return parent::update();
+    }
+
     /* =======================
        دالة مساعدة: جلب خيارات الموزعين
     ======================== */
@@ -405,16 +405,23 @@ class ClientCrudController extends CrudController
     ======================== */
     protected function setupShowOperation()
     {
-        // 1. رقم العقد
+        // 1. اسم المشترك
+        CRUD::addColumn([
+            'name'  => 'name',
+            'label' => 'اسم المشترك',
+            'type'  => 'text',
+        ]);
+
+        // 2. رقم العقد
         CRUD::addColumn([
             'name'  => 'contract_no',
             'label' => 'رقم العقد',
             'type'  => 'text',
         ]);
 
-        // 2. الصورة - سيتم عرضها في show.blade.php
+        // 3. الصورة - سيتم عرضها في show.blade.php
 
-        // 3. المدينة
+        // 4. المدينة
         CRUD::addColumn([
             'name'      => 'city_id',
             'label'     => 'المدينة',
@@ -424,28 +431,28 @@ class ClientCrudController extends CrudController
             'attribute' => 'city_name',
         ]);
 
-        // 4. العنوان
+        // 5. العنوان
         CRUD::addColumn([
             'name'  => 'address',
             'label' => 'العنوان',
             'type'  => 'text',
         ]);
 
-        // 5. رقم الهاتف الأول
+        // 6. رقم الهاتف الأول
         CRUD::addColumn([
             'name'  => 'phone_one',
             'label' => 'رقم الهاتف الأول',
             'type'  => 'text',
         ]);
 
-        // 6. رقم الهاتف الثاني
+        // 7. رقم الهاتف الثاني
         CRUD::addColumn([
             'name'  => 'phone_two',
             'label' => 'رقم الهاتف الثاني',
             'type'  => 'text',
         ]);
 
-        // 7. تاريخ الاشتراك
+        // 8. تاريخ الاشتراك
         CRUD::addColumn([
             'name'     => 'subscription_start_date',
             'label'    => 'تاريخ الاشتراك',
@@ -459,7 +466,7 @@ class ClientCrudController extends CrudController
             },
         ]);
 
-        // 8. تاريخ آخر تسليم
+        // 9. تاريخ آخر تسليم
         CRUD::addColumn([
             'name'  => 'last_delivery_date',
             'label' => 'تاريخ آخر تسليم',
@@ -474,7 +481,7 @@ class ClientCrudController extends CrudController
             },
         ]);
 
-        // 9. المدة
+        // 10. المدة
         CRUD::addColumn([
             'name'  => 'days_since_last_delivery',
             'label' => 'المدة',
@@ -499,14 +506,14 @@ class ClientCrudController extends CrudController
             },
         ]);
 
-        // 10. رصيد القوارير
+        // 11. رصيد القوارير
         CRUD::addColumn([
             'name'  => 'bottle_balance',
             'label' => 'رصيد القوارير',
             'type'  => 'number',
         ]);
 
-        // 11. نوع الاشتراك
+        // 12. نوع الاشتراك
         CRUD::addColumn([
             'name'      => 'subscription_type_id',
             'label'     => 'نوع الاشتراك',
@@ -516,7 +523,7 @@ class ClientCrudController extends CrudController
             'attribute' => 'type_name',
         ]);
 
-        // 12. حالة الاشتراك
+        // 13. حالة الاشتراك
         CRUD::addColumn([
             'name'      => 'subscription_status_id',
             'label'     => 'حالة الاشتراك',
@@ -526,7 +533,7 @@ class ClientCrudController extends CrudController
             'attribute' => 'status_name',
         ]);
 
-        // 13. الموقع العميل
+        // 14. الموقع العميل
 CRUD::addColumn([
             'name'  => 'location',
             'label' => 'موقع المشترك',
@@ -571,7 +578,7 @@ CRUD::addColumn([
     },
 ]);
 
-        // 14. اسم الموزع - سيتم عرضه بجانب رقم العقد
+        // 15. اسم الموزع
 CRUD::addColumn([
     'name'      => 'distributor_id',
             'label'     => 'من طرف الموزع',
@@ -581,7 +588,7 @@ CRUD::addColumn([
     'attribute' => 'name',
 ]);
 
-        // 15. الملاحظات - سيتم عرضها في عمود منفصل في show.blade.php
+        // 16. الملاحظات
         CRUD::addColumn([
             'name'  => 'notes',
             'label' => 'ملاحظات',
@@ -589,26 +596,48 @@ CRUD::addColumn([
         ]);
     }
 
-    /* =======================
-       حذف المشترك (Destroy)
-    ======================== */
+    /**
+     * Business Purpose: حذف المشترك مع منع الحذف إذا كان مرتبطاً بتسليمات أو فواتير أو مدفوعات أو أمانات
+     */
     public function destroy($id)
     {
         $this->crud->hasAccessOrFail('delete');
-        
+
         $entry = $this->crud->getEntry($id);
-        
+
         if (!$entry) {
             \Alert::error('المشترك غير موجود.')->flash();
             return redirect($this->crud->route);
         }
-        
-        // تم إلغاء الشرط - يمكن حذف المشترك حتى لو كان لديه تسليمات
-        // سيتم حذف التسليمات تلقائياً إذا كانت العلاقة onDelete('cascade')
-        
-        $clientName = $entry->name; // حفظ الاسم قبل الحذف
+
+        $reasons = [];
+        if ($entry->deliveries()->exists()) {
+            $reasons[] = 'تسليمات';
+        }
+        if ($entry->invoices()->exists()) {
+            $reasons[] = 'فواتير';
+        }
+        if ($entry->payments()->exists()) {
+            $reasons[] = 'مدفوعات';
+        }
+        if ($entry->deposits()->exists()) {
+            $reasons[] = 'أمانات';
+        }
+        if ($entry->children()->exists()) {
+            $reasons[] = 'عناوين فرعية';
+        }
+
+        if (!empty($reasons)) {
+            \Alert::error(
+                'لا يجوز حذف العميل لأنه مرتبط بـ: ' . implode('، ', $reasons) . '. ' .
+                'يرجى إزالة أو نقل هذه البيانات أولاً.'
+            )->flash();
+            return redirect()->back();
+        }
+
+        $clientName = $entry->name;
         $entry->delete();
-        
+
         \Alert::success('تم حذف المشترك "' . $clientName . '" بنجاح.')->flash();
         return redirect($this->crud->route);
     }

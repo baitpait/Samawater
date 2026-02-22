@@ -36,6 +36,22 @@ class ClientPaymentCrudController extends CrudController
         $this->crud->addClause('whereHas', 'client', function($query) {
             $query->whereNull('parent_id');
         });
+
+        // فلترة حسب معلمات الطلب (بدون Backpack PRO)
+        $this->crud->addClause(function ($query) {
+            if (request()->filled('client_id')) {
+                $query->where('client_id', request('client_id'));
+            }
+            if (request()->filled('date_from')) {
+                $query->whereDate('payment_date', '>=', request('date_from'));
+            }
+            if (request()->filled('date_to')) {
+                $query->whereDate('payment_date', '<=', request('date_to'));
+            }
+            if (request()->filled('payment_method')) {
+                $query->where('payment_method', request('payment_method'));
+            }
+        });
         
         CRUD::column('client.name')
             ->label('المشترك')
@@ -133,6 +149,7 @@ class ClientPaymentCrudController extends CrudController
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();
+        $this->crud->removeField('created_by');
     }
 
     /**
@@ -183,18 +200,4 @@ class ClientPaymentCrudController extends CrudController
         return redirect($redirectUrl);
     }
 
-    /**
-     * Business Purpose: تحديث دفعة
-     */
-    public function update(Request $request)
-    {
-        // التحقق من أن المشترك هو الأب (parent_id = null)
-        $client = Client::find($request->client_id);
-        if (!$client || $client->parent_id !== null) {
-            \Alert::error('يمكن إنشاء المدفوعات للمشتركين الرئيسيين فقط (الأب).')->flash();
-            return redirect()->back()->withInput();
-        }
-        
-        return parent::update($request);
-    }
 }

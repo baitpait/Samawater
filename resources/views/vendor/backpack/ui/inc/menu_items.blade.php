@@ -10,7 +10,7 @@
             لوحة التحكم
             ============================================ --}}
         <li class="nav-item">
-            <a class="nav-link" href="{{ backpack_url('dashboard') }}" onclick="saveScrollPosition()">
+            <a class="nav-link" href="{{ backpack_url('dashboard') }}">
                 <i class="la la-home"></i>
                 <span>الرئيسية</span>
             </a>
@@ -24,11 +24,7 @@
         <li class="menu-section-label">إدارة العملاء</li>
         <x-backpack::menu-item title="المشتركين" icon="la la-chart-bar" :link="route('reports.filters')" />
         @if (! $isDistributor)
-            <x-backpack::menu-item title="رصيد المشتركين" icon="la la-wallet" :link="route('reports.client-balance')" />
-            <x-backpack::menu-item title="تقرير العميل" icon="la la-user" :link="route('client.report')" />
             <x-backpack::menu-item title="التقارير المتقدمة" icon="la la-chart-line" :link="route('reports.advanced')" />
-            <x-backpack::menu-item title="نوع المشترك" icon="las la-building" :link="route('client-type.index')" />
-            <x-backpack::menu-item title="حالة المشترك" icon="las la-calculator" :link="route('client-status.index')" />
         @endif
 
         <li class="sidebar-divider"></li>
@@ -38,19 +34,19 @@
             ============================================ --}}
         <li class="menu-section-label">التسليمات</li>
         <li class="nav-item">
-            <a class="nav-link" href="{{ backpack_url('delivery/create') }}" onclick="saveScrollPosition()">
+            <a class="nav-link" href="{{ backpack_url('delivery/create') }}">
                 <i class="la la-plus"></i>
                 <span>إضافة تسليم</span>
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="{{ route('delivery.list') }}" onclick="saveScrollPosition()">
+            <a class="nav-link" href="{{ route('delivery.list') }}">
                 <i class="la la-truck"></i>
                 <span>قائمة التسليم</span>
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="{{ route('reports.clients_delivery_overview') }}" onclick="saveScrollPosition()">
+            <a class="nav-link" href="{{ route('reports.clients_delivery_overview') }}">
                 <i class="la la-list"></i>
                 <span>التسليمات</span>
             </a>
@@ -71,7 +67,7 @@
                 المالية
                 ============================================ --}}
             <li class="menu-section-label">المالية</li>
-            <x-backpack::menu-item title="الفواتير" icon="la la-file-invoice" :link="backpack_url('invoice')" />
+            <x-backpack::menu-item title="فواتير مبيعات" icon="la la-file-invoice" :link="backpack_url('invoice')" />
             <x-backpack::menu-item title="مدفوعات المشتركين" icon="la la-money-bill" :link="backpack_url('client-payment')" />
             <x-backpack::menu-item title="أمانات المشتركين" icon="la la-hand-holding" :link="backpack_url('client-deposit')" />
 
@@ -121,7 +117,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="https://wa.me/970599814758" target="_blank" onclick="saveScrollPosition()">
+                <a class="nav-link" href="https://wa.me/970599814758" target="_blank">
                     <i class="la la-headset"></i>
                     <span>الدعم الفني</span>
                 </a>
@@ -142,18 +138,11 @@
 </nav>
 
 <script>
-function saveScrollPosition() {
-    sessionStorage.setItem('sidebarScrollPosition', window.pageYOffset || document.documentElement.scrollTop);
-}
-
+// عند فتح أي صفحة من القائمة الجانبية نبدأ من أعلى الصفحة (لا استعادة لموضع التمرير السابق)
 window.addEventListener('load', function() {
-    const savedPosition = sessionStorage.getItem('sidebarScrollPosition');
-    if (savedPosition) {
-        window.scrollTo(0, parseInt(savedPosition, 10));
+    window.scrollTo(0, 0);
+    if (typeof document.documentElement.scrollTo === 'function') {
+        document.documentElement.scrollTo(0, 0);
     }
-});
-
-window.addEventListener('scroll', function() {
-    sessionStorage.setItem('sidebarScrollPosition', window.pageYOffset || document.documentElement.scrollTop);
 });
 </script>

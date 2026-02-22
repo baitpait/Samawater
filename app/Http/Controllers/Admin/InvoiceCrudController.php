@@ -32,7 +32,7 @@ class InvoiceCrudController extends CrudController
     {
         CRUD::setModel(Invoice::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/invoice');
-        CRUD::setEntityNameStrings('فاتورة', 'الفواتير');
+        CRUD::setEntityNameStrings('فاتورة', 'فواتير مبيعات');
     }
 
     protected function setupListOperation()
@@ -40,6 +40,30 @@ class InvoiceCrudController extends CrudController
         // فلترة: عرض الفواتير للعملاء الأب فقط (parent_id = null)
         $this->crud->addClause('whereHas', 'client', function($query) {
             $query->whereNull('parent_id');
+        });
+
+        // فلترة حسب معلمات الطلب (بدون Backpack PRO)
+        $this->crud->addClause(function ($query) {
+            if (request()->filled('client_id')) {
+                $query->where('client_id', request('client_id'));
+            }
+            if (request()->filled('subscription_status_id')) {
+                $query->whereHas('client', function ($q) {
+                    $q->where('subscription_status_id', request('subscription_status_id'));
+                });
+            }
+            if (request()->filled('date_from')) {
+                $query->whereDate('invoice_date', '>=', request('date_from'));
+            }
+            if (request()->filled('date_to')) {
+                $query->whereDate('invoice_date', '<=', request('date_to'));
+            }
+            if (request()->filled('status')) {
+                $query->where('status', request('status'));
+            }
+            if (request()->filled('payment_status')) {
+                $query->where('payment_status', request('payment_status'));
+            }
         });
         
         CRUD::column('invoice_number')

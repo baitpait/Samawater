@@ -181,6 +181,10 @@ Route::get('/distributors-list', [\App\Http\Controllers\Admin\DistributorListCon
     });
 
     Route::crud('client-type', ClientTypeCrudController::class);
+    // تحويل admin/client/{id} إلى صفحة العرض admin/client/{id}/show
+    Route::get('client/{id}', function ($id) {
+        return redirect()->route('client.show', ['id' => $id], 301);
+    })->where('id', '[0-9]+')->name('client.redirect_to_show');
     Route::crud('client', ClientCrudController::class);
     Route::crud('city', CityCrudController::class);
     

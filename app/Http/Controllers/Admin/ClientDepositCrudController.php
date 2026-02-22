@@ -54,31 +54,12 @@ class ClientDepositCrudController extends CrudController
                     return $html;
                 }
                 return '-';
-            });
+            })
+            ->wrapper(['style' => 'min-width: 300px;']);
         
         CRUD::column('date_given')
             ->label('تاريخ الإعارة')
             ->type('date');
-        
-        CRUD::column('is_withdrawn')
-            ->label('الحالة')
-            ->type('boolean')
-            ->options([
-                0 => 'معارة',
-                1 => 'مسحوبة',
-            ])
-            ->trueIcon('la la-check-circle text-success')
-            ->falseIcon('la la-times-circle text-danger');
-        
-        CRUD::column('withdrawn_at')
-            ->label('تاريخ السحب')
-            ->type('datetime')
-            ->format('Y-m-d H:i');
-        
-        CRUD::column('notes')
-            ->label('ملاحظات')
-            ->type('text')
-            ->limit(50);
         
         // زر سحب لكل صنف
         CRUD::column('withdraw_action')
@@ -99,26 +80,27 @@ class ClientDepositCrudController extends CrudController
             });
         
         // زر سحب كل الأمانات (يظهر في أعلى الصفحة)
-        // إضافة زر مخصص باستخدام view
         $this->crud->addButtonFromView('top', 'withdraw_all', 'backpack::crud.buttons.withdraw_all', 'end');
-        
-        // البحث حسب الحالة (معارة/مسحوبة)
-        if (request()->has('status_filter')) {
-            $status = request()->status_filter;
-            if ($status === 'withdrawn') {
-                $this->crud->addClause('where', 'is_withdrawn', true);
-            } elseif ($status === 'active') {
-                $this->crud->addClause('where', 'is_withdrawn', false);
+
+        // فلترة حسب معلمات الطلب (بدون Backpack PRO)
+        $this->crud->addClause(function ($query) {
+            if (request()->filled('client_id')) {
+                $query->where('client_id', request('client_id'));
             }
-        }
-        
-        // البحث حسب العميل (بدلاً من الفلتر PRO)
-        if (request()->has('client_search') && request()->client_search) {
-            $searchTerm = request()->client_search;
-            $this->crud->addClause('whereHas', 'client', function($query) use ($searchTerm) {
-                $query->where('name', 'like', '%' . $searchTerm . '%');
-            });
-        }
+            if (request()->filled('date_from')) {
+                $query->whereDate('date_given', '>=', request('date_from'));
+            }
+            if (request()->filled('date_to')) {
+                $query->whereDate('date_given', '<=', request('date_to'));
+            }
+            if (request()->filled('status')) {
+                if (request('status') === 'withdrawn') {
+                    $query->where('is_withdrawn', true);
+                } elseif (request('status') === 'active') {
+                    $query->where('is_withdrawn', false);
+                }
+            }
+        });
     }
 
     protected function setupCreateOperation()

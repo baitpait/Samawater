@@ -55,9 +55,16 @@ body {
     
     body.sidebar-show .sidebar {
         margin-right: 0 !important; /* Show when body has sidebar-show class */
+        z-index: 1050 !important; /* فوق الـ overlay حتى تكون الصفحات قابلة للضغط */
+        overflow-y: auto !important;
+    }
+    body.sidebar-show .sidebar .sidebar-nav-wrapper,
+    body.sidebar-show .sidebar .sidebar-nav {
+        overflow-y: auto !important;
+        max-height: calc(100vh - 120px) !important;
     }
 
-    /* Overlay when sidebar is open on mobile */
+    /* Overlay when sidebar is open on mobile (تحت السايدبار ليُغلق بالضغط عليه) */
     body.sidebar-show::after {
         content: '';
         position: fixed;
@@ -123,6 +130,77 @@ header.app-header,
 
 .mobile-sidebar-toggle:hover {
     transform: scale(1.1) rotate(90deg);
+}
+
+/* الترقيم (pagination) في كل النظام: اتجاه RTL وتخطيط موحد */
+.pagination-modern {
+    direction: rtl !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+.pagination-modern .pagination-modern-inner {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 1rem !important;
+}
+.pagination-modern .pagination-modern-inner .pagination-info {
+    flex-shrink: 0 !important;
+}
+.pagination-modern .pagination-modern-inner .pagination {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.25rem !important;
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+.pagination-modern .pagination-modern-inner .pagination .page-item {
+    display: inline-block !important;
+}
+.pagination-modern .page-link {
+    border-radius: 10px !important;
+    border: 2px solid #e2e8f0 !important;
+    color: var(--primary-deep) !important;
+    padding: 0.5rem 1rem !important;
+    transition: all 0.3s ease !important;
+}
+.pagination-modern .page-link:hover {
+    background: var(--primary-deep) !important;
+    color: #fff !important;
+    border-color: var(--primary-deep) !important;
+}
+.pagination-modern .page-item.active .page-link {
+    background: var(--primary-deep) !important;
+    border-color: var(--primary-deep) !important;
+    color: #fff !important;
+}
+
+/* فلاتر البحث في كل الصفحات: RTL ومتجاوبة */
+.filter-form-rtl {
+    direction: rtl;
+}
+.filter-form-rtl .form-label-modern,
+.filter-form-rtl .form-control-modern,
+.filter-form-rtl .form-select-modern {
+    text-align: right;
+}
+@media (max-width: 991.98px) {
+    .filter-card-body {
+        padding: 1.25rem !important;
+    }
+}
+@media (max-width: 575.98px) {
+    .filter-card-body {
+        padding: 1rem !important;
+    }
+    .filter-form-rtl .btn-filter-submit,
+    .filter-form-rtl .btn-add-client,
+    .filter-form-rtl .btn-filter-reset {
+        width: 100% !important;
+    }
 }
 
 .sidebar .nav-link, 
@@ -405,8 +483,14 @@ body.modal-open .app-body {
 /* ============================================
    Dropdown Fixes - إصلاحات القوائم المنسدلة
    ============================================ */
-.table-responsive {
+/* إصلاح القوائم المنسدلة: عدم القص — مع استثناء غلاف التمرير الأفقي للجداول */
+.table-responsive:not(.table-scroll-wrapper) {
     overflow: visible !important;
+}
+.table-responsive.table-scroll-wrapper {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    max-width: 100% !important;
 }
 
 .dropdown-menu {
@@ -425,6 +509,15 @@ tr:hover {
 
 .btn-group.show {
     z-index: 1000 !important;
+    position: relative !important;
+}
+
+/* قائمة الإجراءات في الجداول تظهر فوق العناصر (لا تُقص بالـ overflow) */
+.table-card-modern {
+    overflow: visible !important;
+}
+.table-responsive.table-scroll-wrapper {
+    overflow-y: visible !important;
 }
 
 /* ============================================

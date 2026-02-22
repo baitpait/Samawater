@@ -27,7 +27,6 @@
     (function() {
         // فتح رابط الوتس اب في تبويب جديد فور الحفظ
         var whatsappUrl = "{{ session('whatsapp_url') ?: session('whatsapp_url_persistent') }}";
-        console.log("Attempting to open WhatsApp: ", whatsappUrl);
         if (whatsappUrl) {
             // مسح الرابط من السيشن عبر AJAX لضمان عدم فتحه مرة أخرى عند التحديث
             fetch("{{ url('admin/clear-whatsapp-session') }}");

@@ -41,27 +41,17 @@
 
 @push('after_scripts')
 <script>
-    // make submit button trigger HTML5 validation
-    jQuery(document).ready(function($) {
-        var form = $('#saveActions').closest('form');
-        var saveActionField = $('[name="_save_action"]');
-        var $submitButton = $('#saveActions').find('button[type="submit"]');
-        
-        $submitButton.on('click', function(e) {
-            e.preventDefault();
-            
-            // if form is valid just submit it
-            if (form[0].checkValidity && form[0].checkValidity()) {
+    (function() {
+        jQuery(document).ready(function($) {
+            var form = $('#saveActions').closest('form');
+            var saveActionField = form.find('input[name="_save_action"]');
+            if (!form.length || !saveActionField.length) return;
+
+            form.on('submit', function() {
                 saveActionField.val('save_and_back');
-                form[0].requestSubmit();
-            } else {
-                // validate and display form errors
-                if (form[0].reportValidity) {
-                    form[0].reportValidity();
-                }
-            }
+            });
         });
-    });
+    })();
 </script>
 @endpush
 

@@ -148,19 +148,25 @@
             padding: 2rem;
         }
         
+        .filter-form-rtl {
+            direction: rtl;
+        }
+        
         .results-count-box {
             background: linear-gradient(135deg, var(--primary-deep) 0%, #2d4a6b 100%);
             border-radius: 16px;
-            padding: 1.5rem;
+            padding: 1rem 1.5rem;
             color: #fff;
             display: flex;
             align-items: center;
             gap: 15px;
             margin-bottom: 2rem;
+            flex-wrap: wrap;
         }
         
         .results-count-box i {
             font-size: 28px;
+            flex-shrink: 0;
         }
         
         .results-count-box span {
@@ -355,11 +361,32 @@
         }
         
         .pagination-modern {
+            direction: rtl;
             display: flex;
             justify-content: center;
-            gap: 0.5rem;
+            align-items: center;
         }
-        
+        .pagination-modern .pagination-modern-inner {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+        .pagination-modern .pagination-modern-inner .pagination-info {
+            flex-shrink: 0;
+        }
+        .pagination-modern .pagination-modern-inner .pagination {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .pagination-modern .pagination-modern-inner .pagination .page-item {
+            display: inline-block;
+        }
         .pagination-modern .page-link {
             border-radius: 10px !important;
             border: 2px solid #e2e8f0 !important;
@@ -380,12 +407,8 @@
             color: #fff !important;
         }
         
-        /* Responsive */
-        @media (max-width: 768px) {
-            .reports-header {
-                padding: 1.5rem;
-            }
-            
+        /* Responsive - موبايل وويب */
+        @media (max-width: 991.98px) {
             .reports-header-content {
                 flex-direction: column;
                 align-items: flex-start;
@@ -395,10 +418,52 @@
             .reports-header-actions {
                 width: 100%;
                 justify-content: flex-start;
+                flex-wrap: wrap;
             }
             
             .filter-card-body {
-                padding: 1.5rem;
+                padding: 1.25rem;
+            }
+            
+            .results-count-box {
+                padding: 1rem;
+            }
+            
+            .results-count-box span {
+                font-size: 1rem;
+            }
+            
+            .filter-form-rtl .col-12 {
+                margin-bottom: 0.5rem;
+            }
+        }
+        
+        @media (max-width: 575.98px) {
+            .reports-header {
+                padding: 1.25rem;
+            }
+            
+            .reports-header-title {
+                font-size: 1.35rem;
+            }
+            
+            .reports-header-icon {
+                width: 48px;
+                height: 48px;
+            }
+            
+            .reports-header-icon i {
+                font-size: 24px;
+            }
+            
+            .filter-card-body {
+                padding: 1rem;
+            }
+            
+            .btn-filter-submit,
+            .btn-add-client {
+                height: 48px;
+                width: 100%;
             }
         }
     </style>
@@ -445,53 +510,44 @@
                     <span>عدد المشتركين المطابقين: {{ number_format($clients->total()) }}</span>
                 </div>
 
-                <form method="GET" action="{{ route('reports.filters') }}" class="row g-4">
-                    <div class="col-md-3">
+                <form method="GET" action="{{ route('reports.filters') }}" class="row g-3 g-md-4 filter-form-rtl">
+                    <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label-modern">المدينة</label>
-                        <select name="city_id" class="form-select form-select-modern">
+                        <select name="city_id" class="form-select form-select-modern w-100">
                             <option value="">الكل</option>
                             @foreach($cities as $city)
                                 <option value="{{ $city->id }}" @selected(request('city_id') == $city->id)>{{ $city->city_name }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label-modern">نوع المشترك</label>
-                        <select name="client_type_id" class="form-select form-select-modern">
-                            <option value="">الكل</option>
-                            @foreach($clientTypes as $id => $name)
-                                <option value="{{ $id }}" @selected(request('client_type_id') == $id)>{{ $name }}</option>
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label class="form-label-modern">حالة الاشتراك</label>
+                        <select name="subscription_status_id" class="form-select form-select-modern w-100">
+                            <option value="" @selected(empty($selectedSubscriptionStatusId))>الكل</option>
+                            @foreach($subscriptionStatuses as $subStatus)
+                                <option value="{{ $subStatus->id }}" @selected(isset($selectedSubscriptionStatusId) && (string)$selectedSubscriptionStatusId === (string)$subStatus->id)>{{ $subStatus->status_name }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label-modern">حالة المشترك</label>
-                        <select name="status_id" class="form-select form-select-modern">
-                            <option value="">الكل</option>
-                            @foreach($statuses as $status)
-                                <option value="{{ $status->id }}" @selected(request('status_id') == $status->id)>{{ $status->status_name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-3">
+                    <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label-modern">نوع الاشتراك</label>
-                        <select name="subscription_type_id" class="form-select form-select-modern">
+                        <select name="subscription_type_id" class="form-select form-select-modern w-100">
                             <option value="">الكل</option>
                             @foreach($subscriptions as $sub)
                                 <option value="{{ $sub->id }}" @selected(request('subscription_type_id') == $sub->id)>{{ $sub->type_name }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-12 col-md-6">
                         <label class="form-label-modern">بحث سريع</label>
                         <input type="text" name="q" class="form-control form-control-modern" placeholder="اسم المشترك، رقم الهاتف، أو العنوان" value="{{ request('q') }}">
                     </div>
-                    <div class="col-md-3 d-flex align-items-end">
+                    <div class="col-12 col-sm-6 col-md-3 d-flex align-items-end">
                         <button type="submit" class="btn btn-filter-submit w-100">
                             <i class="la la-search"></i> عرض النتائج
                         </button>
                     </div>
-                    <div class="col-md-3 d-flex align-items-end">
+                    <div class="col-12 col-sm-6 col-md-3 d-flex align-items-end">
                         <a href="{{ url(config('backpack.base.route_prefix').'/client/create') }}" class="btn-add-client w-100">
                             <i class="la la-plus"></i> إضافة مشترك
                         </a>
@@ -511,28 +567,34 @@
                 <table class="table table-modern align-middle mb-0">
                     <thead>
                         <tr>
-                            <th>المشترك</th>
-                            <th>المدينة</th>
-                            <th>حالة الاشتراك</th>
-                            <th>الرصيد</th>
-                            <th>آخر استلام</th>
+                            <th style="min-width: 200px;">المشترك</th>
+                            <th>المدينة / العنوان</th>
+                            <th>الرصيد المالي</th>
+                            <th style="min-width: 130px;">آخر استلام</th>
                             <th>أيام بدون استلام</th>
+                            <th style="min-width: 160px;">ملاحظات العميل</th>
                             <th style="width: 80px;">إجراء</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($clients as $client)
                         <tr>
-                            <td class="ps-4">
+                            <td class="ps-4" style="min-width: 200px;">
                                 <div class="fw-bold" style="color: var(--primary-deep);">{{ $client->name }}</div>
                                 <small class="text-muted">{{ $client->phone_one ?? '-' }}</small>
                             </td>
-                            <td>{{ $client->city->city_name ?? '-' }}</td>
                             <td>
-                                <span class="badge badge-modern badge-primary-modern">{{ optional($client->subscriptionStatus)->status_name ?? '-' }}</span>
+                                <div class="fw-semibold">{{ $client->city->city_name ?? '-' }}</div>
+                                <div class="text-muted small">{{ $client->address ?? '-' }}</div>
                             </td>
-                            <td class="fw-bold" style="color: var(--primary-deep);">{{ $client->bottle_balance }}</td>
-                            <td class="fw-semibold">{{ $client->lastDelivery ? \Carbon\Carbon::parse($client->lastDelivery->delivery_date)->format('Y-m-d') : '-' }}</td>
+                            <td class="fw-bold">
+                                @php
+                                    $balance = $client->balance ?? 0;
+                                    $balanceClass = $balance > 0 ? 'text-danger' : ($balance < 0 ? 'text-success' : 'text-muted');
+                                @endphp
+                                <span class="{{ $balanceClass }}">{{ number_format($balance, 2) }} ₪</span>
+                            </td>
+                            <td class="fw-semibold" style="min-width: 130px;">{{ $client->lastDelivery ? \Carbon\Carbon::parse($client->lastDelivery->delivery_date)->format('Y-m-d') : '-' }}</td>
                             <td>
                                 @if($client->lastDelivery)
                                     @php
@@ -545,6 +607,7 @@
                                     <span class="badge badge-modern badge-secondary-modern">لم يستلم</span>
                                 @endif
                             </td>
+                            <td class="text-end small" style="max-width: 220px;" title="{{ $client->notes ?? '' }}">{{ Str::limit($client->notes ?? '-', 60) }}</td>
                             <td class="pe-4">
                                 <div class="btn-group dropdown">
                                     <button type="button" class="btn btn-action-modern btn-sm dropdown-toggle" data-toggle="dropdown">
@@ -557,11 +620,17 @@
                                         <a class="dropdown-item dropdown-item-modern" href="{{ backpack_url('client/'.$client->id.'/edit') }}">
                                             <i class="la la-edit"></i> تعديل
                                         </a>
-                                        <a class="dropdown-item dropdown-item-modern" href="{{ url('admin/client-report?client_id='.$client->id) }}">
-                                            <i class="la la-chart-bar"></i> تقرير
-                                        </a>
                                         <a class="dropdown-item dropdown-item-modern" href="{{ url('admin/delivery/create?client_id='.$client->id) }}">
                                             <i class="la la-truck"></i> تسليم
+                                        </a>
+                                        <a class="dropdown-item dropdown-item-modern" href="{{ route('client.report', ['client_id' => $client->id]) }}">
+                                            <i class="la la-list"></i> تقرير العميل
+                                        </a>
+                                        <a class="dropdown-item dropdown-item-modern" href="{{ route('reports.client-balance', ['client_id' => $client->id]) }}">
+                                            <i class="la la-file-invoice-dollar"></i> تقرير الرصيد
+                                        </a>
+                                        <a class="dropdown-item dropdown-item-modern" href="{{ url(config('backpack.base.route_prefix') . '/client-deposit/create?client_id=' . $client->id) }}">
+                                            <i class="la la-box-open"></i> أمانة المشترك
                                         </a>
                                         <div class="dropdown-divider"></div>
                                         <button class="dropdown-item dropdown-item-modern text-danger btn-delete" data-url="{{ backpack_url('client/'.$client->id) }}">
@@ -577,7 +646,7 @@
             </div>
             <div class="p-4 border-top">
                 <div class="pagination-modern">
-                    {{ $clients->withQueryString()->links() }}
+                    {{ $clients->withQueryString()->links('vendor.pagination.modern') }}
                 </div>
             </div>
         </div>

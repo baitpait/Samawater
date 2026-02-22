@@ -33,6 +33,8 @@
 <p><strong>اسم المشترك:</strong> {{ $client->name }}</p>
 <p><strong>الهاتف:</strong> {{ $client->phone_one }}</p>
 <p><strong>المدينة:</strong> {{ $client->city->city_name ?? '-' }}</p>
+<p><strong>العنوان:</strong> {{ $client->address ?? '-' }}</p>
+<p><strong>الرصيد المالي:</strong> ₪ {{ number_format($client->balance ?? 0, 0) }}</p>
 
 <table>
     <thead>

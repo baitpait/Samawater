@@ -6,7 +6,6 @@
     // لضمان عدم حدوث تعارضات برمجية.
     
     function init() {
-        console.log('Distributor list scripts initialized');
     }
     
     if (document.readyState === "loading") {

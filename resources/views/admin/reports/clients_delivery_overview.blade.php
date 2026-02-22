@@ -219,6 +219,33 @@
             overflow: hidden;
         }
         
+        /* غلاف التمرير الأفقي للجدول - شريط يمين/شمال (إجباري) */
+        .delivery-overview-container .table-card-modern .table-scroll-wrapper,
+        .table-card-modern .table-responsive.table-scroll-wrapper {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            overflow-x: auto !important;
+            overflow-y: visible !important;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-deep) var(--bg-light);
+        }
+        .table-card-modern .table-scroll-wrapper::-webkit-scrollbar {
+            height: 10px;
+        }
+        .table-card-modern .table-scroll-wrapper::-webkit-scrollbar-track {
+            background: var(--bg-light);
+            border-radius: 10px;
+        }
+        .table-card-modern .table-scroll-wrapper::-webkit-scrollbar-thumb {
+            background: var(--primary-deep);
+            border-radius: 10px;
+        }
+        .table-card-modern .table-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #254a7a;
+        }
+        
         .table-card-header-modern {
             background: linear-gradient(135deg, var(--primary-deep) 0%, #2d4a6b 100%);
             padding: 1.5rem;
@@ -241,7 +268,7 @@
         
         .table-modern {
             margin: 0;
-            min-width: 1200px;
+            min-width: 1200px; /* يجبر التمرير الأفقي عند ضيق العرض */
         }
         
         .table-modern thead {
@@ -319,10 +346,41 @@
             box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3);
         }
         
+        .btn-action-danger {
+            background: var(--danger-color) !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 10px !important;
+            padding: 0.5rem !important;
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease !important;
+        }
+        .btn-action-danger:hover {
+            background: #dc2626 !important;
+            color: #fff !important;
+            transform: translateY(-2px);
+        }
+        .actions-cell .btn { flex-shrink: 0; }
+        .actions-cell.actions-icons-only { gap: 0.5rem; }
+        .btn-icon-only {
+            padding: 0 !important;
+            min-width: 36px !important;
+            width: 36px !important;
+            height: 36px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        
         .pagination-modern {
             display: flex;
             justify-content: center;
             gap: 0.5rem;
+            direction: rtl;
         }
         
         .pagination-modern .page-link {
@@ -409,40 +467,39 @@
                 <h6>فلاتر البحث</h6>
             </div>
             <div class="filter-card-body">
-                <form method="GET" class="row g-4">
+                <form method="GET" class="row g-3 g-md-4 filter-form-rtl">
                     <input type="hidden" name="search" value="1">
-                    
-                    <div class="col-md-3">
+                    <div class="col-12">
+                        <label class="form-label-modern">بحث بالاسم</label>
+                        <input type="text" name="name" class="form-control form-control-modern w-100" value="{{ request('name') }}" placeholder="اسم المشترك">
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label-modern">من تاريخ</label>
-                        <input type="date" name="from" class="form-control form-control-modern" value="{{ request('from') }}">
+                        <input type="date" name="from" class="form-control form-control-modern w-100" value="{{ request('from') }}">
                     </div>
-
-                    <div class="col-md-3">
+                    <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label-modern">إلى تاريخ</label>
-                        <input type="date" name="to" class="form-control form-control-modern" value="{{ request('to') }}">
+                        <input type="date" name="to" class="form-control form-control-modern w-100" value="{{ request('to') }}">
                     </div>
-
-                    <div class="col-md-3">
+                    <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label-modern">المدينة</label>
-                        <select name="city_id" class="form-select form-select-modern">
+                        <select name="city_id" class="form-select form-select-modern w-100">
                             <option value="">الكل</option>
                             @foreach($cities as $city)
                                 <option value="{{ $city->id }}" @selected(request('city_id') == $city->id)>{{ $city->city_name }}</option>
                             @endforeach
                         </select>
                     </div>
-
-                    <div class="col-md-3">
+                    <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label-modern">الموزع</label>
-                        <select name="distributor_id" class="form-select form-select-modern">
+                        <select name="distributor_id" class="form-select form-select-modern w-100">
                             <option value="">الكل</option>
                             @foreach($distributors as $distributor)
                                 <option value="{{ $distributor->id }}" @selected(request('distributor_id') == $distributor->id)>{{ $distributor->name }}</option>
                             @endforeach
                         </select>
                     </div>
-
-                    <div class="col-md-12 text-end mt-2">
+                    <div class="col-12 col-md-12 d-flex align-items-end justify-content-end mt-2">
                         <button type="submit" class="btn btn-filter-submit">
                             <i class="la la-search"></i> عرض النتائج
                         </button>
@@ -458,7 +515,7 @@
                     <i class="la la-list"></i>
                     <h5>نتائج البحث</h5>
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive table-scroll-wrapper">
                     <table class="table table-modern align-middle mb-0">
                         <thead>
                             <tr>
@@ -468,14 +525,21 @@
                                 <th>تاريخ الاستلام</th>
                                 <th>العبوات المستلمة</th>
                                 <th>العبوات الفارغة</th>
-                                <th>رصيد</th>
-                                <th>الدفعة</th>
+                                <th>رصيد العبوات</th>
+                                <th>المبلغ المطلوب</th>
+                                <th>المبلغ المدفوع</th>
+                                <th>الدين المتبقي</th>
                                 <th>الموزع</th>
-                                <th style="width: 80px;">إجراء</th>
+                                <th style="width: 100px;">إجراء</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($rows as $r)
+                            @php
+                                $required = (float) ($r->last_required_amount ?? 0);
+                                $paymant = (float) ($r->last_paymant ?? 0);
+                                $remainingDebt = $required - $paymant;
+                            @endphp
                             <tr>
                                 <td class="ps-4 fw-bold" style="color: var(--primary-deep);">{{ $r->client_name }}</td>
                                 <td>{{ $r->city_name ?? '-' }}</td>
@@ -492,19 +556,30 @@
                                     @endphp
                                     <span class="badge badge-modern {{ $class }}">{{ number_format($balance) }}</span>
                                 </td>
-                                <td class="fw-bold" style="color: var(--primary-deep); font-size: 16px;">₪ {{ number_format($r->last_paymant ?? 0) }}</td>
+                                <td>₪ {{ number_format($required, 2) }}</td>
+                                <td class="fw-bold" style="color: var(--primary-deep);">₪ {{ number_format($paymant, 2) }}</td>
+                                <td class="fw-bold {{ $remainingDebt > 0 ? 'text-danger' : ($remainingDebt < 0 ? 'text-success' : 'text-muted') }}">₪ {{ number_format($remainingDebt, 2) }}</td>
                                 <td>{{ $r->distributor_name ?? '-' }}</td>
                                 <td class="pe-4">
-                                    @if($r->last_delivery_id)
-                                    <button type="button" class="btn btn-action-modern" onclick="editDelivery({{ $r->last_delivery_id }})" title="تعديل">
-                                        <i class="la la-edit"></i>
-                                    </button>
-                                    @endif
+                                    <div class="d-flex gap-1 justify-content-center align-items-center actions-cell actions-icons-only">
+                                        @if(!empty($r->last_delivery_id))
+                                        <a href="{{ backpack_url('delivery').'/'.(int)$r->last_delivery_id.'/edit' }}?return_to_report=clients_delivery_overview" class="btn btn-action-modern btn-sm btn-icon-only" title="تعديل التسليم">
+                                            <i class="la la-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-action-danger btn-sm btn-icon-only" onclick="deleteDelivery({{ (int)$r->last_delivery_id }}, '{{ addslashes($r->client_name ?? '') }}')" title="حذف التسليم">
+                                            <i class="la la-trash"></i>
+                                        </button>
+                                        @else
+                                        <a href="{{ backpack_url('delivery/create').'?client_id='.($r->client_id ?? '') }}" class="btn btn-action-modern btn-sm btn-icon-only" title="إضافة تسليم">
+                                            <i class="la la-plus"></i>
+                                        </a>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="10" class="text-center py-5 text-muted">
+                                <td colspan="12" class="text-center py-5 text-muted">
                                     <i class="la la-inbox" style="font-size: 48px; opacity: 0.3;"></i>
                                     <p class="mt-3 mb-0">لا توجد نتائج مطابقة</p>
                                 </td>
@@ -515,7 +590,7 @@
                 </div>
                 <div class="p-4 border-top">
                     <div class="pagination-modern">
-                        {{ $rows->appends(request()->query())->links() }}
+                        {{ $rows->appends(request()->query())->links('vendor.pagination.modern') }}
                     </div>
                 </div>
             </div>
@@ -524,6 +599,40 @@
     </div>
 </div>
 
-@include('admin.reports.inc.edit_delivery_modal')
+@push('after_scripts')
+<script>
+(function() {
+    var deliveryBaseUrl = '{{ backpack_url("delivery") }}';
+    var reportPageUrl = '{{ request()->fullUrl() }}';
+    var csrfToken = '{{ csrf_token() }}';
+
+    window.deleteDelivery = function(deliveryId, clientName) {
+        var msg = clientName
+            ? 'هل تريد حذف آخر تسليم للمشترك «' + clientName + '»؟'
+            : 'هل تريد حذف هذا التسليم؟';
+        if (!confirm(msg)) return;
+
+        fetch(deliveryBaseUrl + '/' + deliveryId, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).then(function(res) {
+            if (res.redirected) {
+                window.location.href = reportPageUrl;
+            } else if (res.ok) {
+                window.location.href = reportPageUrl;
+            } else {
+                res.json().then(function(d) { alert(d.message || 'حدث خطأ'); }).catch(function() { window.location.href = reportPageUrl; });
+            }
+        }).catch(function() {
+            window.location.href = reportPageUrl;
+        });
+    };
+})();
+</script>
+@endpush
 
 @endsection

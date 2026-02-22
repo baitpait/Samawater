@@ -81,9 +81,10 @@ class DatabaseBackupController
     private function downloadUsingLaravel($fileName)
     {
         try {
-            $tables = DB::select('SHOW TABLES');
             $dbName = config('database.connections.mysql.database');
             $tableKey = 'Tables_in_' . $dbName;
+            $typeKey = 'Table_type';
+            $tables = DB::select('SHOW FULL TABLES');
             
             $sql = "-- Eliyaa Database Backup\n";
             $sql .= "-- Date: " . Carbon::now()->toDateTimeString() . "\n";
@@ -92,39 +93,56 @@ class DatabaseBackupController
             
             foreach ($tables as $table) {
                 $tableName = $table->$tableKey;
-                
-                // بنية الجدول
-                $createTable = DB::select("SHOW CREATE TABLE `{$tableName}`");
-                $sql .= "-- Table: {$tableName}\n";
-                $sql .= "DROP TABLE IF EXISTS `{$tableName}`;\n";
-                $sql .= $createTable[0]->{'Create Table'} . ";\n\n";
-                
-                // البيانات
-                $rows = DB::table($tableName)->get();
-                
+                $isView = isset($table->$typeKey) && strtoupper((string) $table->$typeKey) === 'VIEW';
+
+                try {
+                    // بنية الجدول/العرض (أخذ عبارة CREATE من العمود الثاني دون الاعتماد على اسمه)
+                    $createTable = DB::select("SHOW CREATE TABLE `{$tableName}`");
+                    $firstRow = (array) $createTable[0];
+                    $createTableSql = array_values($firstRow)[1] ?? '';
+                    $sql .= "-- " . ($isView ? "View" : "Table") . ": {$tableName}\n";
+                    $sql .= "DROP " . ($isView ? "VIEW" : "TABLE") . " IF EXISTS `{$tableName}`;\n";
+                    $sql .= $createTableSql . ";\n\n";
+                } catch (\Throwable $e) {
+                    Log::warning("Backup: skip {$tableName} – " . $e->getMessage());
+                    $sql .= "-- Skip {$tableName}: " . str_replace(["\r", "\n"], ' ', $e->getMessage()) . "\n\n";
+                    continue;
+                }
+
+                // تصدير البيانات فقط للجداول العادية (لا ننتقي من الـ views — قد تكون معطلة أو تحتاج صلاحيات)
+                if ($isView) {
+                    continue;
+                }
+
+                try {
+                    $rows = DB::table($tableName)->get();
+                } catch (\Throwable $e) {
+                    Log::warning("Backup: no data for {$tableName} – " . $e->getMessage());
+                    continue;
+                }
+
                 if ($rows->count() > 0) {
                     $sql .= "-- Data for table: {$tableName}\n";
-                    
+
                     foreach ($rows as $row) {
                         $row = (array) $row;
                         $columns = array_keys($row);
                         $values = array_values($row);
-                        
-                        // تنظيف القيم
-                        $values = array_map(function($value) {
+
+                        $values = array_map(function ($value) {
                             if (is_null($value)) {
                                 return 'NULL';
                             }
-                            return "'" . addslashes($value) . "'";
+                            return "'" . addslashes((string) $value) . "'";
                         }, $values);
-                        
+
                         $sql .= sprintf(
                             "INSERT INTO `{$tableName}` (`%s`) VALUES (%s);\n",
                             implode('`, `', $columns),
                             implode(', ', $values)
                         );
                     }
-                    
+
                     $sql .= "\n";
                 }
             }

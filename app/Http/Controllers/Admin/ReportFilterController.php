@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Client;
-use App\Models\ClientStatus;
-use App\Models\ClientType;
 use App\Models\SubscriptionStatus;
 use App\Models\SubscriptionType;
 use App\Models\City;
@@ -16,19 +14,11 @@ class ReportFilterController extends Controller
 {
     public function index(Request $request)
     {
-        $clientTypes = [
-            1 => 'فردي',
-            2 => 'مؤسسة',
-            3 => 'تجاري',
-        ];
-
         $query = Client::query()
-            ->with('city', 'subscriptionStatus');
+            ->with(['city', 'subscriptionStatus', 'invoices', 'payments', 'parent.invoices', 'parent.payments']);
 
-        /* ===== البحث ===== */
         if ($request->filled('q')) {
             $q = $request->q;
-
             $query->where(function ($sub) use ($q) {
                 $sub->where('name', 'like', "%{$q}%")
                     ->orWhere('phone_one', 'like', "%{$q}%")
@@ -37,43 +27,38 @@ class ReportFilterController extends Controller
             });
         }
 
-        /* ===== الفلاتر ===== */
         if ($request->from && $request->to) {
-            $query->whereBetween('subscription_start_date', [
-                $request->from,
-                $request->to
-            ]);
+            $query->whereBetween('subscription_start_date', [$request->from, $request->to]);
         }
 
         if ($request->city_id) {
             $query->where('city_id', $request->city_id);
         }
 
-        if ($request->client_type_id) {
-            $query->where('client_type', $request->client_type_id);
-        }
-
-        if ($request->status_id) {
-            $query->where('status_id', $request->status_id);
-        }
-
         if ($request->subscription_type_id) {
             $query->where('subscription_type_id', $request->subscription_type_id);
         }
 
-        if ($request->subscription_status_id) {
-            $query->where('subscription_status_id', $request->subscription_status_id);
+        $defaultActiveStatusId = SubscriptionStatus::where('status_name', 'نشط')->value('id');
+        $selectedSubscriptionStatusId = $request->get('subscription_status_id', $defaultActiveStatusId);
+        if ($request->has('subscription_status_id')) {
+            if ($request->filled('subscription_status_id')) {
+                $query->where('subscription_status_id', $request->subscription_status_id);
+            }
+        } elseif ($defaultActiveStatusId) {
+            $query->where('subscription_status_id', $defaultActiveStatusId);
         }
+
+        $query->orderBy('address', 'asc');
 
         $clients = $query->paginate(50);
 
         return view('admin.reports.filters', [
-            'clients'               => $clients,
-            'clientTypes'           => $clientTypes,
-            'cities'                => City::all(),
-            'statuses'              => ClientStatus::all(),
-            'subscriptions'         => SubscriptionType::all(),
-            'subscriptionStatuses'  => SubscriptionStatus::all(),
+            'clients'                      => $clients,
+            'cities'                       => City::orderBy('city_name')->get(),
+            'subscriptions'                => SubscriptionType::orderBy('type_name')->get(),
+            'subscriptionStatuses'         => SubscriptionStatus::orderBy('status_name')->get(),
+            'selectedSubscriptionStatusId' => $selectedSubscriptionStatusId,
         ]);
     }
 
@@ -90,8 +75,8 @@ class ReportFilterController extends Controller
                     $d->whereDate('delivery_date', '<=', $request->to)
                 )
             )
-            ->when($request->status_id, fn($q) =>
-                $q->where('status_id', $request->status_id)
+            ->when($request->subscription_status_id, fn($q) =>
+                $q->where('subscription_status_id', $request->subscription_status_id)
             )
             ->when($request->subscription_type_id, fn($q) =>
                 $q->where('subscription_type_id', $request->subscription_type_id)
@@ -114,7 +99,7 @@ class ReportFilterController extends Controller
             3 => 'تجاري',
         ];
 
-        $query = Client::query()->with('city', 'subscriptionStatus');
+        $query = Client::query()->with('city', 'subscriptionStatus', 'subscriptionType', 'lastDelivery');
 
         if ($request->filled('q')) {
             $q = $request->q;
@@ -135,14 +120,6 @@ class ReportFilterController extends Controller
 
         if ($request->city_id) {
             $query->where('city_id', $request->city_id);
-        }
-
-        if ($request->client_type_id) {
-            $query->where('client_type', $request->client_type_id);
-        }
-
-        if ($request->status_id) {
-            $query->where('status_id', $request->status_id);
         }
 
         if ($request->subscription_type_id) {
@@ -162,22 +139,26 @@ class ReportFilterController extends Controller
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
 
-        // BOM للـ UTF-8 (للعربية)
-        $output = "\xEF\xBB\xBF";
+        // BOM للـ UTF-8 + علامة RTL لفتح Excel من اليمين لليسار
+        $output = "\xEF\xBB\xBF\xE2\x80\x8F";
 
-        $output .= "اسم العميل,رقم العقد,الهاتف,المدينة,نوع العميل,حالة الاشتراك,نوع الاشتراك,تاريخ بدء الاشتراك,رصيد القوارير\n";
+        // ترتيب الأعمدة من اليمين لليسار: المشترك، العنوان، الهاتف الأول، الهاتف الثاني، ...
+        $output .= "اسم المشترك,العنوان,رقم العقد,الهاتف الأول,الهاتف الثاني,المدينة,نوع العميل,حالة الاشتراك,نوع الاشتراك,تاريخ آخر تسليم,رصيد القوارير\n";
 
         foreach ($clients as $client) {
+            $lastDeliveryDate = $client->lastDelivery ? \Carbon\Carbon::parse($client->lastDelivery->delivery_date)->format('Y-m-d') : '';
             $output .= sprintf(
-                "%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
-                '"' . ($client->name ?? '') . '"',
-                '"' . ($client->contract_no ?? '') . '"',
-                '"' . ($client->phone_one ?? '') . '"',
-                '"' . ($client->city->city_name ?? '') . '"',
+                "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
+                '"' . str_replace('"', '""', (string)($client->name ?? '')) . '"',
+                '"' . str_replace('"', '""', (string)($client->address ?? '')) . '"',
+                '"' . str_replace('"', '""', (string)($client->contract_no ?? '')) . '"',
+                '"' . str_replace('"', '""', (string)($client->phone_one ?? '')) . '"',
+                '"' . str_replace('"', '""', (string)($client->phone_two ?? '')) . '"',
+                '"' . str_replace('"', '""', (string)($client->city->city_name ?? '')) . '"',
                 '"' . ($clientTypes[$client->client_type] ?? '') . '"',
                 '"' . ($client->subscriptionStatus->status_name ?? '') . '"',
                 '"' . ($client->subscriptionType->type_name ?? '') . '"',
-                $client->subscription_start_date ?? '',
+                $lastDeliveryDate,
                 $client->bottle_balance ?? 0
             );
         }
@@ -194,7 +175,7 @@ class ReportFilterController extends Controller
             3 => 'تجاري',
         ];
 
-        $query = Client::query()->with('city', 'subscriptionStatus', 'subscriptionType');
+        $query = Client::query()->with('city', 'subscriptionStatus', 'subscriptionType', 'lastDelivery');
 
         if ($request->filled('q')) {
             $q = $request->q;
@@ -215,14 +196,6 @@ class ReportFilterController extends Controller
 
         if ($request->city_id) {
             $query->where('city_id', $request->city_id);
-        }
-
-        if ($request->client_type_id) {
-            $query->where('client_type', $request->client_type_id);
-        }
-
-        if ($request->status_id) {
-            $query->where('status_id', $request->status_id);
         }
 
         if ($request->subscription_type_id) {

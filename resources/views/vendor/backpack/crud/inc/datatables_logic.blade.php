@@ -283,9 +283,11 @@
           ajax: {
               "url": "{!! url($crud->route.'/search').'?'.Request::getQueryString() !!}",
               "type": "POST",
-              "data": {
-                "totalEntryCount": "{{$crud->getOperationSetting('totalEntryCount') ?? false}}"
-            },
+              "data": function(d) {
+                d._token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || "{{ csrf_token() }}";
+                d.totalEntryCount = "{{ $crud->getOperationSetting('totalEntryCount') ?? false }}";
+                return d;
+              },
           },
           dom:
             "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +

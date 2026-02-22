@@ -367,7 +367,7 @@
         </form>
 
         <div class="login-footer">
-            تم التطوير بواسطة <a href="https://baitpait.com/" target="_blank">بيت البرمجيات</a>
+            تطوير وبرمجة <a href="https://baitpait.com/" target="_blank">بيت البرمجيات وتكنولوجيا المعلومات</a>
         </div>
     </div>
 </div>

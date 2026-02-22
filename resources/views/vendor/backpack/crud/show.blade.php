@@ -87,35 +87,63 @@
                 $deleteUrl = backpack_url('client/' . $clientId);
             @endphp
             <div class="card mb-4" style="border-radius: 20px; border: none; box-shadow: var(--shadow-sm); overflow: visible;">
-                <div class="card-body p-3">
-                    <div class="d-flex flex-wrap gap-2 justify-content-center">
-                        {{-- تعديل --}}
-                        <a href="{{ $editUrl }}" class="btn btn-primary" style="flex: 1; min-width: 120px; background: #7c7cff !important; border: none; border-radius: 12px; font-weight: 700; padding: 12px;">
-                            <i class="la la-edit"></i> تعديل
-                        </a>
-                        
-                        {{-- التسليمات --}}
-                        <a href="{{ $reportUrl }}" class="btn btn-info text-white" style="flex: 1; min-width: 120px; background: #3b82f6 !important; border: none; border-radius: 12px; font-weight: 700; padding: 12px;">
-                            <i class="la la-list"></i> التسليمات
-                        </a>
-                        
-                        {{-- تسليم --}}
-                        <a href="{{ $deliveryUrl }}" class="btn btn-success" style="flex: 1; min-width: 120px; background: #10b981 !important; border: none; border-radius: 12px; font-weight: 700; padding: 12px;">
-                            <i class="la la-truck"></i> تسليم
-                        </a>
-                        
-                        {{-- حذف --}}
-                        <a href="#" 
-                           onclick="event.preventDefault(); if(confirm('هل أنت متأكد من حذف العميل؟')) { document.getElementById('delete-client-form').submit(); }"
-                           class="btn btn-danger" style="flex: 1; min-width: 120px; background: #ef4444 !important; border: none; border-radius: 12px; font-weight: 700; padding: 12px;">
-                            <i class="la la-trash"></i> حذف
-                        </a>
-                        
-                        <form id="delete-client-form" action="{{ $deleteUrl }}" method="POST" style="display: none;">
-                            @csrf
-                            @method('DELETE')
-                        </form>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-6 col-md-4">
+                            <a href="{{ $editUrl }}" class="btn w-100 text-white" style="background: #7c7cff; border-radius: 12px; font-weight: 700; padding: 12px;">
+                                <i class="la la-edit"></i> تعديل
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <a href="{{ $reportUrl }}" class="btn w-100 text-white" style="background: #3b82f6; border-radius: 12px; font-weight: 700; padding: 12px;">
+                                <i class="la la-list"></i> التسليمات
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <a href="{{ $deliveryUrl }}" class="btn w-100 text-white" style="background: #10b981; border-radius: 12px; font-weight: 700; padding: 12px;">
+                                <i class="la la-truck"></i> تسليم
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <a href="{{ $reportUrl }}" class="btn w-100 text-white" style="background: #0ea5e9; border-radius: 12px; font-weight: 700; padding: 12px;">
+                                <i class="la la-file-alt"></i> تقرير العميل
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <a href="{{ route('reports.client-balance', ['client_id' => $clientId]) }}" class="btn w-100 text-white" style="background: #f59e0b; border-radius: 12px; font-weight: 700; padding: 12px;">
+                                <i class="la la-file-invoice-dollar"></i> رصيد المشترك
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <a href="{{ backpack_url('client-deposit/create?client_id=' . $clientId) }}" class="btn w-100 text-white" style="background: #8b5cf6; border-radius: 12px; font-weight: 700; padding: 12px;">
+                                <i class="la la-box-open"></i> أمانة المشترك
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <a href="{{ backpack_url('client-payment?client_id=' . $clientId) }}" class="btn w-100 text-white" style="background: #0d9488; border-radius: 12px; font-weight: 700; padding: 12px;">
+                                <i class="la la-list-alt"></i> كافة المدفوعات
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <a href="{{ backpack_url('client-payment/create?client_id=' . $clientId) }}" class="btn w-100 text-white" style="background: #059669; border-radius: 12px; font-weight: 700; padding: 12px;">
+                                <i class="la la-money-bill"></i> إضافة دفعة
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <a href="{{ backpack_url('invoice?client_id=' . $clientId) }}" class="btn w-100 text-white" style="background: #1e3a5f; border-radius: 12px; font-weight: 700; padding: 12px;">
+                                <i class="la la-file-invoice"></i> فواتير مبيعات
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <a href="#" onclick="event.preventDefault(); if(confirm('هل أنت متأكد من حذف العميل؟')) { document.getElementById('delete-client-form').submit(); }" class="btn w-100 text-white" style="background: #ef4444; border-radius: 12px; font-weight: 700; padding: 12px;">
+                                <i class="la la-trash"></i> حذف
+                            </a>
+                        </div>
                     </div>
+                    <form id="delete-client-form" action="{{ $deleteUrl }}" method="POST" style="display: none;">
+                        @csrf
+                        @method('DELETE')
+                    </form>
                 </div>
             </div>
         @endif

@@ -90,6 +90,35 @@
         section.header-operation i.la-user-tie {
             display: none !important;
         }
+        /* صفحة المخزون: إظهار أيقونة المستودع فقط دون تكرار مع ::before/::after */
+        section.header-operation.inventory-list-page h1::before,
+        section.header-operation.inventory-list-page h1::after {
+            display: none !important;
+        }
+        /* صفحة المدن: إظهار أيقونة الموقع فقط */
+        section.header-operation.city-list-page h1::before,
+        section.header-operation.city-list-page h1::after {
+            display: none !important;
+        }
+        /* صفحة المدن: ترتيب أعمدة الجدول وعرضها */
+        .city-crud-table #crudTable { table-layout: auto; width: 100%; }
+        .city-crud-table #crudTable thead th[data-column-name="city_name"],
+        .city-crud-table #crudTable tbody td:nth-child(1) { text-align: right; min-width: 200px; }
+        .city-crud-table #crudTable thead th[data-column-name="actions"],
+        .city-crud-table #crudTable tbody td:nth-child(2) { text-align: center; width: 120px; min-width: 120px; }
+        /* صفحة المخزون: توحيد مظهر أزرار الإجراءات مع الهوية البصرية */
+        .inventory-list-page #crudTable tbody td:last-child .btn-group {
+            display: inline-flex !important;
+            gap: 0 !important;
+        }
+        .inventory-list-page #crudTable tbody td:last-child .btn-group .btn-link {
+            min-width: 2rem;
+            padding: 0.35rem 0.5rem;
+            color: var(--primary-deep) !important;
+        }
+        .inventory-list-page #crudTable tbody td:last-child .btn-group .btn-link.text-danger {
+            color: var(--danger-color, #dc3545) !important;
+        }
         
         /* زر إضافة موزع في header */
         .btn-success-unified {
@@ -396,6 +425,49 @@
         .pagination-wrapper .pagination .page-item:not(.active):not(:hover) .page-link {
             opacity: 1 !important;
         }
+
+        /* أزرار الإجراءات: إظهار الأيقونة فقط وإخفاء النص (معاينة، تعديل، حذف) */
+        #crudTable tbody td a.btn.btn-link span {
+            display: none !important;
+        }
+        #crudTable tbody td a.btn.btn-link {
+            min-width: 2rem;
+            padding: 0.35rem 0.5rem;
+        }
+        /* ترتيب أزرار الإجراءات بدون فراغات بينها */
+        #crudTable tbody td:last-child {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            gap: 0 !important;
+            align-items: center !important;
+            justify-content: center !important;
+            white-space: nowrap !important;
+        }
+        #crudTable tbody td:last-child a.btn.btn-link {
+            margin: 0 !important;
+            border-radius: 0 !important;
+        }
+        #crudTable tbody td:last-child a.btn.btn-link:not(:last-child) {
+            border-left-width: 0 !important;
+        }
+        #crudTable tbody td:last-child a.btn.btn-link:first-child {
+            border-radius: 0.25rem 0 0 0.25rem !important;
+        }
+        #crudTable tbody td:last-child a.btn.btn-link:last-child {
+            border-radius: 0 0.25rem 0.25rem 0 !important;
+        }
+
+        /* غلاف الجدول مع سكرول أفقي - يبقي الجدول داخل الديف */
+        .crud-table-scroll-x {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 20px;
+        }
+        .crud-table-scroll-x .dataTables_wrapper,
+        .crud-table-scroll-x #crudTable_wrapper {
+            min-width: 100%;
+        }
     </style>
 @endsection
 
@@ -413,7 +485,7 @@
 @endphp
 
 @section('header')
-    <section class="header-operation container-fluid animated fadeIn d-flex mb-2 align-items-center d-print-none" bp-section="page-header">
+    <section class="header-operation container-fluid animated fadeIn d-flex mb-2 align-items-center d-print-none {{ request()->is('*/inventory-item*') ? 'inventory-list-page' : '' }} {{ request()->is('*/city*') ? 'city-list-page' : '' }}" bp-section="page-header">
         <div class="header-content-wrapper" style="display: flex; align-items: center; gap: 1rem; width: 100%; justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 1rem;">
                 @if(request()->is('*/client') || request()->is('*/client/*'))
@@ -422,12 +494,28 @@
                 <i class="la la-truck" style="font-size: 28px; color: #fff; font-weight: 900;"></i>
                 @elseif(request()->is('*/client-type*'))
                 <i class="la la-tags" style="font-size: 28px; color: #fff; font-weight: 900;"></i>
+                @elseif(request()->is('*/client-deposit') || request()->is('*/client-deposit/*'))
+                <i class="la la-box-open" style="font-size: 28px; color: #fff; font-weight: 900;"></i>
+                @elseif(request()->is('*/client-payment') || request()->is('*/client-payment/*'))
+                <i class="la la-money-bill" style="font-size: 28px; color: #fff; font-weight: 900;"></i>
+                @elseif(request()->is('*/inventory-item') || request()->is('*/inventory-item/*'))
+                <i class="la la-warehouse" style="font-size: 28px; color: #fff; font-weight: 900;"></i>
+                @elseif(request()->is('*/city') || request()->is('*/city/*'))
+                <i class="la la-map-marker-alt" style="font-size: 28px; color: #fff; font-weight: 900;"></i>
                 @endif
                 <h1 class="text-capitalize mb-0" bp-section="page-heading">
                     @if(request()->is('*/delivery') || request()->is('*/delivery/*'))
                         إضافة تسليم
                     @elseif(request()->is('*/client') || request()->is('*/client/*'))
                         العملاء
+                    @elseif(request()->is('*/client-deposit') || request()->is('*/client-deposit/*'))
+                        أمانات العملاء
+                    @elseif(request()->is('*/client-payment') || request()->is('*/client-payment/*'))
+                        مدفوعات المشتركين
+                    @elseif(request()->is('*/inventory-item') || request()->is('*/inventory-item/*'))
+                        المخزون
+                    @elseif(request()->is('*/city') || request()->is('*/city/*'))
+                        المدن
                     @else
                         {!! $crud->getHeading() ?? $crud->entity_name_plural !!}
                     @endif
@@ -453,16 +541,24 @@
                 </a>
                 @elseif($crud->hasAccess('create'))
                 @php
-                    // إزالة prefix من route لتجنب التكرار مع backpack_url()
                     $routePath = $crud->route;
                     $prefix = config('backpack.base.route_prefix', 'admin');
-                    // إذا كان route يبدأ بـ prefix، أزل prefix
                     if (strpos($routePath, $prefix . '/') === 0) {
                         $routePath = substr($routePath, strlen($prefix) + 1);
                     }
+                    $addButtonText = 'إضافة';
+                    if (request()->is('*/client-deposit') || request()->is('*/client-deposit/*')) {
+                        $addButtonText = 'إضافة أمانة';
+                    } elseif (request()->is('*/client-payment') || request()->is('*/client-payment/*')) {
+                        $addButtonText = 'إضافة دفعة';
+                    } elseif (request()->is('*/inventory-item') || request()->is('*/inventory-item/*')) {
+                        $addButtonText = 'إضافة صنف';
+                    } elseif (request()->is('*/city') || request()->is('*/city/*')) {
+                        $addButtonText = 'إضافة مدينة';
+                    }
                 @endphp
                 <a href="{{ backpack_url($routePath . '/create') }}" class="btn btn-success-unified">
-                    <i class="la la-plus"></i> إضافة
+                    <i class="la la-plus"></i> {{ $addButtonText }}
                 </a>
                 @endif
             </div>
@@ -480,6 +576,45 @@
         {{-- إضافة فلاتر موحدة لصفحة الموزعين --}}
         @if(request()->is('*/distributor*') && !request()->is('*/distributor/*/show') && !request()->is('*/distributor/*/edit') && !request()->is('*/distributor/*/create'))
             @include('admin.distributor_filters')
+        @endif
+
+        {{-- فلاتر الفواتير (صفحة قائمة الفواتير فقط) --}}
+        @php $path = request()->path(); @endphp
+        @if(str_contains($path, 'invoice') && !str_contains($path, 'invoice/'))
+            @include('admin.invoice_filters')
+        @endif
+
+        {{-- فلاتر مدفوعات المشتركين --}}
+        @if(str_contains($path, 'client-payment') && !str_contains($path, 'client-payment/'))
+            @include('admin.client_payment_filters')
+        @endif
+
+        {{-- فلاتر أمانات المشتركين --}}
+        @if(str_contains($path, 'client-deposit') && !str_contains($path, 'client-deposit/'))
+            @include('admin.client_deposit_filters')
+        @endif
+
+        {{-- فلاتر المصروفات --}}
+        @if(str_contains($path, 'expense') && !str_contains($path, 'expense/'))
+            @include('admin.expense_filters')
+        @endif
+
+        {{-- فلاتر مدفوعات الموردين --}}
+        @if(str_contains($path, 'vendor-payment') && !str_contains($path, 'vendor-payment/'))
+            @include('admin.vendor_payment_filters')
+        @endif
+
+        {{-- فلاتر المخزون + عرض المجموع --}}
+        @if(str_contains($path, 'inventory-item') && !str_contains($path, 'inventory-item/'))
+            @include('admin.inventory_item_filters')
+            @php $inventoryTotal = $crud->get('inventoryQuantityTotal'); @endphp
+            @if($inventoryTotal !== null)
+            <div class="alert alert-light border mb-3 d-flex align-items-center" style="background: #f8fafc; border-radius: 12px;">
+                <i class="la la-calculator la-lg me-2" style="color: var(--primary-deep);"></i>
+                <strong class="text-dark" style="margin-inline-end: 4.5rem;">مجموع الكميات (النتائج المفلترة):</strong>
+                <span class="fw-bold" style="color: var(--primary-deep); font-size: 1.5rem;">{{ number_format($inventoryTotal) }}</span>
+            </div>
+            @endif
         @endif
 
         {{-- إضافة فلاتر موحدة لصفحة العملاء --}}
@@ -564,20 +699,26 @@
 
         {{-- الجدول الافتراضي لـ CRUD - يظهر فقط إذا لم تكن صفحة العملاء أو التسليم --}}
         @if(!request()->is('*/client') && !request()->is('*/client/*') && !request()->is('*/delivery') && !request()->is('*/delivery/*'))
-            <div class="{{ backpack_theme_config('classes.tableWrapper') }}">
+            <div class="crud-table-scroll-x {{ (str_contains($path, 'city') && !str_contains($path, 'city/')) ? 'city-crud-table' : '' }}">
+                <div class="{{ backpack_theme_config('classes.tableWrapper') }}">
                 <table id="crudTable" class="table table-clean align-middle mb-0" cellspacing="0">
                 <thead>
                   <tr>
                     @foreach ($crud->columns() as $column)
                       <th data-column-name="{{ $column['name'] }}">{!! $column['label'] !!}</th>
                     @endforeach
-                    @if ( $crud->buttons()->where('stack', 'line')->count() )
+                    @php
+                      $hasCustomActionsColumn = collect($crud->columns())->contains('name', 'actions');
+                      $hasLineButtons = $crud->buttons()->where('stack', 'line')->count() > 0;
+                    @endphp
+                    @if ( $hasLineButtons && !$hasCustomActionsColumn )
                       <th data-action-column="true">{{ trans('backpack::crud.actions') }}</th>
                     @endif
                   </tr>
                 </thead>
                 <tbody></tbody>
               </table>
+                </div>
             </div>
         @endif
 
@@ -598,28 +739,19 @@
           }
       });
       
-      // إخفاء عمود الإجراءات الافتراضي إذا كان هناك عمود actions مخصص (dropdown menu)
+      // إخفاء عمود الإجراءات الافتراضي إذا كان هناك عمود actions مخصص (تفادي التكرار)
       (function() {
           function hideDefaultActionsColumn() {
-              // التحقق من وجود عمود actions مخصص (يحتوي على unified-actions-dropdown)
               const hasCustomActionsColumn = document.querySelector('th[data-column-name="actions"]') !== null;
-              
-              if (hasCustomActionsColumn) {
-                  // البحث عن عمود الإجراءات الافتراضي (data-action-column="true")
-                  const defaultActionColumn = document.querySelector("th[data-action-column=\"true\"]");
-                  if (defaultActionColumn) {
-                      const columnIndex = Array.from(defaultActionColumn.parentElement.children).indexOf(defaultActionColumn);
-                      defaultActionColumn.style.display = "none";
-                      
-                      // إخفاء الخلايا المقابلة في tbody
-                      document.querySelectorAll("#crudTable tbody tr").forEach(function(row) {
-                          const cell = row.children[columnIndex];
-                          if (cell && !cell.querySelector(".unified-actions-dropdown")) {
-                              cell.style.display = "none";
-                          }
-                      });
-                  }
-              }
+              if (!hasCustomActionsColumn) return;
+              const defaultActionColumn = document.querySelector("th[data-action-column=\"true\"]");
+              if (!defaultActionColumn) return;
+              const columnIndex = Array.from(defaultActionColumn.parentElement.children).indexOf(defaultActionColumn);
+              defaultActionColumn.style.display = "none";
+              document.querySelectorAll("#crudTable tbody tr").forEach(function(row) {
+                  const cell = row.children[columnIndex];
+                  if (cell) cell.style.display = "none";
+              });
           }
           
           // تنفيذ فوراً

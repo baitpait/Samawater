@@ -184,13 +184,51 @@
             box-shadow: 0 6px 20px rgba(30, 58, 95, 0.4) !important;
         }
         
-        /* Table Card */
-        .table-card-modern {
+        /* Table Card - overflow: visible حتى لا يُقص الدروب داون */
+        .delivery-list-container .table-card-modern {
             background: #fff;
             border-radius: 20px;
             box-shadow: var(--shadow-md);
             border: none;
-            overflow: hidden;
+            overflow: visible !important;
+        }
+        .delivery-list-container .table-card-modern .table-scroll-wrapper {
+            border-radius: 0 0 20px 20px;
+        }
+        /* ضمان ظهور قائمة الإجراءات فوق كل العناصر */
+        .delivery-list-container .table-modern tbody tr {
+            position: relative;
+        }
+        .delivery-list-container .table-modern tbody tr .unified-actions-dropdown.show {
+            position: relative;
+            z-index: 1050 !important;
+        }
+        .delivery-list-container .table-modern tbody tr .unified-actions-dropdown .dropdown-menu {
+            z-index: 1060 !important;
+        }
+        
+        /* غلاف التمرير الأفقي للجدول - شريط يمين/شمال */
+        .delivery-list-container .table-card-modern .table-responsive.table-scroll-wrapper,
+        .table-card-modern .table-scroll-wrapper {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            overflow-x: auto !important;
+            overflow-y: visible !important;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-deep) var(--bg-light);
+        }
+        .delivery-list-container .table-scroll-wrapper::-webkit-scrollbar {
+            height: 10px;
+        }
+        .delivery-list-container .table-scroll-wrapper::-webkit-scrollbar-track {
+            background: var(--bg-light);
+            border-radius: 10px;
+        }
+        .delivery-list-container .table-scroll-wrapper::-webkit-scrollbar-thumb {
+            background: var(--primary-deep);
+            border-radius: 10px;
         }
         
         .table-card-header-modern {
@@ -313,6 +351,7 @@
             display: flex;
             justify-content: center;
             gap: 0.5rem;
+            direction: rtl;
         }
         
         .pagination-modern .page-link {
@@ -389,43 +428,39 @@
                 <h6>فلاتر البحث</h6>
             </div>
             <div class="filter-card-body">
-                <form method="GET" class="row g-4">
-                    <div class="col-12">
+                <form method="GET" class="row g-3 g-md-4 filter-form-rtl">
+                    <div class="col-12 col-md-6">
                         <label class="form-label-modern">بحث سريع</label>
                         <input type="text" name="q" class="form-control form-control-modern" placeholder="اسم المشترك / رقم الهاتف / رقم العقد / العنوان" value="{{ request('q') }}">
                     </div>
-
-                    <div class="col-md-3">
+                    <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label-modern">المدينة</label>
-                        <select name="city_id" class="form-select form-select-modern">
+                        <select name="city_id" class="form-select form-select-modern w-100">
                             <option value="">الكل</option>
                             @foreach($cities as $city)
                                 <option value="{{ $city->id }}" @selected(request('city_id') == $city->id)>{{ $city->city_name }}</option>
                             @endforeach
                         </select>
                     </div>
-
-                    <div class="col-md-3">
+                    <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label-modern">نوع الاشتراك</label>
-                        <select name="subscription_type_id" class="form-select form-select-modern">
+                        <select name="subscription_type_id" class="form-select form-select-modern w-100">
                             <option value="">الكل</option>
                             @foreach($subscriptionTypes as $type)
                                 <option value="{{ $type->id }}" @selected(request('subscription_type_id') == $type->id)>{{ $type->type_name }}</option>
                             @endforeach
                         </select>
                     </div>
-
-                    <div class="col-md-3">
+                    <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label-modern">حالة الاشتراك</label>
-                        <select name="subscription_status_name" class="form-select form-select-modern">
+                        <select name="subscription_status_name" class="form-select form-select-modern w-100">
                             <option value="">الكل</option>
                             @foreach($subscriptionStatuses as $status)
                                 <option value="{{ $status->status_name }}" @selected(request('subscription_status_name') == $status->status_name)>{{ $status->status_name }}</option>
                             @endforeach
                         </select>
                     </div>
-
-                    <div class="col-md-3 d-flex align-items-end">
+                    <div class="col-12 col-sm-6 col-md-3 d-flex align-items-end">
                         <button type="submit" name="search" value="1" class="btn btn-filter-submit w-100">
                             <i class="la la-search"></i> بحث وتصفية
                         </button>
@@ -443,7 +478,7 @@
                     <i class="la la-list"></i>
                     <h5>نتائج البحث</h5>
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive table-scroll-wrapper">
                     <table class="table table-modern align-middle mb-0">
                         <thead>
                             <tr>
@@ -519,7 +554,7 @@
                 {{-- Pagination --}}
                 <div class="p-4 border-top">
                     <div class="pagination-modern">
-                        {{ $clients->appends(request()->query())->links() }}
+                        {{ $clients->appends(request()->query())->links('vendor.pagination.modern') }}
                     </div>
                 </div>
             </div>

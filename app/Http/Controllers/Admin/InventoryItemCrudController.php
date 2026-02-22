@@ -25,10 +25,31 @@ class InventoryItemCrudController extends CrudController
         CRUD::setModel(InventoryItem::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/inventory-item');
         CRUD::setEntityNameStrings('صنف مخزون', 'المخزون');
+        parent::setup();
+        // إزالة أزرار السطر دائماً لتفادي عمود إجراءات مكرر (نستخدم عمود إجراءات مخصص في القائمة فقط)
+        CRUD::removeButton('show');
+        CRUD::removeButton('edit');
+        CRUD::removeButton('delete');
+        CRUD::removeButton('revisions');
+        CRUD::removeButton('reorder');
+        CRUD::setOperationSetting('lineButtonsAsDropdown', false);
     }
 
     protected function setupListOperation()
     {
+        // فلترة حسب معلمات الطلب (فلاتر صفحة القائمة)
+        $this->crud->addClause(function ($query) {
+            if (request()->filled('item_name')) {
+                $query->where('item_name', 'like', '%' . request('item_name') . '%');
+            }
+            if (request()->filled('quantity_min')) {
+                $query->where('quantity', '>=', (int) request('quantity_min'));
+            }
+            if (request()->filled('quantity_max')) {
+                $query->where('quantity', '<=', (int) request('quantity_max'));
+            }
+        });
+
         CRUD::column('item_name')
             ->label('اسم الصنف')
             ->type('text');
@@ -37,32 +58,21 @@ class InventoryItemCrudController extends CrudController
             ->label('الكمية')
             ->type('number');
         
-        // إزالة الأزرار الافتراضية
-        CRUD::removeButton('show');
-        CRUD::removeButton('edit');
-        CRUD::removeButton('delete');
-        
-        // إضافة عمود الإجراءات المخصص
+        // إضافة عمود الإجراءات المخصص (معاينة، تعديل، حذف)
         CRUD::addColumn([
             'name' => 'actions',
             'label' => 'إجراءات',
             'type' => 'custom_html',
-            'value' => function($entry) {
+            'escaped' => false,
+            'value' => function ($entry) {
                 $showUrl = backpack_url('inventory-item/' . $entry->id . '/show');
                 $editUrl = backpack_url('inventory-item/' . $entry->id . '/edit');
                 $deleteUrl = backpack_url('inventory-item/' . $entry->id);
                 
-                $html = '<div class="btn-group" role="group">';
+                $html = '<div class="btn-group unified-actions-dropdown" role="group">';
                 
-                // زر المعاينة
-                $html .= '<a href="' . $showUrl . '" class="btn btn-sm btn-link" title="معاينة">
-                    <i class="la la-eye"></i>
-                </a>';
-                
-                // زر التعديل
-                $html .= '<a href="' . $editUrl . '" class="btn btn-sm btn-link" title="تعديل">
-                    <i class="la la-edit"></i>
-                </a>';
+                $html .= '<a href="' . $showUrl . '" class="btn btn-sm btn-link" title="معاينة"><i class="la la-eye"></i></a>';
+                $html .= '<a href="' . $editUrl . '" class="btn btn-sm btn-link" title="تعديل"><i class="la la-edit"></i></a>';
                 
                 // زر الحذف - مخفي للصنف id=1
                 if ($entry->id != 1) {
@@ -90,6 +100,9 @@ class InventoryItemCrudController extends CrudController
         ]);
         
         $this->crud->query->orderBy('item_name', 'asc');
+
+        // مجموع الكميات للنتائج المفلترة (للعرض في القائمة)
+        $this->crud->set('inventoryQuantityTotal', (clone $this->crud->query)->sum('quantity'));
     }
 
     protected function setupCreateOperation()

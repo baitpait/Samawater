@@ -49,13 +49,15 @@
     <thead>
     <tr>
         <th>اسم المشترك</th>
+        <th>العنوان</th>
         <th>رقم العقد</th>
-        <th>الهاتف</th>
+        <th>الهاتف الأول</th>
+        <th>الهاتف الثاني</th>
         <th>المدينة</th>
         <th>نوع المشترك</th>
         <th>حالة الاشتراك</th>
         <th>نوع الاشتراك</th>
-        <th>تاريخ بدء الاشتراك</th>
+        <th>تاريخ آخر تسليم</th>
         <th>رصيد القوارير</th>
     </tr>
     </thead>
@@ -63,18 +65,20 @@
     @forelse($clients as $client)
         <tr>
             <td>{{ $client->name ?? '-' }}</td>
+            <td>{{ $client->address ?? '-' }}</td>
             <td>{{ $client->contract_no ?? '-' }}</td>
             <td>{{ $client->phone_one ?? '-' }}</td>
+            <td>{{ $client->phone_two ?? '-' }}</td>
             <td>{{ $client->city->city_name ?? '-' }}</td>
             <td>{{ $clientTypes[$client->client_type] ?? '-' }}</td>
             <td>{{ $client->subscriptionStatus->status_name ?? '-' }}</td>
             <td>{{ $client->subscriptionType->type_name ?? '-' }}</td>
-            <td>{{ $client->subscription_start_date ?? '-' }}</td>
+            <td>{{ $client->lastDelivery ? \Carbon\Carbon::parse($client->lastDelivery->delivery_date)->format('Y-m-d') : '-' }}</td>
             <td>{{ $client->bottle_balance ?? 0 }}</td>
         </tr>
     @empty
         <tr>
-            <td colspan="9" class="text-center">لا توجد بيانات</td>
+            <td colspan="11" class="text-center">لا توجد بيانات</td>
         </tr>
     @endforelse
     </tbody>

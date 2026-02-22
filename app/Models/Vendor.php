@@ -30,6 +30,14 @@ class Vendor extends Model
     ];
 
     /**
+     * المعلَم المستخدم عند عرض المورد في القوائم المنسدلة وعلاقات Backpack.
+     */
+    public function identifiableAttribute(): string
+    {
+        return 'name';
+    }
+
+    /**
      * العلاقة مع المصروفات
      */
     public function expenses()

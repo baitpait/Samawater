@@ -38,7 +38,15 @@
             <div style="width: 56px; height: 56px; background: rgba(255, 255, 255, 0.1); border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center;">
                 <i class="la la-chart-bar" style="font-size: 28px; color: #fff; font-weight: 900;"></i>
             </div>
-            <h1 class="text-capitalize mb-0" bp-section="page-heading" style="color: #fff; font-size: 24px; font-weight: 800; margin: 0; font-family: 'Cairo', sans-serif;">تسليمات المشترك</h1>
+            <div>
+                <h1 class="text-capitalize mb-0" bp-section="page-heading" style="color: #fff; font-size: 24px; font-weight: 800; margin: 0; font-family: 'Cairo', sans-serif;">تسليمات المشترك</h1>
+                @if(isset($client))
+                <div class="mt-1" style="color: rgba(255, 255, 255, 0.9); font-size: 15px; font-weight: 700;">
+                    <span style="color: rgba(255, 255, 255, 0.7);">رصيده المالي:</span>
+                    <span style="{{ ($client->balance ?? 0) >= 0 ? 'color: #86efac;' : 'color: #fca5a5;' }}">₪ {{ number_format($client->balance ?? 0, 0) }}</span>
+                </div>
+                @endif
+            </div>
         </div>
         <div class="header-actions" style="position: relative; z-index: 10;">
             <a href="{{ backpack_url('client') }}" class="btn btn-light" style="color: var(--primary-deep); font-weight: 700; border-radius: 12px;">
@@ -60,39 +68,25 @@
             👆 الرجاء اختيار مشترك من القائمة لعرض التقرير
         </div>
     @else
-        {{-- Summary Cards - تصميم احترافي موحد --}}
+        {{-- بطاقة اسم المشترك وعنوان الزبون (عرض كامل) --}}
         <div class="row g-4 mb-4">
-            <div class="col-md-6">
+            <div class="col-12">
                 <div class="dashboard-stat-card h-100" style="background: var(--primary-deep) !important; border-radius: 20px; padding: 28px; box-shadow: var(--shadow-md); border: 1px solid rgba(255, 255, 255, 0.05); position: relative; overflow: hidden;">
-                    <div class="stat-card-content" style="display: flex; align-items: center; gap: 20px; position: relative; z-index: 2;">
-                        <div class="stat-icon-box" style="width: 64px; height: 64px; background: rgba(255, 255, 255, 0.1); border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);">
-                            <i class="la la-user" style="font-size: 28px; color: #fff; font-weight: 900;"></i>
+                    <div class="stat-card-content" style="display: flex; align-items: flex-start; gap: 24px; position: relative; z-index: 2;">
+                        <div class="stat-icon-box" style="width: 72px; height: 72px; min-width: 72px; background: rgba(255, 255, 255, 0.1); border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);">
+                            <i class="la la-user" style="font-size: 32px; color: #fff; font-weight: 900;"></i>
                         </div>
-                        <div class="stat-info">
+                        <div class="stat-info flex-grow-1">
                             <h6 class="stat-label" style="color: rgba(255, 255, 255, 0.7); font-size: 14px; font-weight: 600; margin-bottom: 8px;">اسم المشترك</h6>
-                            <h3 class="stat-value" style="color: #fff; font-size: 24px; font-weight: 800; margin: 0;">{{ $client->name }}</h3>
-                            <div class="mt-1">
-                                <span class="badge" style="background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 4px 12px; font-weight: 600;">
+                            <h3 class="stat-value" style="color: #fff; font-size: 28px; font-weight: 800; margin: 0 0 12px 0;">{{ $client->name }}</h3>
+                            <div class="mt-2 d-flex flex-wrap gap-2 align-items-center">
+                                <span class="badge" style="background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 6px 14px; font-weight: 600;">
                                     <i class="la la-map-marker"></i> {{ $client->city->city_name ?? '-' }}
                                 </span>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="dashboard-stat-card h-100" style="background: var(--primary-deep) !important; border-radius: 20px; padding: 28px; box-shadow: var(--shadow-md); border: 1px solid rgba(255, 255, 255, 0.05); position: relative; overflow: hidden;">
-                    <div class="stat-card-content" style="display: flex; align-items: center; gap: 20px; position: relative; z-index: 2;">
-                        <div class="stat-icon-box" style="width: 64px; height: 64px; background: rgba(255, 255, 255, 0.1); border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);">
-                            <i class="la la-truck" style="font-size: 28px; color: #fff; font-weight: 900;"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h6 class="stat-label" style="color: rgba(255, 255, 255, 0.7); font-size: 14px; font-weight: 600; margin-bottom: 8px;">إجمالي التسليمات</h6>
-                            <h3 class="stat-value" style="color: #fff; font-size: 32px; font-weight: 800; margin: 0;">{{ number_format($client->deliveries->count()) }}</h3>
-                            <div class="mt-1">
-                                <span style="color: rgba(255, 255, 255, 0.8); font-weight: 600; font-size: 13px;">
-                                    <i class="la la-check-circle"></i> عمليات مكتملة
-                                </span>
+                            <div class="mt-3 pt-3" style="border-top: 1px solid rgba(255, 255, 255, 0.15);">
+                                <h6 class="stat-label" style="color: rgba(255, 255, 255, 0.7); font-size: 13px; font-weight: 600; margin-bottom: 6px;">عنوان الزبون</h6>
+                                <p class="mb-0" style="color: #fff; font-size: 16px; font-weight: 600; line-height: 1.5;">{{ $client->address ?? '-' }}</p>
                             </div>
                         </div>
                     </div>

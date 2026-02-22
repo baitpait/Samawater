@@ -48,13 +48,16 @@
 <table>
     <thead>
     <tr>
-        <th>اسم المشترك</th>
-        <th>الهاتف</th>
+        <th>المشترك</th>
         <th>المدينة</th>
-        <th>تاريخ التسليم</th>
+        <th>الهاتف</th>
+        <th>تاريخ الاستلام</th>
         <th>العبوات المستلمة</th>
         <th>العبوات الفارغة</th>
-        <th>الدفعة</th>
+        <th>رصيد العبوات</th>
+        <th>المبلغ المطلوب</th>
+        <th>المبلغ المدفوع</th>
+        <th>الدين المتبقي</th>
         <th>الموزع</th>
         <th>حالة الاشتراك</th>
         <th>نوع الاشتراك</th>
@@ -62,21 +65,32 @@
     </thead>
     <tbody>
     @forelse($rows as $row)
+        @php
+            $received = (int) ($row->last_bottle_received ?? 0);
+            $empty = (int) ($row->last_bottle_empty ?? 0);
+            $balance = $received - $empty;
+            $required = (float) ($row->last_required_amount ?? 0);
+            $paymant = (float) ($row->last_paymant ?? 0);
+            $remainingDebt = $required - $paymant;
+        @endphp
         <tr>
             <td>{{ $row->client_name ?? '-' }}</td>
-            <td>{{ $row->phone_one ?? '-' }}</td>
             <td>{{ $row->city_name ?? '-' }}</td>
-            <td>{{ $row->last_delivery_date_actual ?? '-' }}</td>
-            <td>{{ $row->total_bottle_received ?? 0 }}</td>
-            <td>{{ $row->total_bottle_empty ?? 0 }}</td>
-            <td>{{ number_format($row->last_paymant ?? 0) }} ₪</td>
+            <td>{{ $row->phone_one ?? '-' }}</td>
+            <td>{{ $row->last_delivery_date_actual ? \Carbon\Carbon::parse($row->last_delivery_date_actual)->format('Y-m-d') : '-' }}</td>
+            <td>{{ number_format($received) }}</td>
+            <td>{{ number_format($empty) }}</td>
+            <td>{{ number_format($balance) }}</td>
+            <td>{{ number_format($required, 2) }} ₪</td>
+            <td>{{ number_format($paymant, 2) }} ₪</td>
+            <td>{{ number_format($remainingDebt, 2) }} ₪</td>
             <td>{{ $row->distributor_name ?? '-' }}</td>
             <td>{{ $row->subscription_status_name ?? '-' }}</td>
             <td>{{ $row->subscription_type_name ?? '-' }}</td>
         </tr>
     @empty
         <tr>
-            <td colspan="10" class="text-center">لا توجد بيانات</td>
+            <td colspan="13" class="text-center">لا توجد بيانات</td>
         </tr>
     @endforelse
     </tbody>

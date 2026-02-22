@@ -443,17 +443,24 @@
                 <h6>فلاتر البحث</h6>
             </div>
             <div class="filter-card-body">
-                <form method="GET" action="{{ route('reports.client-balance') }}" class="row g-4">
-                    <div class="col-md-8">
-                        <label class="form-label-modern">بحث عن مشترك</label>
-                        <input type="text" name="search" class="form-control form-control-modern" value="{{ request('search') }}" placeholder="ابحث عن مشترك...">
+                <form method="GET" action="{{ route('reports.client-balance') }}" class="row g-3 g-md-4 filter-form-rtl">
+                    <div class="col-12 col-md-8">
+                        <label class="form-label-modern">اختر المشترك</label>
+                        <select name="client_id" class="form-select form-control-modern" required>
+                            <option value="">— اختر مشترك لعرض رصيده —</option>
+                            @foreach($clientsList ?? [] as $c)
+                                <option value="{{ $c->id }}" @selected(isset($selectedClientId) && (string)$selectedClientId === (string)$c->id)>
+                                    {{ $c->name }} {{ $c->contract_no ? ' (' . $c->contract_no . ')' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
-                    <div class="col-md-2 d-flex align-items-end">
+                    <div class="col-12 col-sm-6 col-md-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-filter-submit w-100">
-                            <i class="la la-search"></i> بحث
+                            <i class="la la-search"></i> عرض الرصيد
                         </button>
                     </div>
-                    <div class="col-md-2 d-flex align-items-end">
+                    <div class="col-12 col-sm-6 col-md-2 d-flex align-items-end">
                         <a href="{{ route('reports.client-balance') }}" class="btn btn-filter-reset w-100">
                             <i class="la la-refresh"></i> إعادة
                         </a>
@@ -462,6 +469,7 @@
             </div>
         </div>
 
+        @if(!$clients->isEmpty())
         {{-- ======================= الإحصائيات ======================= --}}
         <div class="row g-4 mb-4">
             <div class="col-md-4">
@@ -492,8 +500,15 @@
                 </div>
             </div>
         </div>
+        @else
+        <div class="alert alert-info text-center py-4 mb-4" style="border-radius: 16px; font-weight: 600;">
+            <i class="la la-user-circle" style="font-size: 48px;"></i>
+            <p class="mt-3 mb-0">اختر مشتركاً من القائمة أعلاه ثم اضغط «عرض الرصيد»</p>
+        </div>
+        @endif
 
-        {{-- ======================= جدول المشتركين ======================= --}}
+        {{-- ======================= جدول المشترك (عند الاختيار) ======================= --}}
+        @if(!$clients->isEmpty())
         <div class="table-card-modern">
             <div class="table-card-header-modern">
                 <i class="la la-users"></i>
@@ -503,7 +518,7 @@
                 <table class="table table-modern align-middle mb-0">
                     <thead>
                         <tr>
-                            <th>اسم المشترك</th>
+                            <th style="min-width: 180px;">اسم المشترك</th>
                             <th>الهاتف</th>
                             <th>إجمالي الفواتير</th>
                             <th>إجمالي المدفوعات</th>
@@ -514,7 +529,7 @@
                     <tbody>
                         @forelse($clients as $client)
                             <tr>
-                                <td class="fw-bold" style="color: var(--primary-deep);">{{ $client->name }}</td>
+                                <td class="fw-bold ps-4" style="color: var(--primary-deep); min-width: 180px;">{{ $client->name ?? $client->contract_no ?? '—' }}</td>
                                 <td>{{ $client->phone_one ?? '-' }}</td>
                                 <td><span class="badge badge-modern badge-primary-modern">{{ number_format($client->total_invoices_amount, 2) }} ₪</span></td>
                                 <td><span class="badge badge-modern badge-success-modern">{{ number_format($client->total_paid_amount, 2) }} ₪</span></td>
@@ -553,6 +568,7 @@
                 </table>
             </div>
         </div>
+        @endif
 
     </div>
 </div>

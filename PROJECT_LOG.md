@@ -2,6 +2,74 @@
 
 ---
 
+## [2026-01-27] - تحسينات قوائم CRUD، الفلاتر، المجاميع، والهوية البصرية (جلسة توثيق)
+
+- **الهدف:** توحيد تجربة قوائم المدير (أمانات، مصروفات، مدفوعات الموردين، المخزون، المدن)، إضافة فلاتر ومجاميع، وإصلاح التكرار والتمرير والتذييل.
+- **التغييرات:**
+
+  - **أمانات المشتركين (client-deposit):**
+    - إزالة أعمدة: تاريخ السحب، الحالة، الملاحظات من جدول القائمة.
+    - توسيع عمود «الأصناف» (`min-width: 300px`).
+  - **أزرار الإجراءات في جداول CRUD:**
+    - إخفاء نصوص (معاينة، تعديل، حذف) وإظهار الأيقونات فقط عبر CSS في `list.blade.php`.
+    - ترتيب الأزرار بدون فراغات (flex, gap: 0) وإزالة الـ margin بينها.
+  - **جدول CRUD العام:**
+    - لف الجدول بـ `div.crud-table-scroll-x` مع `overflow-x: auto` لسكرول أفقي عند زيادة عرض الجدول.
+  - **القائمة الجانبية والتمرير:**
+    - إلغاء حفظ/استعادة موضع التمرير عند التنقل؛ تحميل أي صفحة من القائمة يبدأ من أعلى الصفحة (`scrollTo(0,0)` في `load`).
+    - إزالة `saveScrollPosition()` وكل استدعاءاتها من `menu_items.blade.php`.
+  - **المصروفات (expense):**
+    - إضافة `identifiableAttribute()` في نموذج `Vendor` لتفادي خطأ «no columns / identifiableAttribute».
+    - إنشاء `expense_filters.blade.php` (فئة، مورد، حالة الدفع، من/إلى تاريخ الدفع) وربطها في `list.blade.php` و`ExpenseCrudController` عبر `addClause`.
+  - **قاعدة البيانات:**
+    - هجرات تأكد وجود الجداول: `2026_01_28_120000_ensure_vendors_table_exists.php`، `2026_01_28_120001_ensure_vendor_payments_table_exists.php` لإنشاء `vendors` و`vendor_payments` إن لم تكونا موجودتين.
+  - **مدفوعات الموردين (vendor-payment):**
+    - إنشاء `vendor_payment_filters.blade.php` (مورد، طريقة الدفع، من/إلى تاريخ) وربطها في القائمة والكونترولر.
+  - **المخزون (inventory-item):**
+    - إزالة تكرار عمود الإجراءات: إزالة أزرار السطر في `setup()` بعد `parent::setup()`، وعدم إضافة عمود الإجراءات الافتراضي عند وجود عمود مخصص باسم `actions` في `list.blade.php`.
+    - توحيد الهوية البصرية: أيقونة المستودع، عنوان «المخزون»، زر «إضافة صنف»، وتنسيق صفحة المخزون (إخفاء `h1::before/::after`).
+    - إضافة `escaped => false` لعمود الإجراءات المخصص حتى يظهر الـ HTML.
+    - إنشاء `inventory_item_filters.blade.php` (اسم الصنف، كمية من/إلى) وربطها في القائمة والكونترولر.
+    - عرض «مجموع الكميات (النتائج المفلترة)»: حساب المجموع في الكونترولر (`inventoryQuantityTotal`) وعرضه تحت الفلتر مع تنسيق (خط أكبر، فراغ، لون النص أسود).
+  - **المدن (city):**
+    - توحيد الهوية البصرية: أيقونة الموقع، عنوان «المدن»، زر «إضافة مدينة»، وإخفاء أيقونة الـ h1 الافتراضية.
+    - تصحيح تسمية عمود الإجراءات في `HasUnifiedActionsDropdown`: «أجراءات» → «إجراءات».
+    - ترتيب الصفوف أبجدياً: `orderBy('city_name', 'asc')`.
+    - تنسيق أعمدة جدول المدن: عمود اسم المدينة (يمين، min-width 200px)، عمود الإجراءات (وسط، عرض 120px).
+  - **التذييل (Footer):**
+    - تغيير النص من «تم التطوير بواسطة بيت البرمجيات وتكنولوجيا المعلومات» إلى «تطوير وبرمجة بيت البرمجيات وتكنولوجيا المعلومات» في `config/backpack/ui.php` وصفحة تسجيل الدخول.
+
+- **الملفات المعدلة/المضافة:**
+  - **Controllers:** `ClientDepositCrudController`, `ExpenseCrudController`, `VendorPaymentCrudController`, `InventoryItemCrudController`, `CityCrudController`.
+  - **Models:** `Vendor` (identifiableAttribute).
+  - **Traits:** `HasUnifiedActionsDropdown` (تصحيح تسمية العمود).
+  - **Views:** `resources/views/vendor/backpack/crud/list.blade.php` (فلاتر، مجاميع، تنسيق، منطق عمود الإجراءات، scroll، مدينة/مخزون)، `resources/views/vendor/backpack/ui/inc/menu_items.blade.php` (التمرير)، `resources/views/vendor/backpack/theme-coreuiv2/auth/login.blade.php` (نص التذييل).
+  - **فلاتر جديدة:** `admin/expense_filters.blade.php`, `admin/vendor_payment_filters.blade.php`, `admin/inventory_item_filters.blade.php`.
+  - **Config:** `config/backpack/ui.php` (developer_name).
+  - **Migrations:** `2026_01_28_120000_ensure_vendors_table_exists.php`, `2026_01_28_120001_ensure_vendor_payments_table_exists.php`.
+
+- **تنبيه:** بعد رفع التعديلات على السيرفر يُنصح بتشغيل `php artisan migrate --force` و`php artisan config:clear` و`php artisan view:clear` إن لزم.
+
+---
+
+## [2026-01-29] - نشر النظام على sama.baitpait.space وإعداد السيرفر
+- **الهدف:** رفع نظام مياه سما على السيرفر (VPS Ubuntu + Webuzo) وجاهزية التشغيل من GitHub.
+- **التغييرات:**
+    - **دليل النشر:** إنشاء `DEPLOY_SAMA_BAITPAIT_SPACE.md` مع المسارات والخطوات (الدومين، Document Root، قاعدة البيانات).
+    - **سكربتات:** إنشاء `deploy-sama.sh` (أرشفة للرفع)، `server-setup.sh` (تنفيذ على السيرفر بعد git clone)، وقالب `env.sama.production.example`.
+    - **إعداد السيرفر:** تم استنساخ المستودع من GitHub، تشغيل `server-setup.sh`، إنشاء مجلدات الكاش، تعديل `.env`، تشغيل migrations و seed، صلاحيات storage/bootstrap/cache.
+    - **إصلاح 500 (قراءة .env):** الويب سيرفر كان لا يقرأ `.env` (Access denied for user 'root'@'localhost' (using password: NO)). الحل: `chmod 644 .env` أو `chown root:www-data .env` + `chmod 640 .env` حسب مستخدم PHP-FPM.
+    - **CSP:** إضافة `https://maxst.icons8.com` إلى `style-src` في `DisableCSPForBackpack.php` لتحميل Line Awesome (لم يُرفع على السيرفر لعدم نجاح git pull بالتوكن).
+- **بيانات الدخول للوحة التحكم (من DemoDataSeeder):** البريد `admin@sama.test`، كلمة المرور `Admin@12345`.
+- **ما تبقى للمتابعة:**
+    - في حال عودة خطأ 500: تشغيل `tail -100 .../storage/logs/laravel.log` وإرسال آخر رسالة خطأ لتشخيص السبب.
+    - تحديث الكود على السيرفر (إصلاح CSP وغيره): إما `git pull` بتوكن صالح، أو رفع الملفات المعدلة يدوياً ثم `php artisan config:clear && php artisan view:clear`.
+    - توثيق صلاحيات `.env` النهائية في دليل النشر (644 أو 640 حسب بيئة السيرفر).
+- **الملفات المعدلة/المضافة:** `DEPLOY_SAMA_BAITPAIT_SPACE.md`, `deploy-sama.sh`, `server-setup.sh`, `env.sama.production.example`, `app/Http/Middleware/DisableCSPForBackpack.php`, `server-setup.sh` (إضافة إنشاء مجلدات الكاش).
+- **تنبيه:** لا تخزّن كلمات مرور حقيقية في الملفات أو Git؛ استخدم التوكن فقط على السيرفر لـ git pull.
+
+---
+
 ## [2026-01-27 18:00] - تطبيق شامل للهوية البصرية الموحدة على جميع صفحات النظام
 - **الهدف:** توحيد مظهر جميع صفحات النظام لتتناسب مع الهوية البصرية الموحدة وتحسين تجربة المستخدم بشكل شامل.
 - **التغييرات:**

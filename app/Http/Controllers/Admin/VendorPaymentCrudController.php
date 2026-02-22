@@ -33,6 +33,22 @@ class VendorPaymentCrudController extends CrudController
         // Eager loading للعلاقات
         $this->crud->addClause('with', ['vendor', 'expense', 'creator']);
         
+        // فلترة حسب معلمات الطلب (فلاتر صفحة القائمة)
+        $this->crud->addClause(function ($query) {
+            if (request()->filled('vendor_id')) {
+                $query->where('vendor_id', request('vendor_id'));
+            }
+            if (request()->filled('method')) {
+                $query->where('method', request('method'));
+            }
+            if (request()->filled('date_from')) {
+                $query->whereDate('payment_date', '>=', request('date_from'));
+            }
+            if (request()->filled('date_to')) {
+                $query->whereDate('payment_date', '<=', request('date_to'));
+            }
+        });
+        
         CRUD::column('vendor')
             ->label('المورد')
             ->type('custom_html')

@@ -35,6 +35,9 @@ class CityCrudController extends CrudController
 
         // إضافة عمود الإجراءات الموحد مع dropdown menu
         $this->addUnifiedActionsColumn('city', 'هل أنت متأكد من حذف هذه المدينة؟', 'المدينة');
+
+        // ترتيب الصفوف أبجدياً حسب اسم المدينة
+        $this->crud->query->orderBy('city_name', 'asc');
     }
 
     protected function setupCreateOperation()

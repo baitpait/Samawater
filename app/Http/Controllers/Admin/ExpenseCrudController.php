@@ -40,6 +40,25 @@ class ExpenseCrudController extends CrudController
         // التأكد من عدم وجود تكرار - عرض المصروفات فقط (ليس التوزيعات)
         $this->crud->addClause('orderBy', 'created_at', 'desc');
         
+        // فلترة حسب معلمات الطلب (فلاتر صفحة القائمة)
+        $this->crud->addClause(function ($query) {
+            if (request()->filled('expense_category_id')) {
+                $query->where('expense_category_id', request('expense_category_id'));
+            }
+            if (request()->filled('vendor_id')) {
+                $query->where('vendor_id', request('vendor_id'));
+            }
+            if (request()->filled('payment_status')) {
+                $query->where('payment_status', request('payment_status'));
+            }
+            if (request()->filled('date_from')) {
+                $query->whereDate('payment_date', '>=', request('date_from'));
+            }
+            if (request()->filled('date_to')) {
+                $query->whereDate('payment_date', '<=', request('date_to'));
+            }
+        });
+        
         CRUD::column('category_name')
             ->label('الفئة')
             ->type('custom_html')
@@ -348,8 +367,6 @@ class ExpenseCrudController extends CrudController
                             isInventory = isInventoryField.value === "1" || isInventoryField.value === "on";
                         }
                     }
-                    
-                    console.log("Toggle Inventory Fields - isInventory:", isInventory);
                     
                     // إظهار/إخفاء حقول المخزون
                     inventoryFields.forEach(field => {

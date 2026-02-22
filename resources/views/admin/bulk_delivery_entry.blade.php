@@ -294,13 +294,19 @@
         <i class="la la-warehouse"></i> المخزون الحالي: <span id="current-inventory">{{ $currentInventory }}</span> عبوة
     </div>
 
-    {{-- أزرار الحفظ --}}
+    {{-- تاريخ التسليم + أزرار الحفظ --}}
     @if(count($allClients) > 0)
-    <div class="mb-4 d-flex justify-content-between align-items-center px-2">
+    <div class="mb-4 d-flex flex-wrap align-items-center gap-3 px-2">
+        <div class="d-flex align-items-center gap-2">
+            <label for="delivery-date-input" class="form-label mb-0 fw-bold" style="color: var(--primary-deep);">
+                <i class="la la-calendar"></i> تاريخ التسليم:
+            </label>
+            <input type="date" id="delivery-date-input" class="form-control" style="width: auto; min-width: 160px; border-radius: 12px; border: 2px solid #e2e8f0; padding: 0.5rem 1rem; font-weight: 600;" value="{{ date('Y-m-d') }}" required>
+        </div>
         <div style="font-size: 16px; color: var(--primary-deep); font-weight: 700;">
             <i class="la la-users"></i> عدد المشتركين: <strong>{{ count($allClients) }}</strong>
         </div>
-        <div>
+        <div class="ms-auto">
             <button type="button" class="btn btn-success" id="save-all-btn" style="padding: 12px 25px; border-radius: 12px !important;">
                 <i class="la la-save"></i> حفظ جميع التغييرات
             </button>
@@ -375,8 +381,13 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const table = document.getElementById('bulk-entry-table');
-    const today = new Date().toISOString().split('T')[0];
+    const deliveryDateInput = document.getElementById('delivery-date-input');
     let currentEditingCell = null;
+
+    function getDeliveryDate() {
+        if (deliveryDateInput && deliveryDateInput.value) return deliveryDateInput.value.trim();
+        return new Date().toISOString().split('T')[0];
+    }
 
     if (table) {
         table.addEventListener('click', function(e) {
@@ -480,9 +491,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const clientId = this.dataset.clientId;
             const row = this.closest('tr');
             if (currentEditingCell) finishEditing(currentEditingCell);
+            const deliveryDate = getDeliveryDate();
+            if (!deliveryDate) {
+                alert('يرجى اختيار تاريخ التسليم من التقويم.');
+                return;
+            }
             const data = {
                 client_id: clientId,
-                delivery_date: today,
+                delivery_date: deliveryDate,
                 bottle_received: parseInt(row.querySelector('[data-field="bottle_received"] .display-value').textContent) || 0,
                 bottle_empty: parseInt(row.querySelector('[data-field="bottle_empty"] .display-value').textContent) || 0,
                 required_amount: parseFloat(row.querySelector('[data-field="required_amount"] .display-value').textContent) || 0,

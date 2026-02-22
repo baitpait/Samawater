@@ -10,10 +10,15 @@ if [[ ! -f artisan ]]; then
   exit 1
 fi
 
-echo "[1/7] تثبيت اعتماديات PHP..."
+echo "[1/8] تثبيت اعتماديات PHP..."
 composer install --no-dev --optimize-autoloader --no-interaction
 
-echo "[2/7] ملف .env..."
+echo "[2/8] مجلدات التخزين والكاش..."
+mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs
+mkdir -p bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+
+echo "[3/8] ملف .env..."
 if [[ ! -f .env ]]; then
   if [[ -f env.sama.production.example ]]; then
     cp env.sama.production.example .env
@@ -26,10 +31,10 @@ else
   echo "ملف .env موجود، تخطي."
 fi
 
-echo "[3/7] مفتاح التطبيق..."
+echo "[4/8] مفتاح التطبيق..."
 php artisan key:generate --force
 
-echo "[4/7] مسح وبناء الكاش..."
+echo "[5/8] مسح وبناء الكاش..."
 php artisan config:clear
 php artisan cache:clear
 php artisan view:clear
@@ -38,14 +43,13 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-echo "[5/7] صلاحيات storage و bootstrap/cache و .env..."
-chmod -R 775 storage bootstrap/cache 2>/dev/null || true
+echo "[6/8] صلاحيات .env..."
 chmod 600 .env 2>/dev/null || true
 
-echo "[6/7] ربط التخزين..."
+echo "[7/8] ربط التخزين..."
 php artisan storage:link 2>/dev/null || true
 
-echo "[7/7] تنفيذ Migrations..."
+echo "[8/8] تنفيذ Migrations..."
 php artisan migrate --force
 
 echo "——— انتهى. عدّل .env (DB_PASSWORD و APP_URL) إن لم تكن قد عدّلتهما، ثم اختبر: https://sama.baitpait.space"

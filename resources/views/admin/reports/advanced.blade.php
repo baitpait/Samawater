@@ -436,10 +436,10 @@
                 <h6>فلاتر البحث</h6>
             </div>
             <div class="filter-card-body">
-                <form method="GET" class="row g-4">
-                    <div class="col-md-2">
+                <form method="GET" class="row g-3 g-md-4 filter-form-rtl">
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
                         <label class="form-label-modern">الفترة</label>
-                        <select name="period" class="form-select form-select-modern">
+                        <select name="period" class="form-select form-select-modern w-100">
                             <option value="day" @selected($period == 'day')>يومي</option>
                             <option value="week" @selected($period == 'week')>أسبوعي</option>
                             <option value="month" @selected($period == 'month')>شهري</option>
@@ -447,33 +447,33 @@
                             <option value="custom" @selected($period == 'custom')>مخصص</option>
                         </select>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
                         <label class="form-label-modern">من تاريخ</label>
-                        <input type="date" name="date_from" class="form-control form-control-modern" value="{{ $dateFrom ?? $startDate->format('Y-m-d') }}">
+                        <input type="date" name="date_from" class="form-control form-control-modern w-100" value="{{ $dateFrom ?? $startDate->format('Y-m-d') }}">
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
                         <label class="form-label-modern">إلى تاريخ</label>
-                        <input type="date" name="date_to" class="form-control form-control-modern" value="{{ $dateTo ?? $endDate->format('Y-m-d') }}">
+                        <input type="date" name="date_to" class="form-control form-control-modern w-100" value="{{ $dateTo ?? $endDate->format('Y-m-d') }}">
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
                         <label class="form-label-modern">المدينة</label>
-                        <select name="city_id" class="form-select form-select-modern">
+                        <select name="city_id" class="form-select form-select-modern w-100">
                             <option value="">الكل</option>
                             @foreach($cities as $city)
                             <option value="{{ $city->id }}" @selected($cityId == $city->id)>{{ $city->city_name }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
                         <label class="form-label-modern">الموزع</label>
-                        <select name="distributor_id" class="form-select form-select-modern">
+                        <select name="distributor_id" class="form-select form-select-modern w-100">
                             <option value="">الكل</option>
                             @foreach($distributors as $distributor)
                             <option value="{{ $distributor->id }}" @selected($distributorId == $distributor->id)>{{ $distributor->name }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-2 d-flex align-items-end">
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-filter-submit w-100">
                             <i class="la la-search"></i> تحديث
                         </button>

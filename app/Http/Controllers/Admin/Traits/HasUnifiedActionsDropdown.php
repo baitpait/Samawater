@@ -32,16 +32,19 @@ trait HasUnifiedActionsDropdown
                 : 'هل أنت متأكد من الحذف؟';
         }
         
+        // هروب الرسالة لاستخدامها داخل نص JavaScript (تفادي كسر الـ onclick)
+        $deleteMessageEscaped = str_replace(["\\", "'"], ["\\\\", "\\'"], $deleteMessage);
+
         // إضافة عمود الإجراءات مع dropdown menu
         CRUD::addColumn([
             'name'  => 'actions',
-            'label' => 'أجراءات',
-            'type'  => 'custom_html',
+            'label' => 'إجراءات',
             'searchable' => false,
             'orderable' => false,
-            'value' => function ($entry) use ($routePrefix, $deleteMessage) {
-                $editUrl = backpack_url($routePrefix . '/' . $entry->id . '/edit');
-                $deleteUrl = backpack_url($routePrefix . '/' . $entry->id);
+            'type'  => 'custom_html',
+            'value' => function ($entry) use ($routePrefix, $deleteMessageEscaped) {
+                $editUrl = backpack_url($routePrefix . '/' . $entry->getKey() . '/edit');
+                $deleteUrl = backpack_url($routePrefix . '/' . $entry->getKey());
                 
                 return '
                 <div class="btn-group unified-actions-dropdown dropdown" style="position: relative;">
@@ -54,10 +57,10 @@ trait HasUnifiedActionsDropdown
                         </a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="'.$deleteUrl.'" 
-                           onclick="event.preventDefault(); if(confirm(\''.$deleteMessage.'\')) { document.getElementById(\'delete-form-'.$entry->id.'\').submit(); }">
+                           onclick="event.preventDefault(); if(confirm(\''.$deleteMessageEscaped.'\')) { document.getElementById(\'delete-form-'.$entry->getKey().'\').submit(); }">
                             <i class="la la-trash"></i> حذف
                         </a></li>
-                        <form id="delete-form-'.$entry->id.'" action="'.$deleteUrl.'" method="POST" style="display: none;">
+                        <form id="delete-form-'.$entry->getKey().'" action="'.$deleteUrl.'" method="POST" style="display: none;">
                             '.csrf_field().'
                             '.method_field('DELETE').'
                         </form>

@@ -48,10 +48,18 @@
     <section class="header-operation container-fluid animated fadeIn d-flex mb-2 align-items-center d-print-none" bp-section="page-header">
         <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 1;">
             <div style="width: 56px; height: 56px; background: rgba(255, 255, 255, 0.1); border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center;">
+                @if(request()->is('*/client-payment*'))
+                <i class="la la-money-bill" style="font-size: 28px; color: #fff; font-weight: 900;"></i>
+                @else
                 <i class="la la-plus-circle" style="font-size: 28px; color: #fff; font-weight: 900;"></i>
+                @endif
             </div>
             <h1 class="text-capitalize mb-0" bp-section="page-heading" style="color: #fff; font-size: 24px; font-weight: 800; margin: 0;">
-                {!! $crud->getHeading() ?? 'إضافة ' . $crud->entity_name !!}
+                @if(request()->is('*/client-payment*'))
+                    إضافة دفعة
+                @else
+                    {!! $crud->getHeading() ?? 'إضافة ' . $crud->entity_name !!}
+                @endif
             </h1>
         </div>
         <div class="page-header-actions" style="position: relative; z-index: 10;">

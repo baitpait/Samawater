@@ -167,7 +167,6 @@ class DeliveryCrudController extends CrudController
 
         // إذا كان هناك client_id في query parameter، نحدد المشترك تلقائياً
         $clientId = request()->query('client_id');
-        
         $selectedId = $clientId ?: (request()->route('id') ? \App\Models\Delivery::find(request()->route('id'))?->client_id : null);
 
         $clientOptions = ['' => '-- اختر المشترك --'];
@@ -183,6 +182,27 @@ class DeliveryCrudController extends CrudController
             $clientOptions[$client->id] = $label;
         }
 
+        CRUD::addField([
+            'name'  => 'client_search_helper',
+            'type'  => 'custom_html',
+            'value' => '<div class="form-group col-sm-12 mb-2"><label class="control-label">بحث في قائمة المشتركين</label><input type="text" id="client_search_filter" class="form-control" placeholder="اكتب اسم المشترك أو رقم العقد أو الهاتف..." style="border-radius: 10px; border: 2px solid #e2e8f0;"></div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var select = document.getElementById("client_id_select");
+    var filter = document.getElementById("client_search_filter");
+    if (!select || !filter) return;
+    var options = Array.from(select.options);
+    filter.addEventListener("input", function() {
+        var q = this.value.trim().toLowerCase();
+        options.forEach(function(opt) {
+            if (opt.value === "") { opt.hidden = false; return; }
+            opt.hidden = q === "" ? false : !opt.text.toLowerCase().includes(q);
+        });
+    });
+});
+</script>',
+        ]);
+
         CRUD::field('client_id')
             ->type('select_from_array')
             ->label('المشترك')
@@ -190,6 +210,7 @@ class DeliveryCrudController extends CrudController
             ->default($selectedId)
             ->attributes([
                 'required' => 'required',
+                'id'       => 'client_id_select',
             ]);
 
         CRUD::field('delivery_date')
@@ -347,6 +368,16 @@ class DeliveryCrudController extends CrudController
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();
+
+        $fromOverview = request()->get('return_to_report') === 'clients_delivery_overview'
+            || request()->get('from') === 'clients_delivery_overview';
+        if ($fromOverview) {
+            CRUD::addField([
+                'name'  => 'return_to_report',
+                'type'  => 'hidden',
+                'value' => 'clients_delivery_overview',
+            ]);
+        }
     }
 
     /**
@@ -454,36 +485,6 @@ class DeliveryCrudController extends CrudController
         }
 
         return redirect($this->crud->route);
-    }
-
-    /**
-     * Override edit method to support JSON requests
-     */
-    public function edit($id)
-    {
-        // إذا كان الطلب JSON (من AJAX)
-        if (request()->wantsJson() || request()->expectsJson()) {
-            $entry = $this->crud->getEntry($id);
-            
-            if (!$entry) {
-                return response()->json([
-                    'error' => 'التوصيل غير موجود'
-                ], 404);
-            }
-            
-            return response()->json([
-                'id' => $entry->id,
-                'client_id' => $entry->client_id,
-                'delivery_date' => $entry->delivery_date ? \Carbon\Carbon::parse($entry->delivery_date)->format('Y-m-d') : '',
-                'bottle_received' => $entry->bottle_received ?? 0,
-                'bottle_empty' => $entry->bottle_empty ?? 0,
-                'paymant' => $entry->paymant ?? 0,
-                'distributor_id' => $entry->distributor_id ?? null,
-            ]);
-        }
-        
-        // إذا كان الطلب عادي (HTML)، استخدم الـ method الافتراضي من Backpack
-        return parent::edit($id);
     }
 
     /**
@@ -683,6 +684,13 @@ class DeliveryCrudController extends CrudController
         }
         
         \Alert::success('تم تحديث التسليم بنجاح.')->flash();
+
+        $fromOverview = request()->get('return_to_report') === 'clients_delivery_overview'
+            || request()->get('from') === 'clients_delivery_overview';
+        if ($fromOverview) {
+            return redirect()->route('reports.clients_delivery_overview', ['search' => 1]);
+        }
+
         return redirect($this->crud->route);
     }
 
@@ -739,8 +747,8 @@ class DeliveryCrudController extends CrudController
      */
     public function searchClients()
     {
-        $term = request()->get('q', '');
-        $id = request()->get('id'); // للمشترك المحدد مسبقاً في حالة التعديل
+        $term = request()->get('q', request()->get('term', ''));
+        $id = request()->get('id'); // للمشترك المحدد مسبقاً في حالة التعديل أو التحميل الأولي
         
         $results = [];
         

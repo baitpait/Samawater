@@ -44,6 +44,11 @@ class ClientsDeliveryOverviewController extends Controller
         $query->where('v_clients_delivery_overview.subscription_status_id', $request->subscription_status_id);
     }
 
+    // فلترة البحث بالاسم
+    if ($request->filled('name')) {
+        $query->where('v_clients_delivery_overview.client_name', 'like', '%' . $request->name . '%');
+    }
+
     // فلترة نوع الاشتراك (من خلال join مع clients)
     if ($request->filled('subscription_type_id')) {
         $query->leftJoin('clients', 'clients.id', '=', 'v_clients_delivery_overview.client_id')
@@ -90,18 +95,19 @@ class ClientsDeliveryOverviewController extends Controller
             }
             
             if ($lastDelivery) {
-                // إضافة بيانات آخر تسليم إلى الـ row
                 $row->last_bottle_received = $lastDelivery->bottle_received;
                 $row->last_bottle_empty = $lastDelivery->bottle_empty;
-                $row->last_paymant = $lastDelivery->paymant; // الدفعة من الـ delivery الفعلي
-                $row->last_delivery_date_actual = $lastDelivery->delivery_date; // تاريخ التسليم من الـ delivery الفعلي
-                // تحديث last_delivery_id ليكون الصحيح
-                $row->last_delivery_id = $lastDelivery->id;
+                $row->last_paymant = $lastDelivery->paymant;
+                $row->last_required_amount = $lastDelivery->required_amount ?? 0;
+                $row->last_delivery_date_actual = $lastDelivery->delivery_date;
+                $row->last_delivery_id = (int) $lastDelivery->id;
             } else {
                 $row->last_bottle_received = 0;
                 $row->last_bottle_empty = 0;
                 $row->last_paymant = 0;
+                $row->last_required_amount = 0;
                 $row->last_delivery_date_actual = null;
+                $row->last_delivery_id = null;
             }
         }
     }
@@ -153,6 +159,10 @@ public function show($clientId, Request $request)
             $query->where('v_clients_delivery_overview.subscription_status_id', $request->subscription_status_id);
         }
 
+        if ($request->filled('name')) {
+            $query->where('v_clients_delivery_overview.client_name', 'like', '%' . $request->name . '%');
+        }
+
         if ($request->filled('subscription_type_id')) {
             $query->leftJoin('clients', 'clients.id', '=', 'v_clients_delivery_overview.client_id')
                   ->where('clients.subscription_type_id', $request->subscription_type_id)
@@ -165,7 +175,7 @@ public function show($clientId, Request $request)
             ->unique('client_id')
             ->values();
 
-        // جلب بيانات آخر تسليم
+        // جلب بيانات آخر تسليم (نفس الجدول في الصفحة)
         foreach ($rows as $row) {
             $lastDelivery = null;
             if ($row->last_delivery_date) {
@@ -178,36 +188,49 @@ public function show($clientId, Request $request)
                 $lastDelivery = Delivery::find($row->last_delivery_id);
             }
             if ($lastDelivery) {
+                $row->last_bottle_received = $lastDelivery->bottle_received;
+                $row->last_bottle_empty = $lastDelivery->bottle_empty;
                 $row->last_paymant = $lastDelivery->paymant;
+                $row->last_required_amount = $lastDelivery->required_amount ?? 0;
                 $row->last_delivery_date_actual = $lastDelivery->delivery_date;
             } else {
+                $row->last_bottle_received = 0;
+                $row->last_bottle_empty = 0;
                 $row->last_paymant = 0;
+                $row->last_required_amount = 0;
                 $row->last_delivery_date_actual = null;
             }
         }
 
-        // إنشاء CSV
+        // إنشاء CSV (نفس أعمدة الجدول)
         $filename = 'التسليمات_' . date('Y-m-d') . '.csv';
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
 
-        // BOM للـ UTF-8 (للعربية)
         $output = "\xEF\xBB\xBF";
-
-        $output .= "اسم العميل,الهاتف,المدينة,تاريخ التسليم,العبوات المستلمة,العبوات الفارغة,الدفعة,الموزع,حالة الاشتراك,نوع الاشتراك\n";
+        $output .= "المشترك,المدينة,الهاتف,تاريخ الاستلام,العبوات المستلمة,العبوات الفارغة,رصيد العبوات,المبلغ المطلوب,المبلغ المدفوع,الدين المتبقي,الموزع,حالة الاشتراك,نوع الاشتراك\n";
 
         foreach ($rows as $row) {
+            $received = (int) ($row->last_bottle_received ?? 0);
+            $empty = (int) ($row->last_bottle_empty ?? 0);
+            $balance = $received - $empty;
+            $required = (float) ($row->last_required_amount ?? 0);
+            $paymant = (float) ($row->last_paymant ?? 0);
+            $remainingDebt = $required - $paymant;
             $output .= sprintf(
-                "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
+                "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
                 '"' . ($row->client_name ?? '') . '"',
-                '"' . ($row->phone_one ?? '') . '"',
                 '"' . ($row->city_name ?? '') . '"',
-                '"' . ($row->last_delivery_date_actual ?? '') . '"',
-                $row->total_bottle_received ?? 0,
-                $row->total_bottle_empty ?? 0,
-                $row->last_paymant ?? 0,
+                '"' . ($row->phone_one ?? '') . '"',
+                $row->last_delivery_date_actual ? '"' . \Carbon\Carbon::parse($row->last_delivery_date_actual)->format('Y-m-d') . '"' : '""',
+                $received,
+                $empty,
+                $balance,
+                $required,
+                $paymant,
+                $remainingDebt,
                 '"' . ($row->distributor_name ?? '') . '"',
                 '"' . ($row->subscription_status_name ?? '') . '"',
                 '"' . ($row->subscription_type_name ?? '') . '"'
@@ -245,6 +268,10 @@ public function show($clientId, Request $request)
             $query->where('v_clients_delivery_overview.subscription_status_id', $request->subscription_status_id);
         }
 
+        if ($request->filled('name')) {
+            $query->where('v_clients_delivery_overview.client_name', 'like', '%' . $request->name . '%');
+        }
+
         if ($request->filled('subscription_type_id')) {
             $query->leftJoin('clients', 'clients.id', '=', 'v_clients_delivery_overview.client_id')
                   ->where('clients.subscription_type_id', $request->subscription_type_id)
@@ -257,7 +284,7 @@ public function show($clientId, Request $request)
             ->unique('client_id')
             ->values();
 
-        // جلب بيانات آخر تسليم
+        // جلب بيانات آخر تسليم (نفس الجدول في الصفحة)
         foreach ($rows as $row) {
             $lastDelivery = null;
             if ($row->last_delivery_date) {
@@ -270,10 +297,16 @@ public function show($clientId, Request $request)
                 $lastDelivery = Delivery::find($row->last_delivery_id);
             }
             if ($lastDelivery) {
+                $row->last_bottle_received = $lastDelivery->bottle_received;
+                $row->last_bottle_empty = $lastDelivery->bottle_empty;
                 $row->last_paymant = $lastDelivery->paymant;
+                $row->last_required_amount = $lastDelivery->required_amount ?? 0;
                 $row->last_delivery_date_actual = $lastDelivery->delivery_date;
             } else {
+                $row->last_bottle_received = 0;
+                $row->last_bottle_empty = 0;
                 $row->last_paymant = 0;
+                $row->last_required_amount = 0;
                 $row->last_delivery_date_actual = null;
             }
         }

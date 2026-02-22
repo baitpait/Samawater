@@ -31,9 +31,9 @@ return [
     |
     */
 
-    // Date & Datetime Format Syntax: https://carbon.nesbot.com/docs/#api-localization
-    'default_date_format' => 'D MMM YYYY',
-    'default_datetime_format' => 'D MMM YYYY, HH:mm',
+    // Date & Datetime Format - أرقام فقط (صيغة Moment.js في القوائم: M = شهر، m = دقائق)
+    'default_date_format' => 'YYYY-MM-DD',
+    'default_datetime_format' => 'YYYY-MM-DD HH:mm',
 
     // Direction, according to language
     // (left-to-right vs right-to-left)
@@ -72,7 +72,7 @@ return [
     // ------
 
     // Developer or company name. Shown in footer.
-    'developer_name' => 'تم التطوير بواسطة بيت البرمجيات وتكنولوجيا المعلومات',
+    'developer_name' => 'تطوير وبرمجة بيت البرمجيات وتكنولوجيا المعلومات',
 
     // Developer website. Link in footer. Type false if you want to hide it.
     'developer_link' => 'https://baitpait.com/',
