@@ -12,7 +12,9 @@ class ClientCrudController extends CrudController
 {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation {
+        update as traitUpdate;
+    }
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
     
@@ -270,6 +272,22 @@ class ClientCrudController extends CrudController
             ],
 
             [
+                'name'  => 'opening_balance_amount',
+                'label' => 'رصيد بداية المدة (شيكل)',
+                'type'  => 'number',
+                'attributes' => ['step' => '0.01'],
+                'default' => 0,
+                'hint'  => 'الرصيد الافتتاحي للمشترك قبل حركات الفواتير والمدفوعات داخل النظام.',
+            ],
+
+            [
+                'name'  => 'opening_balance_as_of',
+                'label' => 'تاريخ رصيد بداية المدة',
+                'type'  => 'date',
+                'hint'  => 'تاريخ اعتماد الرصيد الافتتاحي (اختياري).',
+            ],
+
+            [
                 'name'  => 'bottle_balance',
                 'label' => 'رصيد القوارير',
                 'type'  => 'number',
@@ -313,6 +331,8 @@ class ClientCrudController extends CrudController
             'subscription_type_id' => 'nullable|exists:subscription_types,id',
             'subscription_status_id' => 'nullable|exists:subscription_statuses,id',
             'bottle_balance' => 'nullable|integer|min:0',
+            'opening_balance_amount' => 'nullable|numeric',
+            'opening_balance_as_of' => 'nullable|date',
         ]);
         
         // التحقق من رصيد القوارير وخصمه من المخزون
@@ -351,6 +371,8 @@ class ClientCrudController extends CrudController
             'subscription_status_id' => $request->subscription_status_id,
             'subscription_start_date' => $request->subscription_start_date,
             'bottle_balance' => $bottleBalance,
+            'opening_balance_amount' => $request->opening_balance_amount ?? 0,
+            'opening_balance_as_of' => $request->opening_balance_as_of,
             'notes' => $request->notes,
             'longitude' => $request->longitude,
             'latitude' => $request->latitude,
@@ -374,14 +396,14 @@ class ClientCrudController extends CrudController
     /**
      * Preserve client_type on update when field is not in form (DB-only).
      */
-    public function update()
+    public function update($id = null)
     {
-        $id = request()->route('id') ?? request()->route('client');
+        $id = $id ?? request()->route('id') ?? request()->route('client');
         $entry = $this->crud->getEntry($id);
         if ($entry) {
             request()->merge(['client_type' => $entry->client_type ?? 1]);
         }
-        return parent::update();
+        return $this->traitUpdate();
     }
 
     /* =======================
@@ -589,6 +611,15 @@ CRUD::addColumn([
 ]);
 
         // 16. الملاحظات
+        CRUD::addColumn([
+            'name'  => 'opening_balance_amount',
+            'label' => 'رصيد بداية المدة',
+            'type'  => 'number',
+            'decimals' => 2,
+            'suffix' => ' ₪',
+        ]);
+
+        // 17. الملاحظات
         CRUD::addColumn([
             'name'  => 'notes',
             'label' => 'ملاحظات',

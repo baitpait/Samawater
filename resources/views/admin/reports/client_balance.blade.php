@@ -472,7 +472,16 @@
         @if(!$clients->isEmpty())
         {{-- ======================= الإحصائيات ======================= --}}
         <div class="row g-4 mb-4">
-            <div class="col-md-4">
+            <div class="col-md-3">
+                <div class="stat-card-modern">
+                    <div class="stat-card-icon">
+                        <i class="la la-wallet"></i>
+                    </div>
+                    <div class="stat-card-label">رصيد بداية المدة</div>
+                    <h3 class="stat-card-value">{{ number_format($totalOpeningBalance, 2) }} ₪</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
                 <div class="stat-card-modern">
                     <div class="stat-card-icon">
                         <i class="la la-file-invoice"></i>
@@ -481,7 +490,7 @@
                     <h3 class="stat-card-value">{{ number_format($totalInvoices, 2) }} ₪</h3>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="stat-card-modern stat-card-success">
                     <div class="stat-card-icon stat-icon-success">
                         <i class="la la-hand-holding-usd"></i>
@@ -490,7 +499,7 @@
                     <h3 class="stat-card-value">{{ number_format($totalPayments, 2) }} ₪</h3>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="stat-card-modern stat-card-danger">
                     <div class="stat-card-icon stat-icon-danger">
                         <i class="la la-balance-scale"></i>
@@ -520,6 +529,7 @@
                         <tr>
                             <th style="min-width: 180px;">اسم المشترك</th>
                             <th>الهاتف</th>
+                            <th>رصيد بداية المدة</th>
                             <th>إجمالي الفواتير</th>
                             <th>إجمالي المدفوعات</th>
                             <th>الرصيد المستحق</th>
@@ -531,6 +541,7 @@
                             <tr>
                                 <td class="fw-bold ps-4" style="color: var(--primary-deep); min-width: 180px;">{{ $client->name ?? $client->contract_no ?? '—' }}</td>
                                 <td>{{ $client->phone_one ?? '-' }}</td>
+                                <td><span class="badge badge-modern badge-secondary-modern">{{ number_format($client->opening_balance_amount ?? 0, 2) }} ₪</span></td>
                                 <td><span class="badge badge-modern badge-primary-modern">{{ number_format($client->total_invoices_amount, 2) }} ₪</span></td>
                                 <td><span class="badge badge-modern badge-success-modern">{{ number_format($client->total_paid_amount, 2) }} ₪</span></td>
                                 <td>
@@ -558,7 +569,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">
+                                <td colspan="7" class="text-center py-5 text-muted">
                                     <i class="la la-inbox" style="font-size: 48px; opacity: 0.3;"></i>
                                     <p class="mt-3 mb-0">لا توجد بيانات متاحة</p>
                                 </td>

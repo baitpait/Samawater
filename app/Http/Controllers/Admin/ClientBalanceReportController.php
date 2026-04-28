@@ -22,6 +22,7 @@ class ClientBalanceReportController extends Controller
             ->get(['id', 'name', 'contract_no']);
 
         $clients = collect();
+        $totalOpeningBalance = 0;
         $totalInvoices = 0;
         $totalPayments = 0;
         $totalBalance = 0;
@@ -35,9 +36,11 @@ class ClientBalanceReportController extends Controller
                 ->find($selectedClientId);
 
             if ($client) {
+                $totalOpeningBalance = (float) ($client->opening_balance_amount ?? 0);
                 $totalInvoices = $client->invoices->sum('total_amount');
                 $totalPayments = $client->payments->sum('amount');
-                $totalBalance = $totalInvoices - $totalPayments;
+                $totalBalance = $totalOpeningBalance + $totalInvoices - $totalPayments;
+                $client->opening_balance_amount = $totalOpeningBalance;
                 $client->total_invoices_amount = $totalInvoices;
                 $client->total_paid_amount = $totalPayments;
                 $client->balance = $totalBalance;
@@ -48,6 +51,7 @@ class ClientBalanceReportController extends Controller
         return view('admin.reports.client_balance', compact(
             'clientsList',
             'clients',
+            'totalOpeningBalance',
             'totalInvoices',
             'totalPayments',
             'totalBalance',

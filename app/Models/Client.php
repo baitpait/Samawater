@@ -42,10 +42,17 @@ class Client extends Model
         'latitude',
         'bottle_balance',
         'delivery_on_demand',
+        'opening_balance_amount',
+        'opening_balance_as_of',
         'notes',
         'city_name',
         'distributor_id',
         'image'
+    ];
+    
+    protected $casts = [
+        'opening_balance_amount' => 'decimal:2',
+        'opening_balance_as_of' => 'date',
     ];
     
  
@@ -211,6 +218,9 @@ public function getBottleBalanceAttribute()
      */
     public function getBalanceAttribute()
     {
-        return $this->total_invoices_amount - $this->total_paid_amount;
+        $parentClient = $this->getParentClient();
+        $openingBalance = (float) ($parentClient?->opening_balance_amount ?? 0);
+
+        return $openingBalance + $this->total_invoices_amount - $this->total_paid_amount;
     }
 }
