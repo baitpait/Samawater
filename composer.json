@@ -44,18 +44,18 @@
     "scripts": {
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@/usr/local/apps/php83/bin/php artisan package:discover --ansi"
+            "@php artisan package:discover --ansi"
         ],
         "post-update-cmd": [
-            "@/usr/local/apps/php83/bin/php artisan vendor:publish --tag=laravel-assets --ansi --force"
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
         ],
         "post-root-package-install": [
-            "@/usr/local/apps/php83/bin/php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
         ],
         "post-create-project-cmd": [
-            "@/usr/local/apps/php83/bin/php artisan key:generate --ansi",
-            "@/usr/local/apps/php83/bin/php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
-            "@/usr/local/apps/php83/bin/php artisan migrate --graceful --ansi"
+            "@php artisan key:generate --ansi",
+            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
+            "@php artisan migrate --graceful --ansi"
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
@@ -74,8 +74,7 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
-        },
-        "cache-dir": "/home/sarfesak/public_html/eliyaa/cache"
+        }
     },
     "minimum-stability": "stable",
     "prefer-stable": true

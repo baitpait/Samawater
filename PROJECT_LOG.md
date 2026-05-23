@@ -12,11 +12,13 @@
   - **Git الشبكي:** `origin` الموصوف للمستودع: `https://github.com/baitpait/Samawater.git` (يجب اعتماده في كل جهات العمل لتفادي forks قديمة).
   - **`.gitignore`:** تجاهل `/*.xlsx` لتفادي إدراج مصنفات Excel تشغيلية من الجذر بالخطأ.
 
+- **تصحيح نشر الإنتاج (2026-05-24):** إزالة المسار المطلق `@/usr/local/apps/php83/bin/php` من سكربتات Composer واستخدام `@php` القياسي حتى لا يُفشَل `package:discover`; إزالة `config.cache-dir` الموجِّه لمشروع `eliyaa` بالخطأ.
+
 - **التنبيه (يدوي بعد كل `pull` أو نسخة جديدة):**
   ```bash
   php artisan migrate --no-interaction
   php artisan optimize:clear
-  npm run build   # إن وُجدت بنية واجهة وجرى تعديل السكربتات
+  npm run build   # إن وُجدت بنية واجهة وجرى تعديل السكربتات؛ يتطلّب Node ≥ 18
   ```
   ومراجعة `docs/WIPE_AND_IMPORT_BACKUP.md` قبل مسح أو استبدال الإنتاج. لا تتم طباعة كلمات السر أو بيانات PII في السجل.
 
