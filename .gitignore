@@ -25,3 +25,6 @@
 /.DS_Store
 *.log
 *.zip
+
+# Excel workbooks at repo root — operational imports; excluded by default for continuity/privacy.
+/*.xlsx

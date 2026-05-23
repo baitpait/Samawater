@@ -1,6 +1,6 @@
 # متابعة الجلسة — نشر sama.baitpait.space
 
-**آخر تحديث:** 2026-01-29
+**آخر تحديث:** 2026-05-24
 
 ---
 
@@ -30,7 +30,7 @@ tail -100 /home/sarfesak/public_html/sama/storage/logs/laravel.log
 
 - إما `git pull` بتوكن GitHub صالح، ثم:
   ```bash
-  cd /home/sarfesak/public_html/sama && git pull origin main && php artisan config:clear && php artisan view:clear
+  cd /home/sarfesak/public_html/sama && git remote -v && git pull origin main && php artisan migrate --no-interaction && php artisan optimize:clear
   ```
 - أو رفع الملفات المعدلة يدوياً (مثلاً `app/Http/Middleware/DisableCSPForBackpack.php` لإصلاح Line Awesome)، ثم:
   ```bash
@@ -53,6 +53,7 @@ chown root:www-data /home/sarfesak/public_html/sama/.env && chmod 640 /home/sarf
 
 | العنصر | القيمة |
 |--------|--------|
+| مستودع GitHub | https://github.com/baitpait/Samawater.git |
 | الدومين | https://sama.baitpait.space |
 | مسار المشروع | /home/sarfesak/public_html/sama |
 | Document Root | /home/sarfesak/public_html/sama/public |
