@@ -32,6 +32,7 @@ class DeliveryRequest extends FormRequest
             'inventory_item_id' => 'required|integer|exists:inventory_items,id',
             'paymant' => 'required|numeric|min:0',
             'distributor_id' => 'required|integer|exists:distributors,id',
+            'client_notes' => 'nullable|string|max:65535',
         ];
     }
 

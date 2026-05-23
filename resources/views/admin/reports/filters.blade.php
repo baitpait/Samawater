@@ -10,6 +10,12 @@
             background: var(--bg-light);
             min-height: 100vh;
             padding: 2rem 0;
+            overflow-x: hidden;
+        }
+
+        .reports-filters-container > .container-fluid {
+            max-width: 100%;
+            min-width: 0;
         }
         
         /* Header Section */
@@ -244,7 +250,23 @@
             border-radius: 20px;
             box-shadow: var(--shadow-md);
             border: none;
-            overflow: hidden;
+            overflow: visible;
+        }
+
+        /** تمرير أفقي للجدول فقط حتى لا يخرج عن عرض الشاشة */
+        .reports-filters-table-scroll-wrap {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            overflow-x: auto;
+            overflow-y: visible;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .reports-filters-table-scroll-wrap .table-modern {
+            min-width: 960px;
+            width: 100%;
+            table-layout: auto;
         }
         
         .table-card-header-modern {
@@ -325,41 +347,28 @@
             color: #fff !important;
         }
         
-        .btn-action-modern {
-            background: var(--primary-deep) !important;
-            color: #fff !important;
-            border: none !important;
-            border-radius: 10px !important;
-            padding: 0.5rem 1rem !important;
-            transition: all 0.3s ease !important;
-            font-size: 14px !important;
-        }
-        
-        .btn-action-modern:hover {
-            background: #254a7a !important;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3);
-        }
-        
-        .dropdown-menu-modern {
-            border-radius: 12px !important;
-            box-shadow: var(--shadow-lg) !important;
-            border: 1px solid #f1f5f9 !important;
-            padding: 0.5rem !important;
-        }
-        
-        .dropdown-item-modern {
-            border-radius: 8px !important;
-            padding: 0.75rem 1rem !important;
-            transition: all 0.2s ease !important;
-            font-size: 14px !important;
-        }
-        
-        .dropdown-item-modern:hover {
-            background: var(--bg-light) !important;
+        a.client-filter-name-link {
             color: var(--primary-deep) !important;
+            text-decoration: none !important;
         }
-        
+        a.client-filter-name-link:hover {
+            text-decoration: underline !important;
+            opacity: 0.92;
+        }
+
+        .btn-delivery-on-demand {
+            font-size: 0.95rem;
+            font-weight: 700;
+            padding: 0.4rem 0.5rem;
+            border-radius: 10px;
+            line-height: 1;
+        }
+
+        .btn-delivery-on-demand i.la {
+            margin: 0;
+            vertical-align: middle;
+        }
+
         .pagination-modern {
             direction: rtl;
             display: flex;
@@ -523,9 +532,9 @@
                     <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label-modern">حالة الاشتراك</label>
                         <select name="subscription_status_id" class="form-select form-select-modern w-100">
-                            <option value="" @selected(empty($selectedSubscriptionStatusId))>الكل</option>
+                            <option value="" @selected($selectedSubscriptionStatusId === null || $selectedSubscriptionStatusId === '')>الكل</option>
                             @foreach($subscriptionStatuses as $subStatus)
-                                <option value="{{ $subStatus->id }}" @selected(isset($selectedSubscriptionStatusId) && (string)$selectedSubscriptionStatusId === (string)$subStatus->id)>{{ $subStatus->status_name }}</option>
+                                <option value="{{ $subStatus->id }}" @selected((string) $selectedSubscriptionStatusId === (string) $subStatus->id)>{{ $subStatus->status_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -537,6 +546,10 @@
                                 <option value="{{ $sub->id }}" @selected(request('subscription_type_id') == $sub->id)>{{ $sub->type_name }}</option>
                             @endforeach
                         </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label class="form-label-modern">بحث في اسم نوع الاشتراك</label>
+                        <input type="text" name="subscription_type_contains" class="form-control form-control-modern w-100" placeholder="مثال: محدد" value="{{ request('subscription_type_contains') }}" autocomplete="off">
                     </div>
                     <div class="col-12 col-md-6">
                         <label class="form-label-modern">بحث سريع</label>
@@ -563,86 +576,77 @@
                 <i class="la la-list"></i>
                 <h5>نتائج البحث</h5>
             </div>
-            <div class="table-responsive">
-                <table class="table table-modern align-middle mb-0">
+            <div class="reports-filters-table-scroll-wrap px-3 px-md-0">
+                <div class="table-responsive border-0">
+                    <table class="table table-modern align-middle mb-0">
                     <thead>
                         <tr>
                             <th style="min-width: 200px;">المشترك</th>
                             <th>المدينة / العنوان</th>
-                            <th>الرصيد المالي</th>
-                            <th style="min-width: 130px;">آخر استلام</th>
-                            <th>أيام بدون استلام</th>
+                            <th>دين المشترك</th>
+                            <th style="min-width: 170px;">آخر استلام والأيام</th>
+                            <th style="min-width: 120px;">نوع الاشتراك</th>
+                            <th style="min-width: 56px; width: 56px;" class="text-center">حسب الطلب</th>
                             <th style="min-width: 160px;">ملاحظات العميل</th>
-                            <th style="width: 80px;">إجراء</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($clients as $client)
                         <tr>
                             <td class="ps-4" style="min-width: 200px;">
-                                <div class="fw-bold" style="color: var(--primary-deep);">{{ $client->name }}</div>
-                                <small class="text-muted">{{ $client->phone_one ?? '-' }}</small>
+                                <a href="{{ backpack_url('client/'.$client->id.'/show') }}" class="client-filter-name-link fw-bold d-inline-block">{{ $client->name }}</a>
+                                <small class="text-muted d-block mt-1">{{ $client->phone_one ?? '-' }}</small>
                             </td>
                             <td>
                                 <div class="fw-semibold">{{ $client->city->city_name ?? '-' }}</div>
                                 <div class="text-muted small">{{ $client->address ?? '-' }}</div>
                             </td>
-                            <td class="fw-bold">
+                            <td class="fw-bold" title="يشمل ما على الفواتير/المدفوعات الافتتاحية ومستحق التسليم (المطلوب − المسدَّد بالتسليم)">
                                 @php
-                                    $balance = $client->balance ?? 0;
+                                    $balance = $client->combined_subscriber_debt ?? 0;
                                     $balanceClass = $balance > 0 ? 'text-danger' : ($balance < 0 ? 'text-success' : 'text-muted');
                                 @endphp
-                                <span class="{{ $balanceClass }}">{{ number_format($balance, 2) }} ₪</span>
+                                <span class="{{ $balanceClass }}">{{ number_format((float) $balance, 2) }} ₪</span>
                             </td>
-                            <td class="fw-semibold" style="min-width: 130px;">{{ $client->lastDelivery ? \Carbon\Carbon::parse($client->lastDelivery->delivery_date)->format('Y-m-d') : '-' }}</td>
-                            <td>
-                                @if($client->lastDelivery)
-                                    @php
-                                        $days = (int) \Carbon\Carbon::parse($client->lastDelivery->delivery_date)->startOfDay()->diffInDays(now()->startOfDay());
-                                    @endphp
-                                    <span class="badge badge-modern @if($days <= 1) badge-success-modern @elseif($days <= 10) badge-warning-modern @else badge-danger-modern @endif">
-                                        @if($days === 0) اليوم @elseif($days === 1) أمس @else منذ {{ $days }} يوم @endif
-                                    </span>
-                                @else
-                                    <span class="badge badge-modern badge-secondary-modern">لم يستلم</span>
-                                @endif
-                            </td>
-                            <td class="text-end small" style="max-width: 220px;" title="{{ $client->notes ?? '' }}">{{ Str::limit($client->notes ?? '-', 60) }}</td>
-                            <td class="pe-4">
-                                <div class="btn-group dropdown">
-                                    <button type="button" class="btn btn-action-modern btn-sm dropdown-toggle" data-toggle="dropdown">
-                                        <i class="la la-cog"></i>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-modern dropdown-menu-right">
-                                        <a class="dropdown-item dropdown-item-modern" href="{{ backpack_url('client/'.$client->id.'/show') }}">
-                                            <i class="la la-eye"></i> معاينة
-                                        </a>
-                                        <a class="dropdown-item dropdown-item-modern" href="{{ backpack_url('client/'.$client->id.'/edit') }}">
-                                            <i class="la la-edit"></i> تعديل
-                                        </a>
-                                        <a class="dropdown-item dropdown-item-modern" href="{{ url('admin/delivery/create?client_id='.$client->id) }}">
-                                            <i class="la la-truck"></i> تسليم
-                                        </a>
-                                        <a class="dropdown-item dropdown-item-modern" href="{{ route('client.report', ['client_id' => $client->id]) }}">
-                                            <i class="la la-list"></i> تقرير العميل
-                                        </a>
-                                        <a class="dropdown-item dropdown-item-modern" href="{{ route('reports.client-balance', ['client_id' => $client->id]) }}">
-                                            <i class="la la-file-invoice-dollar"></i> تقرير الرصيد
-                                        </a>
-                                        <a class="dropdown-item dropdown-item-modern" href="{{ url(config('backpack.base.route_prefix') . '/client-deposit/create?client_id=' . $client->id) }}">
-                                            <i class="la la-box-open"></i> أمانة المشترك
-                                        </a>
-                                        <div class="dropdown-divider"></div>
-                                        <button class="dropdown-item dropdown-item-modern text-danger btn-delete" data-url="{{ backpack_url('client/'.$client->id) }}">
-                                            <i class="la la-trash"></i> حذف
-                                        </button>
-                                    </div>
+                            <td style="min-width: 170px;">
+                                <div class="fw-semibold">{{ $client->lastDelivery ? \Carbon\Carbon::parse($client->lastDelivery->delivery_date)->format('Y-m-d') : '-' }}</div>
+                                <div class="mt-1">
+                                    @if($client->lastDelivery)
+                                        @php
+                                            $days = (int) \Carbon\Carbon::parse($client->lastDelivery->delivery_date)->startOfDay()->diffInDays(now()->startOfDay());
+                                        @endphp
+                                        <span class="badge badge-modern @if($days <= 1) badge-success-modern @elseif($days <= 10) badge-warning-modern @else badge-danger-modern @endif">
+                                            @if($days === 0) اليوم @elseif($days === 1) أمس @else منذ {{ $days }} يوم @endif
+                                        </span>
+                                    @else
+                                        <span class="badge badge-modern badge-secondary-modern">لم يستلم</span>
+                                    @endif
                                 </div>
                             </td>
+                            <td class="fw-semibold" style="min-width: 120px;">{{ $client->subscriptionType->type_name ?? '-' }}</td>
+                            <td class="text-center align-middle pe-2" style="min-width: 56px;">
+                                <form method="POST" action="{{ route('reports.filters.toggle_delivery_on_demand', $client) }}" class="d-inline">
+                                    @csrf
+                                    <input type="hidden" name="enabled" value="{{ $client->delivery_on_demand ? '0' : '1' }}">
+                                    @if($client->delivery_on_demand)
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary btn-delivery-on-demand" title="إلغاء التسليم حسب الطلب">
+                                            <span class="sr-only visually-hidden">إلغاء التسليم حسب الطلب</span>
+                                            <i class="la la-times" aria-hidden="true"></i>
+                                        </button>
+                                    @else
+                                        <button type="submit" class="btn btn-sm text-white btn-delivery-on-demand" style="background: var(--primary-deep); border: none;" title="يظهر المشترك في قائمة التسليم حتى دون استحقاق الأيام؛ يُعاد الإلغاء بعد التسليم">
+                                            <span class="sr-only visually-hidden">تفعيل التسليم حسب الطلب</span>
+                                            <i class="la la-truck" aria-hidden="true"></i>
+                                        </button>
+                                    @endif
+                                </form>
+                            </td>
+                            <td class="text-end small" style="max-width: 220px;" title="{{ $client->notes ?? '' }}">{{ Str::limit($client->notes ?? '-', 60) }}</td>
                         </tr>
                         @endforeach
                     </tbody>
                 </table>
+                </div>
             </div>
             <div class="p-4 border-top">
                 <div class="pagination-modern">
@@ -654,23 +658,4 @@
 
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Delete Action
-    document.querySelectorAll('.btn-delete').forEach(btn => {
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            if (confirm('هل أنت متأكد من الحذف؟')) {
-                fetch(this.dataset.url, {
-                    method: 'DELETE',
-                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
-                })
-                .then(res => { if (res.ok) this.closest('tr').remove(); })
-                .catch(() => alert('حدث خطأ أثناء الحذف'));
-            }
-        });
-    });
-});
-</script>
 @endsection

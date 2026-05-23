@@ -43,7 +43,7 @@ class DistributorListController
         $query->orderBy($sortBy, $sortDir);
 
         // Pagination
-        $perPage = $request->get('per_page', 25);
+        $perPage = $request->get('per_page', 50);
         $distributors = $query->paginate($perPage);
 
         return view('admin.distributors_list', compact('distributors'));

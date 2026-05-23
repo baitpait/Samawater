@@ -4,10 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\VClientsDueByTypeDaysIds;
-use App\Models\City;
-use App\Models\SubscriptionType;
-use App\Models\ClientStatus;
-use App\Models\SubscriptionStatus;
+use App\Models\Delivery;
+use App\Support\CachedDeliveryFormOptions;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -91,28 +89,23 @@ class DeliveryListController extends Controller
         $totalBottleEmpty = 0;
 
         /* ===============================
-           البيانات للفلاتر
+           البيانات للفلاتر (مخزَّنة مؤقتاً لتقليل الضغط على قاعدة البيانات)
         =============================== */
-        $cities = City::orderBy('city_name')->get();
-        
-        // أنواع الاشتراك
-        $subscriptionTypes = SubscriptionType::orderBy('type_name')->get();
-        
-        // حالات الالتزام
-        $clientStatuses = ClientStatus::orderBy('status_name')->get();
-        
-        // حالات الاشتراك
-        $subscriptionStatuses = SubscriptionStatus::orderBy('status_name')->get();
-        
-        // الموزعين
-        $distributors = \App\Models\Distributor::orderBy('name')->get();
+        $filters = CachedDeliveryFormOptions::all();
+        $cities = $filters['cities'];
+        $subscriptionTypes = $filters['subscriptionTypes'];
+        $clientStatuses = $filters['clientStatuses'];
+        $subscriptionStatuses = $filters['subscriptionStatuses'];
+        $distributors = $filters['distributors'];
 
         // عرض النتائج فقط بعد الضغط على زر البحث
         if ($request->has('search')) {
-            // إذا لا توجد أي تسليمات في النظام، لا نعرض أي مشتركين
-            if (!\App\Models\Delivery::query()->exists()) {
-                $perPage = $request->get('per_page', 10);
-                $perPage = in_array($perPage, [10, 50, 100, 'all'], true) ? $perPage : 10;
+            /** استعلام وحيد عن وجود أي تسليم لتفادي التكرار وتحسين المسار. */
+            $hasAnyDelivery = Delivery::query()->exists();
+
+            if (! $hasAnyDelivery) {
+                $perPage = $request->get('per_page', 50);
+                $perPage = in_array($perPage, [10, 50, 100, 'all'], true) ? $perPage : 50;
                 $page = $request->get('page', 1);
                 $clients = new LengthAwarePaginator(
                     collect(),
@@ -141,7 +134,7 @@ class DeliveryListController extends Controller
             
             // 2. جلب المشتركين الذين delivery_on_demand = true (تسليم حسب الطلب)
             $onDemandClientsQuery = null;
-            $hasAnyDelivery = \App\Models\Delivery::query()->exists();
+
             if ($hasAnyDelivery) {
                 $onDemandClientsQuery = \App\Models\Client::query()
                     ->where('delivery_on_demand', true)
@@ -169,6 +162,7 @@ class DeliveryListController extends Controller
                         'clients.subscription_start_date',
                         DB::raw('period_diff(date_format(curdate(),\'%Y%m\'),date_format(clients.subscription_start_date,\'%Y%m\')) as subscription_months'),
                         DB::raw('max(deliveries.delivery_date) as last_delivery_date'),
+                        DB::raw('(SELECT ld.bottle_received FROM deliveries ld WHERE ld.client_id = clients.id ORDER BY ld.delivery_date DESC, ld.id DESC LIMIT 1) as last_delivery_bottle_received'),
                         DB::raw('count(deliveries.id) as total_deliveries'),
                         DB::raw('COALESCE(to_days(curdate()) - to_days(max(deliveries.delivery_date)), 999) as days_since_last_delivery'),
                         'clients.latitude',
@@ -233,8 +227,8 @@ class DeliveryListController extends Controller
             $allClients = $allClients->sortByDesc('days_since_last_delivery')->values();
             
             // 6. Pagination
-            $perPage = $request->get('per_page', 10);
-            $perPage = in_array($perPage, [10, 50, 100, 'all']) ? $perPage : 10;
+            $perPage = $request->get('per_page', 50);
+            $perPage = in_array($perPage, [10, 50, 100, 'all'], true) ? $perPage : 50;
             $page = $request->get('page', 1);
             $total = $allClients->count();
             

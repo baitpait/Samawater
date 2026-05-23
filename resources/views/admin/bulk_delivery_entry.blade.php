@@ -4,6 +4,14 @@
     {{-- Unified Forms Design System --}}
     <link rel="stylesheet" href="{{ asset('css/unified-forms.css') }}">
     <style>
+        /* لا تمدّ الصفحة أفقياً؛ التمرير داخل الغلاف فقط */
+        .bulk-delivery-entry-scope.container-fluid {
+            max-width: 100%;
+            min-width: 0;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
         .bulk-entry-table {
             width: 100%;
             border-collapse: collapse;
@@ -90,20 +98,32 @@
             max-height: 70vh;
             overflow-y: auto;
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
             border: 1px solid #e2e8f0;
             border-radius: 16px;
             box-shadow: var(--shadow-md);
             width: 100%;
+            max-width: 100%;
+            min-width: 0;
             box-sizing: border-box;
         }
-        
-        .bulk-entry-table {
+
+        .table-wrapper.bulk-entry-table-inner-scroll > .bulk-entry-table-responsive.table-responsive {
+            overflow-x: auto;
+            overflow-y: visible;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* إبقاء التمرير داخل div.table-wrapper دون أن يخرج الجدول خارج العرض */
+        .bulk-entry-table-inner-scroll .bulk-entry-table {
+            min-width: 960px;
             width: 100%;
             table-layout: auto;
-            min-width: 800px;
         }
-        
-        /* Responsive Design - Mobile First */
+
         @media (max-width: 768px) {
             .table-wrapper {
                 max-height: none !important;
@@ -254,6 +274,75 @@
         }
         
         /* Ensure container doesn't overflow */
+        /* بطاقة فلاتر الإدخال الجماعي — ثلاث صفوف منفصلة */
+        .bulk-entry-filters-card .bulk-entry-filter-form .bulk-entry-filter-row {
+            margin-inline: 0;
+        }
+
+        .bulk-entry-filters-card .bulk-entry-filter-form .bulk-entry-filter-row + .bulk-entry-filter-row {
+            padding-top: 1rem;
+            margin-top: 0.125rem;
+            border-top: 1px solid #e9eef5;
+        }
+
+        .bulk-entry-filters-card .bulk-entry-label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: var(--primary-deep);
+            margin-bottom: 0.4rem;
+        }
+
+        .bulk-entry-filters-card .bulk-entry-field-tall .form-select,
+        .bulk-entry-filters-card .bulk-entry-field-tall .form-control {
+            min-height: 42px;
+        }
+
+        .bulk-entry-filters-card .bulk-entry-actions-row {
+            gap: 0.75rem;
+        }
+
+        .bulk-entry-filters-card .bulk-entry-actions-row .btn {
+            padding: 0.55rem 1.25rem;
+        }
+
+        /* شريط تاريخ التسليم + الموزّع + الإجراءات — تسمية فوق الحقل */
+        .bulk-entry-toolbar-row {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1rem 1.25rem !important;
+            box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.06));
+            width: 100%;
+        }
+
+        .bulk-entry-toolbar-row .bulk-entry-toolbar-label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: var(--primary-deep);
+            margin-bottom: 0.4rem;
+        }
+
+        .bulk-entry-toolbar-row .bulk-entry-toolbar-field .form-control,
+        .bulk-entry-toolbar-row .bulk-entry-toolbar-field .form-select {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .bulk-entry-toolbar-row .bulk-entry-toolbar-stat-box {
+            min-height: 46px;
+            display: inline-flex;
+            align-items: center;
+            padding: 0.45rem 0.95rem;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            background: #f8fafc;
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: var(--primary-deep);
+        }
+
         @media (max-width: 768px) {
             .container-fluid.pb-4 {
                 padding-left: 10px !important;
@@ -273,7 +362,7 @@
 @endsection
 
 @section('content')
-<div class="container-fluid pb-4">
+<div class="container-fluid pb-4 bulk-delivery-entry-scope">
     {{-- Header --}}
     <section class="header-operation container-fluid animated fadeIn d-flex mb-2 align-items-center d-print-none" bp-section="page-header" style="background: var(--primary-deep) !important; border-radius: 20px; padding: 1.5rem 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-md) !important; width: 100%; display: flex; align-items: center; justify-content: space-between; position: relative; overflow: visible;">
         <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 1;">
@@ -289,35 +378,148 @@
         </div>
     </section>
 
+    {{-- نفس معاملات GET في BulkDeliveryController — تصفية من الخادم دون أي جافاسكربت ثقيلة --}}
+    <div class="filter-card mb-4 bulk-entry-filters-card" style="overflow: visible;">
+        <div class="p-3 border-bottom d-flex align-items-center justify-content-between gap-2 flex-wrap" style="background: linear-gradient(135deg, #f8fafc 0%, #fff 100%); border-radius: var(--card-radius, 16px) var(--card-radius, 16px) 0 0;">
+            <div class="d-flex align-items-center gap-2">
+                <i class="la la-filter" style="color: var(--primary-deep); font-size: 1.35rem;"></i>
+                <h6 class="mb-0 fw-bold" style="color: var(--primary-deep);">فلاتر البحث</h6>
+            </div>
+            <span class="d-none d-md-inline small text-muted" style="font-size: 0.75rem;">ثلاث خطوات: نص ثم اشتراك ثم الأيام</span>
+        </div>
+        <div class="p-3 pt-4 pb-4">
+            <form method="get" action="{{ route('delivery.bulk-entry') }}" class="bulk-entry-filter-form">
+
+                {{-- الصف الأول: بحث نصّي شامل --}}
+                <div class="row g-3 bulk-entry-filter-row align-items-end">
+                    <div class="col-12 bulk-entry-field-tall">
+                        <label class="bulk-entry-label" for="bulk-filter-q"><i class="la la-search me-1"></i> بحث سريع</label>
+                        <input id="bulk-filter-q" type="text" name="q" class="form-control" placeholder="اسم المشترك، رقم هاتف، رقم العقد، أو عنوان" value="{{ request('q') }}" autocomplete="off" style="border-radius: 12px;">
+                    </div>
+                </div>
+
+                {{-- الصف الثاني: الموقع وحالة ونوع الاشتراك (ثلاثة أعمدة متكافئة على الشاشات العريضة) --}}
+                <div class="row g-3 bulk-entry-filter-row">
+                    <div class="col-12 col-md-4 bulk-entry-field-tall">
+                        <label class="bulk-entry-label" for="bulk-filter-city"><i class="la la-map-marker me-1"></i> المدينة</label>
+                        <select id="bulk-filter-city" name="city_id" class="form-select" style="border-radius: 12px;">
+                            <option value="">الكل</option>
+                            @foreach($cities as $city)
+                                <option value="{{ $city->id }}" @selected(request('city_id') == $city->id)>{{ $city->city_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-4 bulk-entry-field-tall">
+                        <label class="bulk-entry-label" for="bulk-filter-sub-type"><i class="la la-layer-group me-1"></i> نوع الاشتراك</label>
+                        <select id="bulk-filter-sub-type" name="subscription_type_id" class="form-select" style="border-radius: 12px;">
+                            <option value="">الكل</option>
+                            @foreach($subscriptionTypes as $type)
+                                <option value="{{ $type->id }}" @selected(request('subscription_type_id') == $type->id)>{{ $type->type_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-4 bulk-entry-field-tall">
+                        <label class="bulk-entry-label" for="bulk-filter-sub-status"><i class="la la-tags me-1"></i> حالة الاشتراك</label>
+                        <select id="bulk-filter-sub-status" name="subscription_status_id" class="form-select" style="border-radius: 12px;">
+                            <option value="">الكل</option>
+                            @foreach($subscriptionStatuses as $status)
+                                <option value="{{ $status->id }}" @selected($subscriptionStatusFilterId !== null && (int) $status->id === $subscriptionStatusFilterId)>{{ $status->status_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                {{-- الصف الثالث: شروط الأيام + أزرار الإجراء --}}
+                <div class="row g-3 bulk-entry-filter-row align-items-end">
+                    <div class="col-12 col-sm-6 col-lg-3 bulk-entry-field-tall">
+                        <label class="bulk-entry-label" for="bulk-filter-min-days"><i class="la la-clock me-1"></i> حد الأيام</label>
+                        <input id="bulk-filter-min-days" type="number" name="min_days" min="0" step="1" class="form-control" placeholder="اتركه فارغاً مع «بحث» للافتراضي" value="{{ request('min_days') }}" style="border-radius: 12px;">
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-4 bulk-entry-field-tall">
+                        <label class="bulk-entry-label" for="bulk-filter-days-op"><i class="la la-exchange me-1"></i> مقارنة الأيام</label>
+                        <select id="bulk-filter-days-op" name="days_operator" class="form-select" style="border-radius: 12px;">
+                            <option value=">=" @selected(request('days_operator', '>=') === '>=')>&ge; أكبر أو يساوي</option>
+                            <option value="=" @selected(request('days_operator') === '=')>= يساوي</option>
+                            <option value="<=" @selected(request('days_operator') === '<=')>&le; أصغر أو يساوي</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-lg-5 d-flex flex-wrap bulk-entry-actions-row justify-content-lg-end align-items-end">
+                        <button type="submit" name="search" value="1" class="btn btn-primary fw-bold flex-grow-1 flex-sm-grow-0" style="border-radius: 12px; min-width: 140px;">
+                            <i class="la la-search"></i> بحث
+                        </button>
+                        <a href="{{ route('delivery.bulk-entry') }}" class="btn btn-outline-secondary fw-bold flex-grow-1 flex-sm-grow-0" style="border-radius: 12px;">مسح الفلاتر</a>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
     {{-- عرض المخزون الحالي --}}
     <div class="inventory-display">
         <i class="la la-warehouse"></i> المخزون الحالي: <span id="current-inventory">{{ $currentInventory }}</span> عبوة
     </div>
 
-    {{-- تاريخ التسليم + أزرار الحفظ --}}
+    {{-- تاريخ التسليم + الموزّع — صف واحد شبكي: التسمية فوق الحقل لكل مجموعة --}}
     @if(count($allClients) > 0)
-    <div class="mb-4 d-flex flex-wrap align-items-center gap-3 px-2">
-        <div class="d-flex align-items-center gap-2">
-            <label for="delivery-date-input" class="form-label mb-0 fw-bold" style="color: var(--primary-deep);">
-                <i class="la la-calendar"></i> تاريخ التسليم:
-            </label>
-            <input type="date" id="delivery-date-input" class="form-control" style="width: auto; min-width: 160px; border-radius: 12px; border: 2px solid #e2e8f0; padding: 0.5rem 1rem; font-weight: 600;" value="{{ date('Y-m-d') }}" required>
-        </div>
-        <div style="font-size: 16px; color: var(--primary-deep); font-weight: 700;">
-            <i class="la la-users"></i> عدد المشتركين: <strong>{{ count($allClients) }}</strong>
-        </div>
-        <div class="ms-auto">
-            <button type="button" class="btn btn-success" id="save-all-btn" style="padding: 12px 25px; border-radius: 12px !important;">
-                <i class="la la-save"></i> حفظ جميع التغييرات
-            </button>
+    <div class="mb-4 px-2 bulk-entry-toolbar-row">
+        <div class="row g-3 g-lg-4 align-items-end">
+            <div class="col-12 col-sm-6 col-lg-3 bulk-entry-toolbar-field">
+                <label for="delivery-date-input" class="bulk-entry-toolbar-label mb-0">
+                    <i class="la la-calendar"></i> تاريخ التسليم
+                </label>
+                <input type="date" id="delivery-date-input" class="form-control bulk-entry-toolbar-control" style="border-radius: 12px; border: 2px solid #e2e8f0; padding: 0.5rem 1rem; font-weight: 600;" value="{{ date('Y-m-d') }}" required>
+            </div>
+            @if(isset($distributors) && $distributors->isNotEmpty())
+                @if(!empty($bulkEntryDistributorLocked))
+                    <div class="col-12 col-sm-6 col-lg-4 bulk-entry-toolbar-field">
+                        <span class="bulk-entry-toolbar-label"><i class="la la-truck"></i> الموزّع</span>
+                        <input type="hidden" id="bulk-delivery-distributor-id" value="{{ $defaultBulkEntryDistributorId }}">
+                        <div class="form-control fw-bold d-flex align-items-center bulk-entry-toolbar-control" style="border-radius: 12px; border: 2px solid #e2e8f0; padding: 0.5rem 1rem; background: #f8fafc; min-height: 46px;">
+                            {{ $bulkEntryDistributorDisplayName ?? '—' }}
+                        </div>
+                    </div>
+                @else
+                    <div class="col-12 col-sm-6 col-lg-4 bulk-entry-toolbar-field">
+                        <label for="bulk-delivery-distributor-id" class="bulk-entry-toolbar-label mb-0">
+                            <i class="la la-truck"></i> الموزّع
+                        </label>
+                        <select id="bulk-delivery-distributor-id" name="bulk_distributor_id" class="form-select bulk-entry-toolbar-control" style="border-radius: 12px; border: 2px solid #e2e8f0; padding: 0.5rem 1rem; font-weight: 600;" required>
+                            @foreach($distributors as $d)
+                                <option value="{{ $d->id }}" @selected((int) $d->id === (int) $defaultBulkEntryDistributorId)>{{ $d->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+            @else
+                <div class="col-12 col-sm-6 col-lg text-danger fw-bold small d-flex align-items-end">
+                    <div><i class="la la-exclamation-triangle"></i> لا يوجد موزّعين — أضف موزّعاً قبل التسجيل.</div>
+                </div>
+            @endif
+
+            <div class="col-12 col-sm-6 col-lg-2 bulk-entry-toolbar-field">
+                <span class="bulk-entry-toolbar-label"><i class="la la-users"></i> عدد المشتركين</span>
+                <div class="bulk-entry-toolbar-stat-box w-100 justify-content-center justify-content-sm-start">{{ count($allClients) }}</div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3 bulk-entry-toolbar-field d-flex align-items-end justify-content-stretch justify-content-sm-end">
+                <button type="button"
+                    class="btn btn-success fw-bold w-100 w-sm-auto"
+                    id="save-all-btn"
+                    title="حفظ جميع التغييرات"
+                    aria-label="حفظ جميع التغييرات"
+                    style="padding: 12px 14px; border-radius: 12px !important; min-height: 46px; min-width: 46px;">
+                    <i class="la la-save" aria-hidden="true"></i>
+                </button>
+            </div>
         </div>
     </div>
     @endif
 
     {{-- الجدول --}}
     @if(count($allClients) > 0)
-    <div class="table-wrapper">
-        <div class="table-responsive" style="width: 100%;">
+    <div class="table-wrapper bulk-entry-table-inner-scroll">
+        <div class="table-responsive bulk-entry-table-responsive">
         <table class="bulk-entry-table" id="bulk-entry-table">
             <thead>
                 <tr>
@@ -371,7 +573,7 @@
     <div class="card p-5 text-center" style="border-radius: 20px;">
         <i class="la la-info-circle" style="font-size: 48px; color: var(--primary-deep); margin-bottom: 15px;"></i>
         <h5 class="fw-bold">لا يوجد مشتركين للعرض</h5>
-        <p class="text-muted">استخدم الفلاتر في صفحة القائمة للبحث.</p>
+        <p class="text-muted mb-0">اضبط الفلاتر أعلاه ثم اضغط <strong>بحث</strong> (نفس منطق الصفحة دون تحميل إضافي على المتصفح).</p>
     </div>
     @endif
 </div>
@@ -382,11 +584,20 @@
 document.addEventListener('DOMContentLoaded', function() {
     const table = document.getElementById('bulk-entry-table');
     const deliveryDateInput = document.getElementById('delivery-date-input');
+    const distributorInput = document.getElementById('bulk-delivery-distributor-id');
     let currentEditingCell = null;
 
     function getDeliveryDate() {
         if (deliveryDateInput && deliveryDateInput.value) return deliveryDateInput.value.trim();
         return new Date().toISOString().split('T')[0];
+    }
+
+    function getBulkDistributorId() {
+        if (!distributorInput) return null;
+        var v = distributorInput.value ? String(distributorInput.value).trim() : '';
+        if (v === '') return null;
+        var n = parseInt(v, 10);
+        return Number.isNaN(n) ? null : n;
     }
 
     if (table) {
@@ -407,6 +618,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.key === 'Escape' && currentEditingCell) {
                 e.preventDefault();
                 cancelEditing(currentEditingCell);
+            }
+        });
+
+        table.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.classList.contains('save-row-btn')) {
+                e.preventDefault();
+                e.target.click();
             }
         });
     }
@@ -462,13 +680,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    table.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && e.target.classList.contains('save-row-btn')) {
-            e.preventDefault();
-            e.target.click();
-        }
-    });
-
     function updateRemainingDebt(row) {
         const requiredAmountCell = row.querySelector('[data-field="required_amount"]');
         const paymantCell = row.querySelector('[data-field="paymant"]');
@@ -496,9 +707,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('يرجى اختيار تاريخ التسليم من التقويم.');
                 return;
             }
+            const distributorId = getBulkDistributorId();
+            if (distributorId === null) {
+                alert('يرجى ضبط الموزّع من القائمة أعلاه (لا يوجد موزّع محدد).');
+                return;
+            }
             const data = {
                 client_id: clientId,
                 delivery_date: deliveryDate,
+                distributor_id: distributorId,
                 bottle_received: parseInt(row.querySelector('[data-field="bottle_received"] .display-value').textContent) || 0,
                 bottle_empty: parseInt(row.querySelector('[data-field="bottle_empty"] .display-value').textContent) || 0,
                 required_amount: parseFloat(row.querySelector('[data-field="required_amount"] .display-value').textContent) || 0,

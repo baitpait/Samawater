@@ -69,6 +69,9 @@
             <li class="menu-section-label">المالية</li>
             <x-backpack::menu-item title="فواتير مبيعات" icon="la la-file-invoice" :link="backpack_url('invoice')" />
             <x-backpack::menu-item title="مدفوعات المشتركين" icon="la la-money-bill" :link="backpack_url('client-payment')" />
+            <x-backpack::menu-item title="الصندوق المالي" icon="la la-balance-scale" :link="route('reports.treasury-custody')" />
+            <x-backpack::menu-item title="صندوق الشركة" icon="la la-coins" :link="route('reports.company-treasury')" />
+            <x-backpack::menu-item title="الحركة المالية الشاملة" icon="la la-stream" :link="route('reports.financial-movements-unified')" />
             <x-backpack::menu-item title="أمانات المشتركين" icon="la la-hand-holding" :link="backpack_url('client-deposit')" />
 
             <li class="sidebar-divider"></li>

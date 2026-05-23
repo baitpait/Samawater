@@ -7,6 +7,8 @@ use App\Models\Client;
 use App\Models\SubscriptionStatus;
 use App\Models\SubscriptionType;
 use App\Models\City;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Mpdf\Mpdf;
 
@@ -15,7 +17,16 @@ class ReportFilterController extends Controller
     public function index(Request $request)
     {
         $query = Client::query()
-            ->with(['city', 'subscriptionStatus', 'invoices', 'payments', 'parent.invoices', 'parent.payments']);
+            ->with([
+                'city',
+                'subscriptionStatus',
+                'subscriptionType',
+                'lastDelivery',
+                'invoices',
+                'payments',
+                'parent.invoices',
+                'parent.payments',
+            ]);
 
         if ($request->filled('q')) {
             $q = $request->q;
@@ -35,12 +46,20 @@ class ReportFilterController extends Controller
             $query->where('city_id', $request->city_id);
         }
 
-        if ($request->subscription_type_id) {
-            $query->where('subscription_type_id', $request->subscription_type_id);
-        }
+        $this->applySubscriptionTypeFilter($query, $request);
 
         $defaultActiveStatusId = SubscriptionStatus::where('status_name', 'نشط')->value('id');
-        $selectedSubscriptionStatusId = $request->get('subscription_status_id', $defaultActiveStatusId);
+        $requestedStatus = $request->input('subscription_status_id');
+        if ($request->has('subscription_status_id')) {
+            // زيارة تحتوي المعامل صراحةً: فارغ أو "الكل" = لا فلترة بالحالة
+            $selectedSubscriptionStatusId = ($requestedStatus === '' || $requestedStatus === null)
+                ? null
+                : $requestedStatus;
+        } else {
+            // لا يوجد معامل في الرابط ← الافتراضي نشط (عرض وحفظ القيمة في القائمة)
+            $selectedSubscriptionStatusId = $defaultActiveStatusId;
+        }
+
         if ($request->has('subscription_status_id')) {
             if ($request->filled('subscription_status_id')) {
                 $query->where('subscription_status_id', $request->subscription_status_id);
@@ -122,9 +141,7 @@ class ReportFilterController extends Controller
             $query->where('city_id', $request->city_id);
         }
 
-        if ($request->subscription_type_id) {
-            $query->where('subscription_type_id', $request->subscription_type_id);
-        }
+        $this->applySubscriptionTypeFilter($query, $request);
 
         if ($request->subscription_status_id) {
             $query->where('subscription_status_id', $request->subscription_status_id);
@@ -198,9 +215,7 @@ class ReportFilterController extends Controller
             $query->where('city_id', $request->city_id);
         }
 
-        if ($request->subscription_type_id) {
-            $query->where('subscription_type_id', $request->subscription_type_id);
-        }
+        $this->applySubscriptionTypeFilter($query, $request);
 
         if ($request->subscription_status_id) {
             $query->where('subscription_status_id', $request->subscription_status_id);
@@ -224,5 +239,46 @@ class ReportFilterController extends Controller
             'قائمة_العملاء_' . date('Y-m-d') . '.pdf',
             'I'
         ))->header('Content-Type', 'application/pdf');
+    }
+
+    /**
+     * تفعيل أو إلغاء «تسليم حسب الطلب» من جدول تقارير الفلاتر.
+     */
+    public function toggleDeliveryOnDemand(Request $request, Client $client): RedirectResponse
+    {
+        $request->validate([
+            'enabled' => 'required|boolean',
+        ]);
+
+        $client->delivery_on_demand = $request->boolean('enabled');
+        $client->save();
+
+        \Alert::success(
+            $client->delivery_on_demand
+                ? 'تم تفعيل التسليم حسب الطلب لهذا المشترك.'
+                : 'تم إلغاء التسليم حسب الطلب لهذا المشترك.'
+        )->flash();
+
+        return redirect()->back();
+    }
+
+    /**
+     * Filters by subscription type: partial match on subscription_types.type_name
+     * overrides exact subscription_type_id when the text field is filled.
+     */
+    private function applySubscriptionTypeFilter(Builder $query, Request $request): void
+    {
+        if ($request->filled('subscription_type_contains')) {
+            $term = trim((string) $request->input('subscription_type_contains'));
+            if ($term !== '') {
+                $escaped = addcslashes($term, '%_\\');
+                $pattern = '%'.$escaped.'%';
+                $query->whereHas('subscriptionType', static function (Builder $relation) use ($pattern): void {
+                    $relation->where('type_name', 'like', $pattern);
+                });
+            }
+        } elseif ($request->filled('subscription_type_id')) {
+            $query->where('subscription_type_id', $request->subscription_type_id);
+        }
     }
 }

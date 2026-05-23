@@ -7,13 +7,15 @@ Route::get('/', function () {
         return redirect(backpack_url('dashboard'));
 });
 
-Route::get('clients-due-report', [App\Http\Controllers\Admin\ClientsDueReportController::class, 'index'])
-    ->name('clients.due.report');
+Route::middleware(['web', 'admin'])->group(static function (): void {
+    Route::get('clients-due-report', [App\Http\Controllers\Admin\ClientsDueReportController::class, 'index'])
+        ->name('clients.due.report');
 
-Route::get(
-    'admin/reports/clients-due/{client_id}',
-    [\App\Http\Controllers\Admin\ClientsDueViewController::class, 'show']
-)->name('reports.clients_due.show');
+    Route::get(
+        'admin/reports/clients-due/{client_id}',
+        [\App\Http\Controllers\Admin\ClientsDueViewController::class, 'show']
+    )->name('reports.clients_due.show');
+});
 
 // تحميل نسخة احتياطية من قاعدة البيانات
 Route::get('admin/backup/download', [App\Http\Controllers\Admin\DatabaseBackupController::class, 'download'])

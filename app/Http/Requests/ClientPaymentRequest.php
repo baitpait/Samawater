@@ -7,6 +7,13 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class ClientPaymentRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'for_future_obligation' => $this->boolean('for_future_obligation'),
+        ]);
+    }
+
     public function authorize()
     {
         return backpack_auth()->check();
@@ -26,6 +33,7 @@ class ClientPaymentRequest extends FormRequest
             'payment_method' => 'required|in:cash,bank_transfer,check,credit_card,other',
             'reference_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
+            'for_future_obligation' => ['nullable', 'boolean'],
         ];
     }
 
@@ -38,6 +46,7 @@ class ClientPaymentRequest extends FormRequest
             'payment_method' => 'طريقة الدفع',
             'reference_number' => 'الرقم المرجعي',
             'notes' => 'ملاحظات',
+            'for_future_obligation' => 'لدين مستقبلي',
         ];
     }
 }

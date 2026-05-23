@@ -66,6 +66,10 @@ class ClientPaymentCrudController extends CrudController
         CRUD::column('payment_date')
             ->label('تاريخ الدفع')
             ->type('date');
+
+        CRUD::column('for_future_obligation')
+            ->label('لدين مستقبلي')
+            ->type('boolean');
         
         CRUD::column('payment_method')
             ->label('طريقة الدفع')
@@ -140,6 +144,12 @@ class ClientPaymentCrudController extends CrudController
         CRUD::field('notes')
             ->label('ملاحظات')
             ->type('textarea');
+
+        CRUD::field('for_future_obligation')
+            ->label('دفعة لسداد دين/التزام مستقبلي')
+            ->type('checkbox')
+            ->hint('فعّلها عندما تكون الدفعة تحصيلاً مخصّصاً لما سيستحق لاحقاً (مقدّم)، لتظهر في تقارير الصندوق ضمن هذا النوع.')
+            ->wrapperAttributes(['class' => 'form-group col-md-12']);
         
         CRUD::field('created_by')
             ->type('hidden')
@@ -172,6 +182,7 @@ class ClientPaymentCrudController extends CrudController
             'payment_method' => 'required|in:cash,bank_transfer,check,credit_card,other',
             'reference_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
+            'for_future_obligation' => 'nullable|boolean',
         ]);
         
         // إنشاء الدفعة
@@ -182,6 +193,7 @@ class ClientPaymentCrudController extends CrudController
             'payment_method' => $request->payment_method,
             'reference_number' => $request->reference_number,
             'notes' => $request->notes,
+            'for_future_obligation' => $request->boolean('for_future_obligation'),
             'created_by' => auth()->id(),
         ]);
         

@@ -72,7 +72,7 @@
             border-spacing: 0;
             background: #fff;
             border-radius: 20px;
-            overflow: hidden;
+            overflow: visible;
             box-shadow: var(--shadow-md);
         }
 
@@ -110,6 +110,21 @@
             background: var(--primary-deep) !important;
             border: none !important;
             border-radius: 10px !important;
+        }
+
+        /* Dropdown لا يُقصّه الجدول ولا يمرّ خلف الصفوف */
+        .filter-card .table-responsive {
+            overflow-x: auto !important;
+            overflow-y: visible !important;
+        }
+        table.table-clean tbody tr {
+            position: relative;
+        }
+        table.table-clean tbody tr .unified-actions-dropdown.show {
+            z-index: 1065 !important;
+        }
+        .unified-actions-dropdown.dropdown .dropdown-menu {
+            z-index: 1070 !important;
         }
     </style>
 @endsection

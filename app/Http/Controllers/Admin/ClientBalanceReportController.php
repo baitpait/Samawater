@@ -38,13 +38,15 @@ class ClientBalanceReportController extends Controller
             if ($client) {
                 $totalOpeningBalance = (float) ($client->opening_balance_amount ?? 0);
                 $totalInvoices = $client->invoices->sum('total_amount');
-                $totalPayments = $client->payments->sum('amount');
-                $totalBalance = $totalOpeningBalance + $totalInvoices - $totalPayments;
+                $totalPaymentsAll = (float) $client->payments->sum('amount');
+                $paymentsStandalone = (float) $client->payments()->whereDoesntHave('linkedDelivery')->sum('amount');
+                $totalBalance = round($totalOpeningBalance + $totalInvoices - $paymentsStandalone, 2);
                 $client->opening_balance_amount = $totalOpeningBalance;
                 $client->total_invoices_amount = $totalInvoices;
-                $client->total_paid_amount = $totalPayments;
+                $client->total_paid_amount = $totalPaymentsAll;
                 $client->balance = $totalBalance;
                 $clients = collect([$client]);
+                $totalPayments = $totalPaymentsAll;
             }
         }
 

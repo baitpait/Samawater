@@ -23,7 +23,7 @@
                 </div>
                 <div class="card-body">
                     <div class="list-group list-group-flush">
-                        <a href="{{ backpack_url('client') }}" class="list-group-item list-group-item-action">
+                        <a href="{{ route('reports.filters') }}" class="list-group-item list-group-item-action">
                             <i class="la la-users"></i> المشتركين
                         </a>
                         <a href="{{ route('delivery.list') }}" class="list-group-item list-group-item-action">

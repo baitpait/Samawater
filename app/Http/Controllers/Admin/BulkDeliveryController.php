@@ -7,9 +7,9 @@ use App\Models\Client;
 use App\Models\Delivery;
 use App\Models\InventoryItem;
 use App\Models\ClientPayment;
+use App\Support\CachedDeliveryFormOptions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 /**
  * Business Purpose: صفحة إدخال جماعي للتسليمات (Excel-like)
@@ -24,6 +24,24 @@ class BulkDeliveryController extends Controller
      */
     public function index(Request $request)
     {
+        $filterOptions = CachedDeliveryFormOptions::all();
+        $cities = $filterOptions['cities'];
+        $subscriptionTypes = $filterOptions['subscriptionTypes'];
+        $subscriptionStatuses = $filterOptions['subscriptionStatuses'];
+        $distributors = $filterOptions['distributors'];
+
+        $bulkEntryDistributorLocked = false;
+        $defaultBulkEntryDistributorId = null;
+        $bulkEntryDistributorDisplayName = null;
+        $user = backpack_user();
+        if ($user && $user->isDistributor() && $user->distributor !== null) {
+            $bulkEntryDistributorLocked = true;
+            $defaultBulkEntryDistributorId = (int) $user->distributor->id;
+            $bulkEntryDistributorDisplayName = $user->distributor->name;
+        } elseif ($distributors->isNotEmpty()) {
+            $defaultBulkEntryDistributorId = (int) $distributors->first()->id;
+        }
+
         // جلب نفس البيانات من DeliveryListController
         $dueClientsQuery = DB::table('v_clients_due_by_type_days_ids')
             ->leftJoin('cities', 'cities.id', '=', 'v_clients_due_by_type_days_ids.city_id')
@@ -31,12 +49,18 @@ class BulkDeliveryController extends Controller
             ->leftJoin('subscription_types', 'subscription_types.id', '=', 'clients.subscription_type_id')
             ->leftJoin('distributors', 'distributors.id', '=', 'clients.distributor_id')
             ->select(
-                'v_clients_due_by_type_days_ids.*',
+                'v_clients_due_by_type_days_ids.client_id',
+                'v_clients_due_by_type_days_ids.client_name',
+                'v_clients_due_by_type_days_ids.phone_one',
+                'v_clients_due_by_type_days_ids.days_since_last_delivery',
                 'cities.city_name',
                 'clients.client_type',
                 'distributors.name as distributor_name',
                 'subscription_types.id as subscription_type_id'
             );
+
+        // توحيد فلتر حالة الاشتراك مع قائمة التسليم (id أو اسم الحالة من query النظام)
+        $subscriptionStatusFilterId = $this->resolveSubscriptionStatusFilterId($request);
 
         // تطبيق الفلاتر
         if ($request->filled('q')) {
@@ -55,11 +79,11 @@ class BulkDeliveryController extends Controller
         }
 
         if ($request->filled('subscription_type_id')) {
-            $dueClientsQuery->where('subscription_type_id', $request->subscription_type_id);
+            $dueClientsQuery->where('clients.subscription_type_id', $request->subscription_type_id);
         }
 
-        if ($request->filled('subscription_status_id')) {
-            $dueClientsQuery->where('v_clients_due_by_type_days_ids.subscription_status_id', $request->subscription_status_id);
+        if ($subscriptionStatusFilterId !== null) {
+            $dueClientsQuery->where('v_clients_due_by_type_days_ids.subscription_status_id', $subscriptionStatusFilterId);
         }
 
         $minDays = $request->filled('min_days') ? (int) $request->min_days : null;
@@ -68,10 +92,10 @@ class BulkDeliveryController extends Controller
         }
         if ($minDays !== null) {
             $operator = $request->get('days_operator', '>=');
-            $dueClientsQuery->where('days_since_last_delivery', $operator, $minDays);
+            $dueClientsQuery->where('v_clients_due_by_type_days_ids.days_since_last_delivery', $operator, $minDays);
         }
 
-        $dueClientsQuery->orderByDesc('days_since_last_delivery');
+        $dueClientsQuery->orderByDesc('v_clients_due_by_type_days_ids.days_since_last_delivery');
 
         // جلب المشتركين الذين delivery_on_demand = true
         $onDemandClientsQuery = null;
@@ -125,8 +149,8 @@ class BulkDeliveryController extends Controller
             $onDemandClientsQuery->where('clients.subscription_type_id', $request->subscription_type_id);
         }
 
-        if ($onDemandClientsQuery && $request->filled('subscription_status_id')) {
-            $onDemandClientsQuery->where('clients.subscription_status_id', $request->subscription_status_id);
+        if ($onDemandClientsQuery && $subscriptionStatusFilterId !== null) {
+            $onDemandClientsQuery->where('clients.subscription_status_id', $subscriptionStatusFilterId);
         }
 
         if ($onDemandClientsQuery && $minDays !== null) {
@@ -136,9 +160,6 @@ class BulkDeliveryController extends Controller
                 [$minDays]
             );
         }
-
-        // إضافة subscription_status_name للـ select
-        $onDemandClientsQuery->addSelect('subscription_statuses.status_name as subscription_status_name');
 
         // دمج النتائج
         $dueClients = $dueClientsQuery->get();
@@ -153,18 +174,37 @@ class BulkDeliveryController extends Controller
         $inventoryItem = InventoryItem::where('id', 1)->first();
         $currentInventory = $inventoryItem ? $inventoryItem->quantity : 0;
 
-        // جلب البيانات للفلاتر
-        $cities = DB::table('cities')->orderBy('city_name')->get();
-        $subscriptionTypes = DB::table('subscription_types')->orderBy('type_name')->get();
-        $subscriptionStatuses = DB::table('subscription_statuses')->orderBy('status_name')->get();
-
         return view('admin.bulk_delivery_entry', compact(
             'allClients',
             'currentInventory',
             'cities',
             'subscriptionTypes',
-            'subscriptionStatuses'
+            'subscriptionStatuses',
+            'subscriptionStatusFilterId',
+            'distributors',
+            'bulkEntryDistributorLocked',
+            'defaultBulkEntryDistributorId',
+            'bulkEntryDistributorDisplayName'
         ));
+    }
+
+    /**
+     * Business Purpose: مطابقة فلتر الحالة بين نموذج الإدخال الجماعي (id) وروابط قائمة التسليم (اسم الحالة).
+     */
+    private function resolveSubscriptionStatusFilterId(Request $request): ?int
+    {
+        if ($request->filled('subscription_status_id')) {
+            return (int) $request->subscription_status_id;
+        }
+        if ($request->filled('subscription_status_name')) {
+            $id = DB::table('subscription_statuses')
+                ->where('status_name', $request->subscription_status_name)
+                ->value('id');
+
+            return $id !== null ? (int) $id : null;
+        }
+
+        return null;
     }
 
     /**
@@ -175,6 +215,7 @@ class BulkDeliveryController extends Controller
         $validated = $request->validate([
             'client_id' => 'required|integer|exists:clients,id',
             'delivery_date' => 'required|date',
+            'distributor_id' => 'required|integer|exists:distributors,id',
             'bottle_received' => 'required|integer|min:0',
             'bottle_empty' => 'required|integer|min:0',
             'required_amount' => 'required|numeric|min:0',
@@ -203,6 +244,7 @@ class BulkDeliveryController extends Controller
                 $validated = validator($deliveryData, [
                     'client_id' => 'required|integer|exists:clients,id',
                     'delivery_date' => 'required|date',
+                    'distributor_id' => 'required|integer|exists:distributors,id',
                     'bottle_received' => 'required|integer|min:0',
                     'bottle_empty' => 'required|integer|min:0',
                     'required_amount' => 'required|numeric|min:0',
@@ -256,7 +298,7 @@ class BulkDeliveryController extends Controller
             'required_amount' => $data['required_amount'],
             'inventory_item_id' => 1,
             'paymant' => $data['paymant'] ?? 0,
-            'distributor_id' => Client::find($data['client_id'])->distributor_id ?? null,
+            'distributor_id' => (int) $data['distributor_id'],
         ]);
 
         // إدارة المخزون

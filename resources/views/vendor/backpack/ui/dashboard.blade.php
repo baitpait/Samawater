@@ -23,7 +23,7 @@
 @if ($isDistributor)
     <div class="row g-4">
         <div class="col-md-4">
-            <a href="{{ backpack_url('client') }}" class="text-decoration-none">
+            <a href="{{ route('reports.filters') }}" class="text-decoration-none">
                 <div class="dashboard-stat-card stat-card-purple">
                     <div class="stat-card-content">
                         <div class="stat-icon-box icon-box-purple">

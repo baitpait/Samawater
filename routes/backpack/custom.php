@@ -24,7 +24,11 @@ use App\Http\Controllers\Admin\InventoryItemCrudController;
 use App\Http\Controllers\Admin\InvoiceCrudController;
 use App\Http\Controllers\Admin\ClientPaymentCrudController;
 use App\Http\Controllers\Admin\ClientBalanceReportController;
+use App\Http\Controllers\Admin\TreasuryCustodyReportController;
+use App\Http\Controllers\Admin\UnifiedFinancialLedgerController;
+use App\Http\Controllers\Admin\CompanyTreasuryReportController;
 use App\Http\Controllers\Admin\ClientDepositCrudController;
+use App\Http\Controllers\Admin\DiagnosisController;
 use App\Http\Middleware\CheckUserManagementPermission;
 
 // ============================================
@@ -77,6 +81,11 @@ Route::get('/reports/filters/export/excel', [\App\Http\Controllers\Admin\ReportF
 
 Route::get('/reports/filters/export/pdf', [\App\Http\Controllers\Admin\ReportFilterController::class, 'exportPdf'])
     ->name('reports.filters.export.pdf');
+
+Route::post(
+    '/reports/filters/client/{client}/delivery-on-demand',
+    [\App\Http\Controllers\Admin\ReportFilterController::class, 'toggleDeliveryOnDemand']
+)->name('reports.filters.toggle_delivery_on_demand');
 
 Route::get(
     'reports/clients-due-advanced',
@@ -189,6 +198,9 @@ Route::get('/distributors-list', [\App\Http\Controllers\Admin\DistributorListCon
     Route::crud('city', CityCrudController::class);
     
     Route::crud('distributor', DistributorCrudController::class);
+    Route::get('delivery/{id}/modal-data', [DeliveryCrudController::class, 'deliveryModalJson'])
+        ->whereNumber('id')
+        ->name('delivery.modal-data');
     Route::crud('delivery', DeliveryCrudController::class);
     Route::crud('clients-due', VClientsDueByTypeDaysIdsCrudController::class);
     Route::crud('subscription-type', SubscriptionTypeCrudController::class);
@@ -223,5 +235,12 @@ Route::get('/distributors-list', [\App\Http\Controllers\Admin\DistributorListCon
     // تقرير رصيد المشتركين
     Route::get('reports/client-balance', [ClientBalanceReportController::class, 'index'])
         ->name('reports.client-balance');
+    Route::get('reports/treasury-custody', [TreasuryCustodyReportController::class, 'index'])
+        ->name('reports.treasury-custody');
+    Route::get('reports/financial-movements-unified', [UnifiedFinancialLedgerController::class, 'index'])
+        ->name('reports.financial-movements-unified');
+    Route::get('reports/company-treasury', [CompanyTreasuryReportController::class, 'index'])
+        ->name('reports.company-treasury');
+
+    Route::get('diagnosis', [DiagnosisController::class, 'index'])->name('admin.diagnosis');
 });
-Route::get('diagnosis', 'App\Http\Controllers\Admin\DiagnosisController@index');

@@ -119,7 +119,7 @@ class DemoDataSeeder extends Seeder
             User::create([
                 'name' => $name,
                 'email' => $phone . '@distributor.local',
-                'password' => bcrypt($password),
+                'password' => $password,
                 'role_id' => $roleDistributor?->id,
                 'distributor_id' => $distributor->id,
             ]);
@@ -138,7 +138,7 @@ class DemoDataSeeder extends Seeder
             ['email' => 'admin@sama.test'],
             [
                 'name' => 'مدير النظام',
-                'password' => bcrypt('Admin@12345'),
+                'password' => 'Admin@12345',
                 'role_id' => $role?->id,
             ]
         );

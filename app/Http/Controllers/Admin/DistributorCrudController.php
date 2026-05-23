@@ -50,7 +50,7 @@ class DistributorCrudController extends CrudController
 
         $query->orderBy($sortBy, $sortDir);
 
-        $perPage = (int) $request->get('per_page', 25);
+        $perPage = (int) $request->get('per_page', 50);
         if ($perPage < 1) {
             $perPage = 25;
         }

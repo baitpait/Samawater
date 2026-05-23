@@ -11,7 +11,9 @@
         </div>
         <div class="modal-body p-4">
           <input type="hidden" name="delivery_id" id="delivery_id">
-          <input type="hidden" name="client_id" id="client_id">
+          <input type="hidden" name="client_id" id="edit_delivery_client_id" value="">
+          <input type="hidden" name="required_amount" id="required_amount" value="">
+          <input type="hidden" name="inventory_item_id" id="inventory_item_id" value="">
 
           <div class="mb-3">
             <label for="bottle_received" class="form-label fw-bold">عدد العبوات المستلمة <span class="text-danger">*</span></label>
@@ -54,105 +56,149 @@
   </div>
 </div>
 
-@push('after_scripts')
+{{-- Loaded inline so editDelivery exists even when layouts omit @stack('after_scripts') --}}
 <script>
+(function () {
 var deliveryModal = null;
 const deliveryEditBaseUrl = '{{ backpack_url("delivery") }}';
 
-// نقل الـ Modal إلى نهاية الـ body لضمان ظهوره فوق الـ backdrop
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const modalEl = document.getElementById('editDeliveryModal');
-    if (modalEl) {
+    if (modalEl && modalEl.parentElement !== document.body) {
         document.body.appendChild(modalEl);
     }
 });
 
-function closeEditModal() {
+window.closeEditModal = function closeEditModal() {
     if (deliveryModal && typeof deliveryModal.hide === 'function') {
         deliveryModal.hide();
-    } else if (typeof $ !== 'undefined' && $('#editDeliveryModal').length) {
+    } else if (typeof window.$ !== 'undefined' && $('#editDeliveryModal').length) {
         $('#editDeliveryModal').modal('hide');
     } else {
-        const modalEl = document.getElementById('editDeliveryModal');
-        if (modalEl) {
-            modalEl.classList.remove('show');
-            modalEl.style.display = 'none';
-            const backdrop = document.querySelector('.modal-backdrop');
-            if (backdrop) backdrop.remove();
+        var modalDom = document.getElementById('editDeliveryModal');
+        if (modalDom) {
+            modalDom.classList.remove('show');
+            modalDom.style.display = 'none';
+            var bd = document.querySelector('.modal-backdrop');
+            if (bd) { bd.remove(); }
             document.body.classList.remove('modal-open');
             document.body.style.overflow = '';
         }
     }
-}
+};
 
-function editDelivery(deliveryId) {
+window.editDelivery = function editDelivery(deliveryId) {
     if (!deliveryId) return;
-    
+
+    var modalDom = document.getElementById('editDeliveryModal');
+    if (!modalDom) return;
+
     if (!deliveryModal) {
-        const modalEl = document.getElementById('editDeliveryModal');
-        if (!modalEl) return;
-        
         if (typeof window.bootstrap !== 'undefined' && window.bootstrap && window.bootstrap.Modal) {
-            deliveryModal = new window.bootstrap.Modal(modalEl);
-        } else if (typeof window.jQuery !== 'undefined' && window.jQuery.fn && window.jQuery.fn.modal) {
-            window.jQuery(modalEl).modal({ show: false });
+            deliveryModal = new window.bootstrap.Modal(modalDom);
+        } else if (typeof window.$ !== 'undefined' && window.$.fn && window.$.fn.modal) {
+            window.$(modalDom).modal({ show: false });
             deliveryModal = {
-                show: function() { window.jQuery(modalEl).modal('show'); },
-                hide: function() { window.jQuery(modalEl).modal('hide'); }
+                show: function () { window.$(modalDom).modal('show'); },
+                hide: function () { window.$(modalDom).modal('hide'); },
             };
         }
     }
-    
-    fetch(`${deliveryEditBaseUrl}/${deliveryId}/edit`, {
-        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+
+    fetch(deliveryEditBaseUrl + '/' + deliveryId + '/modal-data', {
+        credentials: 'same-origin',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.id) {
+        .then(function (res) {
+            return res.json().then(function (data) {
+                return { ok: res.ok, status: res.status, data: data };
+            });
+        })
+        .then(function (wrapped) {
+            if (!wrapped.ok || !wrapped.data || wrapped.data.id == null) {
+                var msg =
+                    (wrapped.data && wrapped.data.message) ||
+                    ('تعذر تحميل بيانات التسليم (' + wrapped.status + ')');
+                alert(msg);
+                return;
+            }
+            var data = wrapped.data;
             document.getElementById('delivery_id').value = data.id;
-            document.getElementById('client_id').value = data.client_id ?? '';
+            document.getElementById('edit_delivery_client_id').value = data.client_id ?? '';
+            document.getElementById('required_amount').value =
+                data.required_amount != null ? data.required_amount : '';
+            document.getElementById('inventory_item_id').value =
+                data.inventory_item_id != null ? data.inventory_item_id : '1';
             document.getElementById('bottle_received').value = data.bottle_received ?? 0;
             document.getElementById('bottle_empty').value = data.bottle_empty ?? 0;
             document.getElementById('paymant').value = data.paymant ?? 0;
             document.getElementById('delivery_date').value = data.delivery_date ?? '';
-            if (document.getElementById('distributor_id')) {
-                document.getElementById('distributor_id').value = data.distributor_id ?? '';
+            document.getElementById('distributor_id').value = data.distributor_id ?? '';
+            if (deliveryModal) {
+                deliveryModal.show();
             }
-            if (deliveryModal) deliveryModal.show();
-        }
-    })
-    .catch(err => alert('حدث خطأ أثناء جلب البيانات'));
-}
+        })
+        .catch(function () {
+            alert('حدث خطأ أثناء جلب البيانات');
+        });
+};
 
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('editDeliveryForm');
-    if (form) {
-        form.addEventListener('submit', function(e){
-            e.preventDefault();
-            const formData = new FormData(this);
-            const deliveryId = formData.get('delivery_id');
-            formData.append('_method', 'PUT');
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.getElementById('editDeliveryForm');
+    if (!form) return;
 
-            fetch(`${deliveryEditBaseUrl}/${deliveryId}`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: formData
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var formData = new FormData(form);
+        var deliveryPk = formData.get('delivery_id');
+        formData.append('_method', 'PUT');
+
+        fetch(deliveryEditBaseUrl + '/' + deliveryPk, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: formData,
+        })
+            .then(function (res) {
+                return res.json().then(function (data) {
+                    return { ok: res.ok, data: data, status: res.status };
+                });
             })
-            .then(res => res.json())
-            .then(data => {
-                if(data.status){
-                    closeEditModal();
-                    location.reload();
+            .then(function (wrapped) {
+                var data = wrapped.data;
+                if (!wrapped.ok) {
+                    var errs = data.errors || {};
+                    var flat = [];
+                    Object.keys(errs).forEach(function (k) {
+                        [].concat(errs[k] || []).forEach(function (m) {
+                            flat.push(m);
+                        });
+                    });
+                    var msg =
+                        data.message ||
+                        (flat.length ? flat.join('\n') : '') ||
+                        'فشل التحقق من البيانات (' + wrapped.status + ')';
+                    alert(msg);
+                    return;
+                }
+                if (data.status) {
+                    window.closeEditModal();
+                    window.location.reload();
                 } else {
                     alert(data.message || 'حدث خطأ');
                 }
             })
-            .catch(err => alert('حدث خطأ أثناء حفظ التعديلات'));
-        });
-    }
+            .catch(function () {
+                alert('حدث خطأ أثناء حفظ التعديلات');
+            });
+    });
 });
+})();
 </script>
-@endpush

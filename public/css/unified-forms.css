@@ -635,3 +635,21 @@ footer.app-footer a:hover::after,
         font-size: 13px !important;
     }
 }
+
+/* ============================================
+   جداول موحّدة + قوائم إجراءات (منع اختفاء الدروب داون خلف الصفوف)
+   ============================================ */
+table.table-clean,
+.table.table-clean {
+    overflow: visible !important;
+}
+
+.app-body .btn-group.unified-actions-dropdown.dropdown .dropdown-menu {
+    z-index: 1070 !important;
+}
+
+.table tbody tr:has(.unified-actions-dropdown.dropdown.show),
+.table-modern tbody tr:has(.unified-actions-dropdown.dropdown.show) {
+    position: relative;
+    z-index: 12;
+}

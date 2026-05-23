@@ -12,7 +12,7 @@
     <div class="row g-4">
         <!-- المشتركين -->
         <div class="col-md-4">
-            <a href="{{ backpack_url('client') }}" class="text-decoration-none">
+            <a href="{{ route('reports.filters') }}" class="text-decoration-none">
                 <div class="card h-100" style="border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.1); transition: all 0.3s ease;">
                     <div class="card-body text-center p-4">
                         <div class="mb-3">

@@ -49,7 +49,7 @@
             </div>
         </div>
         <div class="header-actions" style="position: relative; z-index: 10;">
-            <a href="{{ backpack_url('client') }}" class="btn btn-light" style="color: var(--primary-deep); font-weight: 700; border-radius: 12px;">
+            <a href="{{ route('reports.filters') }}" class="btn btn-light" style="color: var(--primary-deep); font-weight: 700; border-radius: 12px;">
                 <i class="la la-arrow-right"></i> العودة للمشتركين
             </a>
             @if($client)

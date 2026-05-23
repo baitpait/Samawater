@@ -10,7 +10,9 @@ use App\Models\InventoryItem;
 
 class ClientCrudController extends CrudController
 {
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation {
+        index as protected listOperationIndex;
+    }
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation {
         update as traitUpdate;
@@ -77,6 +79,14 @@ class ClientCrudController extends CrudController
         }
         
         return $query;
+    }
+
+    /**
+     * قائمة CRUD القديمة (/admin/client) أُلغيت؛ الصفحة المعتمدة هي تقارير الفلاتر.
+     */
+    public function index()
+    {
+        return redirect()->route('reports.filters');
     }
 
     public function setup()
@@ -289,7 +299,7 @@ class ClientCrudController extends CrudController
 
             [
                 'name'  => 'bottle_balance',
-                'label' => 'رصيد القوارير',
+                'label' => 'رصيد القوارير بداية المدة',
                 'type'  => 'number',
             ],
             
@@ -371,6 +381,7 @@ class ClientCrudController extends CrudController
             'subscription_status_id' => $request->subscription_status_id,
             'subscription_start_date' => $request->subscription_start_date,
             'bottle_balance' => $bottleBalance,
+            'delivery_on_demand' => $request->boolean('delivery_on_demand'),
             'opening_balance_amount' => $request->opening_balance_amount ?? 0,
             'opening_balance_as_of' => $request->opening_balance_as_of,
             'notes' => $request->notes,
@@ -528,10 +539,10 @@ class ClientCrudController extends CrudController
             },
         ]);
 
-        // 11. رصيد القوارير
+        // 11. رصيد القوارير بداية المدة
         CRUD::addColumn([
             'name'  => 'bottle_balance',
-            'label' => 'رصيد القوارير',
+            'label' => 'رصيد القوارير بداية المدة',
             'type'  => 'number',
         ]);
 
@@ -613,10 +624,23 @@ CRUD::addColumn([
         // 16. الملاحظات
         CRUD::addColumn([
             'name'  => 'opening_balance_amount',
-            'label' => 'رصيد بداية المدة',
+            'label' => 'رصيد بداية المدة (افتتاحي)',
             'type'  => 'number',
             'decimals' => 2,
             'suffix' => ' ₪',
+        ]);
+
+        CRUD::addColumn([
+            'name' => 'financial_movements_summary',
+            'label' => 'ملخص الحركة المالية',
+            'type' => 'custom_html',
+            'escaped' => false,
+            'value' => function ($entry) {
+                return view('admin.clients.show_financial_panel', [
+                    'f' => $entry->financialSnapshotForShow(),
+                    'entry' => $entry,
+                ])->render();
+            },
         ]);
 
         // 17. الملاحظات

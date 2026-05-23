@@ -350,19 +350,45 @@ document.addEventListener("DOMContentLoaded", function() {
                 });
         }
 
-        // إضافة اختيار إرسال رسالة واتساب (تم نقله للأسفل وتعديل التصميم)
-        CRUD::field('send_whatsapp')
+        $initialClientNotes = $selectedId
+            ? (string) (Client::whereKey((int) $selectedId)->value('notes') ?? '')
+            : '';
+        $notesByClientIdJson = json_encode(
+            Client::query()->pluck('notes', 'id')->map(static fn ($n) => (string) ($n ?? ''))->toArray(),
+            JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+        );
+
+        CRUD::field('client_notes_panel')
             ->type('custom_html')
-            ->value('<div class="form-group col-sm-12 mb-3 mt-4" style="padding-top: 20px; border-top: 2px solid #6f6af820;">
-                <div class="form-check d-flex align-items-center p-0" style="gap: 20px;">
-                    <input type="checkbox" name="send_whatsapp" id="send_whatsapp_check" value="1" checked 
-                        style="width: 25px; height: 25px; cursor: pointer; accent-color: #6f6af8; margin: 0;">
-                    <label class="form-check-label" for="send_whatsapp_check" 
-                        style="font-size: 16px; font-weight: 700; color: #374151; cursor: pointer; margin: 0; user-select: none;">
-                        إرسال إشعار واتساب للعميل ✨
-                    </label>
-                </div>
-            </div>');
+            ->value(
+                '<div class="form-group col-sm-12 mb-3 mt-4" style="padding-top: 16px; border-top: 2px solid rgba(111,106,248,.13);">'
+                . '<label class="control-label form-label" for="client_notes_field">ملاحظات المشترك</label>'
+                . '<textarea name="client_notes" id="client_notes_field" rows="4" class="form-control">'
+                . e($initialClientNotes)
+                . '</textarea>'
+                . '<p class="help-block mb-0 mt-1 small text-muted">تُحفظ على بطاقة المشترك عند حفظ التسليم. يمكنك تعديلها هنا.</p>'
+                . '</div>'
+                . '<script type="application/json" id="delivery-client-notes-map">' . $notesByClientIdJson . '</script>'
+                . '<script>
+document.addEventListener("DOMContentLoaded", function () {
+    var sel = document.getElementById("client_id_select");
+    var ta = document.getElementById("client_notes_field");
+    var mapEl = document.getElementById("delivery-client-notes-map");
+    var map = {};
+    try {
+        map = mapEl ? JSON.parse(mapEl.textContent || "{}") : {};
+    } catch (ignore) {}
+    if (!sel || !ta) {
+        return;
+    }
+    function syncNotesFromMap() {
+        var id = sel.value;
+        ta.value = id !== "" && Object.prototype.hasOwnProperty.call(map, id) ? String(map[id]) : "";
+    }
+    sel.addEventListener("change", syncNotesFromMap);
+});
+</script>'
+            );
     }
 
     protected function setupUpdateOperation()
@@ -385,6 +411,8 @@ document.addEventListener("DOMContentLoaded", function() {
      * - خصم العبوات المستلمة من المخزون
      * - إضافة العبوات الفارغة للمخزون
      * - إنشاء ClientPayment تلقائياً إذا كان paymant > 0
+     * - تحديث ملاحظات المشترك (clients.notes) من حقول النموذج عند وجودها
+     * - إعادة التوجيه إلى إنشاء تسليم آخر لنفس المشترك (تسريع رحلة إدخال تسليمات متتالية)
      */
     public function store()
     {
@@ -420,10 +448,15 @@ document.addEventListener("DOMContentLoaded", function() {
             InventoryItem::addQuantity($inventoryItem->item_name, $delivery->bottle_empty);
         }
         
-        // إرجاع delivery_on_demand إلى false بعد التسليم
+        // تحديث المشترك: إرجاع delivery_on_demand وملاحظات البطاقة
         $client = Client::find($delivery->client_id);
-        if ($client && $client->delivery_on_demand) {
-            $client->delivery_on_demand = false;
+        if ($client) {
+            if ($client->delivery_on_demand) {
+                $client->delivery_on_demand = false;
+            }
+            if ($request->has('client_notes')) {
+                $client->notes = $request->input('client_notes');
+            }
             $client->save();
         }
         
@@ -454,37 +487,7 @@ document.addEventListener("DOMContentLoaded", function() {
         
         \Alert::success('تم إنشاء التسليم بنجاح.')->flash();
 
-        // تجهيز رسالة الوتس اب (فقط إذا تم اختيار الشيك بوكس)
-        if ($request->input('send_whatsapp') == 1 && $client && $client->phone_one) {
-            $phone = preg_replace('/[^0-9]/', '', $client->phone_one);
-            
-            $parentClient = $client->getParentClient();
-            $totalBalance = $parentClient ? $parentClient->balance : 0;
-            
-            $message = "مرحباً بك عميلنا العزيز: {$client->name} ✨\n\n";
-            $message .= "يسرّنا في مياه سما 💧 إبلاغك بإتمام عملية توريد المياه بنجاح. نحن ملتزمون دائماً بتقديم أفضل خدمة تليق بك.\n\n";
-            $message .= "تفاصيل العملية الأخيرة:\n";
-            $message .= "━━━━━━━━━━━━━━━━\n";
-            $message .= "📦 العبوات الجديدة: {$delivery->bottle_received} عبوة\n";
-            $message .= "🔄 العبوات المسترجعة: {$delivery->bottle_empty} عبوة\n";
-            $message .= "💰 المبلغ المطلوب: {$delivery->required_amount}\n";
-            $message .= "💵 المبلغ المدفوع: {$delivery->paymant}\n";
-            $message .= "━━━━━━━━━━━━━━━━\n";
-            $message .= "📊 رصيد حسابك الإجمالي: {$totalBalance}\n\n";
-            $message .= "نشكرك على ثقتك الدائمة بـ مياه سما.. خيارك الأمثل للنقاء والانتعاش 🌊\n\n";
-            $message .= "لأي استفسار، نحن دائماً في خدمتك.";
-
-            $whatsappUrl = "https://wa.me/{$phone}?text=" . urlencode($message);
-            
-            // تسجيل لوج للتحقق من الرابط
-            \Log::info("WhatsApp URL generated: " . $whatsappUrl);
-            
-            // تخزين الرابط في السيشن ليقوم الجافاسكريبت بفتحه
-            session()->flash('whatsapp_url', $whatsappUrl);
-            session()->put('whatsapp_url_persistent', $whatsappUrl);
-        }
-
-        return redirect($this->crud->route);
+        return redirect(backpack_url('delivery/create?client_id=' . $delivery->client_id));
     }
 
     /**
@@ -495,97 +498,55 @@ document.addEventListener("DOMContentLoaded", function() {
      */
     public function update()
     {
-        // إذا كان الطلب JSON (من AJAX)، استخدم المنطق القديم
-        if (request()->wantsJson() || request()->expectsJson()) {
-            try {
-                $id = request()->route('id');
-                $entry = $this->crud->getEntry($id);
-                
-                if (!$entry) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'التوصيل غير موجود'
-                    ], 404);
-                }
-                
-                // التحقق من البيانات - استخدام client_id من التوصيل الأصلي إذا لم يتم إرساله
-                $requestData = request()->all();
-                
-                // إذا لم يتم إرسال client_id، استخدم client_id من التوصيل الأصلي
-                if (!isset($requestData['client_id']) || empty($requestData['client_id'])) {
-                    $requestData['client_id'] = $entry->client_id;
-                }
-                
-                // التحقق من البيانات
-                $validator = \Validator::make($requestData, [
-                    'client_id' => 'required|integer|exists:clients,id',
-                    'delivery_date' => 'required|date',
-                    'bottle_received' => 'required|integer|min:0',
-                    'bottle_empty' => 'required|integer|min:0',
-                    'paymant' => 'required|numeric|min:0',
-                    'distributor_id' => 'required|integer|exists:distributors,id',
-                ], [
-                    'client_id.required' => 'يجب اختيار المشترك',
-                    'client_id.exists' => 'المشترك المحدد غير موجود',
-                    'delivery_date.required' => 'تاريخ التوصيل مطلوب',
-                    'delivery_date.date' => 'تاريخ التوصيل يجب أن يكون تاريخاً صحيحاً',
-                    'bottle_received.required' => 'عدد العبوات المستلمة مطلوب',
-                    'bottle_received.integer' => 'عدد العبوات المستلمة يجب أن يكون رقماً صحيحاً',
-                    'bottle_received.min' => 'عدد العبوات المستلمة لا يمكن أن يكون سالباً',
-                    'bottle_empty.required' => 'عدد العبوات الفارغة مطلوب',
-                    'bottle_empty.integer' => 'عدد العبوات الفارغة يجب أن يكون رقماً صحيحاً',
-                    'bottle_empty.min' => 'عدد العبوات الفارغة لا يمكن أن يكون سالباً',
-                    'paymant.required' => 'الدفعة مطلوبة',
-                    'paymant.numeric' => 'الدفعة يجب أن تكون رقماً',
-                    'paymant.min' => 'الدفعة لا يمكن أن تكون سالبة',
-                    'distributor_id.required' => 'يجب اختيار الموزع',
-                    'distributor_id.exists' => 'الموزع المحدد غير موجود',
-                ]);
-                
-                if ($validator->fails()) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'التحقق من البيانات فشل',
-                        'errors' => $validator->errors()
-                    ], 422);
-                }
-                
-                // تحديث البيانات
-                $entry->update([
-                    'client_id' => $requestData['client_id'],
-                    'delivery_date' => $requestData['delivery_date'],
-                    'bottle_received' => $requestData['bottle_received'],
-                    'bottle_empty' => $requestData['bottle_empty'],
-                    'paymant' => $requestData['paymant'],
-                    'distributor_id' => $requestData['distributor_id'],
-                ]);
-                
-                return response()->json([
-                    'status' => true,
-                    'message' => 'تم تحديث التوصيل بنجاح'
-                ]);
-            } catch (\Exception $e) {
-                \Log::error('Error updating delivery: ' . $e->getMessage());
-                return response()->json([
-                    'status' => false,
-                    'message' => 'حدث خطأ أثناء تحديث التوصيل: ' . $e->getMessage()
-                ], 500);
+        $deliveryId = request()->route('id');
+        $existingForMerge = $deliveryId ? Delivery::query()->find($deliveryId) : null;
+        if ($existingForMerge) {
+            $mergePayload = [];
+            if (!request()->filled('inventory_item_id')) {
+                $mergePayload['inventory_item_id'] = $existingForMerge->inventory_item_id ?? 1;
+            }
+            if (!request()->has('required_amount')
+                || request()->input('required_amount') === null
+                || request()->input('required_amount') === '') {
+                $mergePayload['required_amount'] = $existingForMerge->required_amount ?? 0;
+            }
+            if (!request()->filled('client_id')) {
+                $mergePayload['client_id'] = $existingForMerge->client_id;
+            }
+            if ($mergePayload !== []) {
+                request()->merge($mergePayload);
             }
         }
-        
-        // إذا كان الطلب عادي (HTML)، استخدم المنطق الجديد
+
         $request = $this->crud->validateRequest();
         $entry = $this->crud->getCurrentEntry();
-        
+
+        $expectsJsonResponse = request()->expectsJson();
+
         if (!$entry) {
+            if ($expectsJsonResponse) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'التسليم غير موجود.',
+                ], 404);
+            }
+
             \Alert::error('التسليم غير موجود.')->flash();
+
             return redirect($this->crud->route);
         }
-        
         // التحقق من وجود الصنف في المخزون
         $inventoryItem = InventoryItem::find($request->inventory_item_id ?? 1);
         if (!$inventoryItem) {
+            if ($expectsJsonResponse) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'صنف العبوات غير موجود في المخزون.',
+                ], 422);
+            }
+
             \Alert::error('⚠️ صنف العبوات غير موجود في المخزون.')->flash();
+
             return redirect()->back()->withInput();
         }
         
@@ -629,10 +590,15 @@ document.addEventListener("DOMContentLoaded", function() {
             InventoryItem::addQuantity($inventoryItem->item_name, $entry->bottle_empty);
         }
         
-        // إرجاع delivery_on_demand إلى false بعد تحديث التسليم
+        // تحديث المشترك: إرجاع delivery_on_demand وملاحظات البطاقة
         $client = Client::find($entry->client_id);
-        if ($client && $client->delivery_on_demand) {
-            $client->delivery_on_demand = false;
+        if ($client) {
+            if ($client->delivery_on_demand) {
+                $client->delivery_on_demand = false;
+            }
+            if ($request->has('client_notes')) {
+                $client->notes = $request->input('client_notes');
+            }
             $client->save();
         }
         
@@ -642,10 +608,18 @@ document.addEventListener("DOMContentLoaded", function() {
             $parentClient = $client ? $client->getParentClient() : null;
             
             if (!$parentClient) {
+                if ($expectsJsonResponse) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'لا يمكن حفظ الدفعة: العميل الأب غير موجود.',
+                    ], 422);
+                }
+
                 \Alert::error('⚠️ لا يمكن إنشاء الدفعة: العميل الأب غير موجود.')->flash();
+
                 return redirect()->back()->withInput();
             }
-            
+
             // إذا كان هناك دفعة قديمة، حدثها
             if ($oldClientPaymentId) {
                 $oldPayment = ClientPayment::find($oldClientPaymentId);
@@ -683,6 +657,13 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
         
+        if ($expectsJsonResponse) {
+            return response()->json([
+                'status' => true,
+                'message' => 'تم تحديث التسليم بنجاح.',
+            ]);
+        }
+
         \Alert::success('تم تحديث التسليم بنجاح.')->flash();
 
         $fromOverview = request()->get('return_to_report') === 'clients_delivery_overview'
@@ -788,5 +769,25 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         return response()->json($results);
+    }
+
+    /**
+     * Business Purpose: بيانات تسليم واحد بصيغة JSON لنافذة التعديل السريع من تقرير المشترك (بدلاً من GET edit الذي يعيد HTML).
+     */
+    public function deliveryModalJson(int $id): \Illuminate\Http\JsonResponse
+    {
+        $delivery = Delivery::query()->findOrFail($id);
+
+        return response()->json([
+            'id' => $delivery->id,
+            'client_id' => $delivery->client_id,
+            'bottle_received' => (int) $delivery->bottle_received,
+            'bottle_empty' => (int) $delivery->bottle_empty,
+            'paymant' => (float) $delivery->paymant,
+            'required_amount' => (float) $delivery->required_amount,
+            'delivery_date' => $delivery->delivery_date?->format('Y-m-d'),
+            'distributor_id' => $delivery->distributor_id,
+            'inventory_item_id' => (int) ($delivery->inventory_item_id ?? 1),
+        ]);
     }
 }

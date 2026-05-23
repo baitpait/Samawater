@@ -23,12 +23,14 @@ class ClientPayment extends Model
         'payment_method',
         'reference_number',
         'notes',
+        'for_future_obligation',
         'created_by',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'payment_date' => 'date',
+        'for_future_obligation' => 'boolean',
     ];
 
     /**
@@ -45,5 +47,13 @@ class ClientPayment extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Business Purpose: تسليم واحد على الأكثر يعتمد هذه الدفعة كمدفوع على سطر البيع بالتسليم.
+     */
+    public function linkedDelivery(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Delivery::class, 'client_payment_id');
     }
 }

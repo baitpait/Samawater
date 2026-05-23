@@ -59,11 +59,19 @@ class ClientsDeliveryOverviewController extends Controller
     $rows = collect();
 
     if ($request->has('search')) {
-        $rows = $query->orderByDesc('last_delivery_date')
-            ->orderByDesc('last_delivery_id') // ترتيب إضافي لإزالة التكرار
+        $rows = $query->orderByDesc('v_clients_delivery_overview.last_delivery_date')
+            ->orderByDesc('v_clients_delivery_overview.last_delivery_id')
             ->get()
-            ->unique('client_id') // إزالة التكرار - كل عميل مرة واحدة فقط
-            ->values(); // إعادة ترتيب المفاتيح
+            ->unique('client_id')
+            ->sortByDesc(function ($row) {
+                $d = $row->last_delivery_date ?? null;
+                if ($d === null || $d === '') {
+                    return PHP_INT_MIN;
+                }
+
+                return \Carbon\Carbon::parse($d)->timestamp * 10_000 + (int) ($row->last_delivery_id ?? 0);
+            })
+            ->values();
         
         // تطبيق pagination يدوياً بعد إزالة التكرار
         $perPage = 50;
@@ -169,10 +177,18 @@ public function show($clientId, Request $request)
                   ->groupBy('v_clients_delivery_overview.client_id');
         }
 
-        $rows = $query->orderByDesc('last_delivery_date')
-            ->orderByDesc('last_delivery_id')
+        $rows = $query->orderByDesc('v_clients_delivery_overview.last_delivery_date')
+            ->orderByDesc('v_clients_delivery_overview.last_delivery_id')
             ->get()
             ->unique('client_id')
+            ->sortByDesc(function ($row) {
+                $d = $row->last_delivery_date ?? null;
+                if ($d === null || $d === '') {
+                    return PHP_INT_MIN;
+                }
+
+                return \Carbon\Carbon::parse($d)->timestamp * 10_000 + (int) ($row->last_delivery_id ?? 0);
+            })
             ->values();
 
         // جلب بيانات آخر تسليم (نفس الجدول في الصفحة)
@@ -278,10 +294,18 @@ public function show($clientId, Request $request)
                   ->groupBy('v_clients_delivery_overview.client_id');
         }
 
-        $rows = $query->orderByDesc('last_delivery_date')
-            ->orderByDesc('last_delivery_id')
+        $rows = $query->orderByDesc('v_clients_delivery_overview.last_delivery_date')
+            ->orderByDesc('v_clients_delivery_overview.last_delivery_id')
             ->get()
             ->unique('client_id')
+            ->sortByDesc(function ($row) {
+                $d = $row->last_delivery_date ?? null;
+                if ($d === null || $d === '') {
+                    return PHP_INT_MIN;
+                }
+
+                return \Carbon\Carbon::parse($d)->timestamp * 10_000 + (int) ($row->last_delivery_id ?? 0);
+            })
             ->values();
 
         // جلب بيانات آخر تسليم (نفس الجدول في الصفحة)

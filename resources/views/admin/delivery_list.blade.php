@@ -486,10 +486,10 @@
                                 <th>المدينة / العنوان</th>
                                 <th>الهاتف</th>
                                 <th>معلومات الاشتراك</th>
-                                <th>نسبة الالتزام</th>
                                 <th>تاريخ آخر تسليم</th>
+                                <th>عبوات مستلمة (آخر تسليم)</th>
                                 <th>أيام بدون تسليم</th>
-                                <th>الموزع</th>
+                                <th>ملاحظات المشترك</th>
                                 <th>إجراء</th>
                             </tr>
                         </thead>
@@ -510,22 +510,20 @@
                                     </td>
                                     <td>
                                         <span class="badge badge-modern badge-primary-modern">{{ $client->subscription_type_name ?? '-' }}</span>
-                                        <span class="badge badge-modern badge-success-modern">{{ $client->subscription_status_name ?? '-' }}</span>
-                                    </td>
-                                    <td>
-                                        @php
-                                            $rate = $client->percentage_delivery_rate ?? 0;
-                                            $color = $rate >= 80 ? 'success' : ($rate >= 50 ? 'warning' : 'danger');
-                                        @endphp
-                                        <span class="badge badge-modern badge-{{ $color }}-modern">{{ number_format($rate, 1) }}%</span>
                                     </td>
                                     <td>
                                         <span class="fw-semibold" style="color: var(--primary-deep);">{{ $client->last_delivery_date ? \Carbon\Carbon::parse($client->last_delivery_date)->format('Y-m-d') : 'لم يتسلم' }}</span>
                                     </td>
+                                    <td class="text-center">
+                                        <span class="fw-semibold">{{ isset($client->last_delivery_bottle_received) && $client->last_delivery_bottle_received !== null ? (int) $client->last_delivery_bottle_received : '—' }}</span>
+                                    </td>
                                     <td>
                                         <span class="fw-bold" style="color: var(--danger-color);">{{ $client->days_since_last_delivery ?? 0 }} يوم</span>
                                     </td>
-                                    <td>{{ $client->distributor_name ?? '-' }}</td>
+                                    <td style="max-width: 260px;">
+                                        @php $note = isset($client->notes) ? trim((string) $client->notes) : ''; @endphp
+                                        <span class="small text-muted" style="word-break: break-word;">{{ $note !== '' ? $note : '—' }}</span>
+                                    </td>
                                     <td class="pe-4">
                                         <div class="btn-group unified-actions-dropdown dropdown">
                                             <button type="button" class="btn btn-action-modern btn-sm dropdown-toggle" data-toggle="dropdown">

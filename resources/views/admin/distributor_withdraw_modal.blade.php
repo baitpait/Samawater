@@ -246,8 +246,7 @@
             });
         }
         
-        // Close on backdrop click
-        const modalElement = document.getElementById('withdrawModal');
+        // Close on backdrop click (استخدام modalElement المعرف أعلاه)
         if (modalElement) {
             modalElement.addEventListener('click', function(e) {
                 if (e.target === modalElement) {
@@ -299,6 +298,10 @@
         }
     }
     
-    document.addEventListener('DOMContentLoaded', initModal);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initModal);
+    } else {
+        initModal();
+    }
 })();
 </script>
