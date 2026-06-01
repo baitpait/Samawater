@@ -307,6 +307,30 @@ class InvoiceCrudController extends CrudController
             ->default(auth()->id());
     }
 
+    /**
+     * Business Purpose: معاينة الفاتورة بالعربية مع جدول الأصناف وجميع التفاصيل المالية.
+     */
+    protected function setupShowOperation(): void
+    {
+        CRUD::setShowView('admin.invoices.show');
+    }
+
+    /**
+     * Business Purpose: تحميل علاقات الفاتورة قبل عرض صفحة المعاينة.
+     */
+    public function show($id)
+    {
+        $this->crud->hasAccessOrFail('show');
+
+        $id = $this->crud->getCurrentEntryId() ?? $id;
+        $this->data['entry'] = Invoice::query()
+            ->with(['client', 'items', 'creator'])
+            ->findOrFail($id);
+        $this->data['crud'] = $this->crud;
+
+        return view($this->crud->getShowView(), $this->data);
+    }
+
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();

@@ -21,16 +21,17 @@ class ClientsDeliveryOverviewController extends Controller
     $query = VClientsDeliveryOverview::query()
         ->leftJoin('cities', 'cities.id', '=', 'v_clients_delivery_overview.city_id')
         ->select(
-    'v_clients_delivery_overview.*',
-    'cities.city_name as city_name'
-);
+            'v_clients_delivery_overview.*',
+            'cities.city_name as city_name'
+        );
 
     $this->applyOverviewFilters($query, $request);
 
     $rows = collect();
+    $overviewTotals = null;
 
     if ($request->has('search')) {
-        $rows = $query->orderByDesc('v_clients_delivery_overview.last_delivery_date')
+        $allRows = $query->orderByDesc('v_clients_delivery_overview.last_delivery_date')
             ->orderByDesc('v_clients_delivery_overview.last_delivery_id')
             ->get()
             ->unique('client_id')
@@ -43,52 +44,26 @@ class ClientsDeliveryOverviewController extends Controller
                 return \Carbon\Carbon::parse($d)->timestamp * 10_000 + (int) ($row->last_delivery_id ?? 0);
             })
             ->values();
-        
-        // تطبيق pagination يدوياً بعد إزالة التكرار
+
+        foreach ($allRows as $row) {
+            $this->enrichOverviewRowLastDelivery($row);
+        }
+
+        $overviewTotals = [
+            'total_paymant' => round($allRows->sum(static fn ($row): float => (float) ($row->last_paymant ?? 0)), 2),
+            'row_count' => $allRows->count(),
+        ];
+
         $perPage = 50;
         $currentPage = $request->get('page', 1);
-        $items = $rows->slice(($currentPage - 1) * $perPage, $perPage)->values();
+        $items = $allRows->slice(($currentPage - 1) * $perPage, $perPage)->values();
         $rows = new \Illuminate\Pagination\LengthAwarePaginator(
             $items,
-            $rows->count(),
+            $allRows->count(),
             $perPage,
             $currentPage,
             ['path' => $request->url(), 'query' => $request->query()]
         );
-        
-        // جلب بيانات آخر تسليم لكل عميل
-        foreach ($rows as $row) {
-            $lastDelivery = null;
-            
-            // أولاً: البحث عن آخر تسليم (الأعلى ID) للعميل في تاريخ آخر تسليم
-            if ($row->last_delivery_date) {
-                $lastDelivery = \App\Models\Delivery::where('client_id', $row->client_id)
-                    ->whereDate('delivery_date', $row->last_delivery_date)
-                    ->orderByDesc('id') // نأخذ آخر delivery (الأعلى ID)
-                    ->first();
-            }
-            
-            // إذا لم نجد، نستخدم last_delivery_id من الـ View
-            if (!$lastDelivery && $row->last_delivery_id) {
-                $lastDelivery = \App\Models\Delivery::find($row->last_delivery_id);
-            }
-            
-            if ($lastDelivery) {
-                $row->last_bottle_received = $lastDelivery->bottle_received;
-                $row->last_bottle_empty = $lastDelivery->bottle_empty;
-                $row->last_paymant = $lastDelivery->paymant;
-                $row->last_required_amount = $lastDelivery->required_amount ?? 0;
-                $row->last_delivery_date_actual = $lastDelivery->delivery_date;
-                $row->last_delivery_id = (int) $lastDelivery->id;
-            } else {
-                $row->last_bottle_received = 0;
-                $row->last_bottle_empty = 0;
-                $row->last_paymant = 0;
-                $row->last_required_amount = 0;
-                $row->last_delivery_date_actual = null;
-                $row->last_delivery_id = null;
-            }
-        }
     }
 
     $cities = City::orderBy('city_name')->get();
@@ -101,6 +76,7 @@ class ClientsDeliveryOverviewController extends Controller
 
     return view('admin.reports.clients_delivery_overview', compact(
         'rows',
+        'overviewTotals',
         'cities',
         'distributors',
         'subscriptionStatuses',
@@ -108,6 +84,44 @@ class ClientsDeliveryOverviewController extends Controller
         'clients',
     ));
 }
+
+    /**
+     * Business Purpose: إثراء صف التقرير ببيانات آخر تسليم (عبوات ومبالغ) كما في الجدول.
+     */
+    private function enrichOverviewRowLastDelivery(object $row): void
+    {
+        $lastDelivery = null;
+
+        if ($row->last_delivery_date) {
+            $lastDelivery = Delivery::query()
+                ->where('client_id', $row->client_id)
+                ->whereDate('delivery_date', $row->last_delivery_date)
+                ->orderByDesc('id')
+                ->first();
+        }
+
+        if ($lastDelivery === null && $row->last_delivery_id) {
+            $lastDelivery = Delivery::query()->find($row->last_delivery_id);
+        }
+
+        if ($lastDelivery !== null) {
+            $row->last_bottle_received = $lastDelivery->bottle_received;
+            $row->last_bottle_empty = $lastDelivery->bottle_empty;
+            $row->last_paymant = $lastDelivery->paymant;
+            $row->last_required_amount = $lastDelivery->required_amount ?? 0;
+            $row->last_delivery_date_actual = $lastDelivery->delivery_date;
+            $row->last_delivery_id = (int) $lastDelivery->id;
+
+            return;
+        }
+
+        $row->last_bottle_received = 0;
+        $row->last_bottle_empty = 0;
+        $row->last_paymant = 0;
+        $row->last_required_amount = 0;
+        $row->last_delivery_date_actual = null;
+        $row->last_delivery_id = null;
+    }
 
     /**
      * Business Purpose: تطبيق فلاتر تقرير التسليمات (تاريخ، مدينة، موزع، مشترك).

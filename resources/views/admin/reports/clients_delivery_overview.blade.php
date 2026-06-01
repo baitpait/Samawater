@@ -150,7 +150,31 @@
             padding: 1.25rem 2rem;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .filter-card-header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .overview-total-paymant {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 12px;
+            padding: 0.5rem 1rem;
+            color: #fff;
+            font-weight: 700;
+            font-size: 15px;
+            white-space: nowrap;
+        }
+
+        .overview-total-paymant .amount {
+            font-size: 18px;
+            margin-right: 6px;
         }
         
         .filter-card-header i {
@@ -476,8 +500,16 @@
         {{-- ======================= فلاتر البحث ======================= --}}
         <div class="filter-card-modern">
             <div class="filter-card-header">
-                <i class="la la-filter"></i>
-                <h6>فلاتر البحث</h6>
+                <div class="filter-card-header-title">
+                    <i class="la la-filter"></i>
+                    <h6>فلاتر البحث</h6>
+                </div>
+                @if(request()->has('search') && !empty($overviewTotals))
+                <div class="overview-total-paymant" title="مجموع عمود «المبلغ المدفوع» لآخر تسليم لكل مشترك في النتائج ({{ (int) ($overviewTotals['row_count'] ?? 0) }} مشترك)">
+                    <span>مجموع المبلغ المدفوع:</span>
+                    <span class="amount">₪ {{ number_format((float) ($overviewTotals['total_paymant'] ?? 0), 2) }}</span>
+                </div>
+                @endif
             </div>
             <div class="filter-card-body">
                 <form method="GET" class="row g-3 g-md-4 filter-form-rtl">
