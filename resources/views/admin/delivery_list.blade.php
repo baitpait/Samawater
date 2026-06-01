@@ -304,6 +304,11 @@
             background: var(--danger-color) !important;
             color: #fff !important;
         }
+
+        .badge-secondary-modern {
+            background: #64748b !important;
+            color: #fff !important;
+        }
         
         .btn-action-modern {
             background: var(--primary-deep) !important;
@@ -486,9 +491,10 @@
                                 <th>المدينة / العنوان</th>
                                 <th>الهاتف</th>
                                 <th>معلومات الاشتراك</th>
-                                <th>تاريخ آخر تسليم</th>
+                                <th style="min-width: 140px;">طريقة التعامل</th>
+                                <th style="min-width: 120px;">إجمالي المستحق</th>
+                                <th style="min-width: 170px;">آخر تسليم والأيام</th>
                                 <th>عبوات مستلمة (آخر تسليم)</th>
-                                <th>أيام بدون تسليم</th>
                                 <th>ملاحظات المشترك</th>
                                 <th>إجراء</th>
                             </tr>
@@ -511,14 +517,47 @@
                                     <td>
                                         <span class="badge badge-modern badge-primary-modern">{{ $client->subscription_type_name ?? '-' }}</span>
                                     </td>
-                                    <td>
-                                        <span class="fw-semibold" style="color: var(--primary-deep);">{{ $client->last_delivery_date ? \Carbon\Carbon::parse($client->last_delivery_date)->format('Y-m-d') : 'لم يتسلم' }}</span>
+                                    <td class="small" style="max-width: 200px;" title="{{ $client->interaction_method ?? '' }}">
+                                        @php $interaction = isset($client->interaction_method) ? trim((string) $client->interaction_method) : ''; @endphp
+                                        {{ $interaction !== '' ? \Illuminate\Support\Str::limit($interaction, 50) : '—' }}
+                                    </td>
+                                    <td class="fw-bold" title="رصيد الفواتير والافتتاحي + متبقّي التسليمات (مطابق كشف الحساب المالي)">
+                                        @php
+                                            $combinedDebt = (float) ($client->total_amount_due ?? 0);
+                                            $debtClass = $combinedDebt > 0 ? 'text-danger' : ($combinedDebt < 0 ? 'text-success' : 'text-muted');
+                                        @endphp
+                                        <a href="{{ route('reports.client-ledger', ['client_id' => $client->client_id]) }}" class="{{ $debtClass }} text-decoration-none">
+                                            {{ number_format($combinedDebt, 2) }} ₪
+                                        </a>
+                                    </td>
+                                    <td style="min-width: 170px;">
+                                        @if($client->last_delivery_date)
+                                            <div class="fw-semibold" style="color: var(--primary-deep);">
+                                                {{ \Carbon\Carbon::parse($client->last_delivery_date)->format('Y-m-d') }}
+                                            </div>
+                                            <div class="mt-1">
+                                                @php
+                                                    $days = (int) ($client->days_since_last_delivery ?? \Carbon\Carbon::parse($client->last_delivery_date)->startOfDay()->diffInDays(now()->startOfDay()));
+                                                @endphp
+                                                <span class="badge badge-modern @if($days <= 1) badge-success-modern @elseif($days <= 10) badge-warning-modern @else badge-danger-modern @endif">
+                                                    @if($days === 0)
+                                                        اليوم
+                                                    @elseif($days === 1)
+                                                        أمس
+                                                    @else
+                                                        منذ {{ $days }} يوم
+                                                    @endif
+                                                </span>
+                                            </div>
+                                        @else
+                                            <div class="fw-semibold text-muted">لم يتسلم</div>
+                                            <div class="mt-1">
+                                                <span class="badge badge-modern badge-secondary-modern">لم يستلم بعد</span>
+                                            </div>
+                                        @endif
                                     </td>
                                     <td class="text-center">
                                         <span class="fw-semibold">{{ isset($client->last_delivery_bottle_received) && $client->last_delivery_bottle_received !== null ? (int) $client->last_delivery_bottle_received : '—' }}</span>
-                                    </td>
-                                    <td>
-                                        <span class="fw-bold" style="color: var(--danger-color);">{{ $client->days_since_last_delivery ?? 0 }} يوم</span>
                                     </td>
                                     <td style="max-width: 260px;">
                                         @php $note = isset($client->notes) ? trim((string) $client->notes) : ''; @endphp
@@ -535,6 +574,9 @@
                                                 </a>
                                                 <a class="dropdown-item dropdown-item-modern" href="{{ url('admin/client-report?client_id=' . $client->client_id) }}">
                                                     <i class="la la-file-alt"></i> تقرير
+                                                </a>
+                                                <a class="dropdown-item dropdown-item-modern" href="{{ route('reports.client-ledger', ['client_id' => $client->client_id]) }}">
+                                                    <i class="la la-book"></i> كشف حساب مالي
                                                 </a>
                                                 <div class="dropdown-divider"></div>
                                                 <a class="dropdown-item dropdown-item-modern text-success" href="{{ backpack_url('delivery/create?client_id=' . $client->client_id) }}">

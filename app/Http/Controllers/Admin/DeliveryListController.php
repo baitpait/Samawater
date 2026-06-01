@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\VClientsDueByTypeDaysIds;
+use App\Models\Client;
 use App\Models\Delivery;
+use App\Models\VClientsDueByTypeDaysIds;
 use App\Support\CachedDeliveryFormOptions;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +30,14 @@ class DeliveryListController extends Controller
             ->leftJoin('clients', 'clients.id', '=', 'v_clients_due_by_type_days_ids.client_id')
             ->leftJoin('subscription_types', 'subscription_types.id', '=', 'clients.subscription_type_id')
             ->leftJoin('distributors', 'distributors.id', '=', 'clients.distributor_id')
-            ->select('v_clients_due_by_type_days_ids.*', 'cities.city_name', 'clients.client_type', 'distributors.name as distributor_name', 'subscription_types.id as subscription_type_id');
+            ->select(
+                'v_clients_due_by_type_days_ids.*',
+                'cities.city_name',
+                'clients.client_type',
+                'clients.interaction_method',
+                'distributors.name as distributor_name',
+                'subscription_types.id as subscription_type_id'
+            );
 
         /* ===============================
            البحث النصي
@@ -40,7 +49,8 @@ class DeliveryListController extends Controller
                     ->orWhere('v_clients_due_by_type_days_ids.phone_one', 'like', "%{$q}%")
                     ->orWhere('v_clients_due_by_type_days_ids.phone_two', 'like', "%{$q}%")
                     ->orWhere('v_clients_due_by_type_days_ids.contract_no', 'like', "%{$q}%")
-                    ->orWhere('clients.address', 'like', "%{$q}%");
+                    ->orWhere('clients.address', 'like', "%{$q}%")
+                    ->orWhere('clients.interaction_method', 'like', "%{$q}%");
             });
         }
 
@@ -169,6 +179,7 @@ class DeliveryListController extends Controller
                         'clients.longitude',
                         'clients.address',
                         'clients.notes',
+                        'clients.interaction_method',
                         DB::raw('coalesce(clients.bottle_balance,0) as bottle_balance_stored'),
                         DB::raw('0 as total_bottle_received'),
                         DB::raw('0 as total_bottle_empty'),
@@ -180,7 +191,7 @@ class DeliveryListController extends Controller
                         'distributors.name as distributor_name',
                         'subscription_types.id as subscription_type_id'
                     )
-                    ->groupBy('clients.id', 'clients.contract_no', 'clients.name', 'clients.phone_one', 'clients.phone_two', 'clients.city_id', 'cities.city_name', 'clients.subscription_status_id', 'subscription_statuses.status_name', 'subscription_types.type_name', 'subscription_types.distribution_days', 'clients.subscription_start_date', 'clients.latitude', 'clients.longitude', 'clients.address', 'clients.notes', 'clients.bottle_balance', 'client_statuses.status_name', 'clients.image', 'clients.client_type', 'distributors.name', 'subscription_types.id');
+                    ->groupBy('clients.id', 'clients.contract_no', 'clients.name', 'clients.phone_one', 'clients.phone_two', 'clients.city_id', 'cities.city_name', 'clients.subscription_status_id', 'subscription_statuses.status_name', 'subscription_types.type_name', 'subscription_types.distribution_days', 'clients.subscription_start_date', 'clients.latitude', 'clients.longitude', 'clients.address', 'clients.notes', 'clients.interaction_method', 'clients.bottle_balance', 'client_statuses.status_name', 'clients.image', 'clients.client_type', 'distributors.name', 'subscription_types.id');
             }
             
             // تطبيق نفس الفلاتر على onDemandClientsQuery
@@ -191,7 +202,8 @@ class DeliveryListController extends Controller
                         ->orWhere('clients.phone_one', 'like', "%{$q}%")
                         ->orWhere('clients.phone_two', 'like', "%{$q}%")
                         ->orWhere('clients.contract_no', 'like', "%{$q}%")
-                        ->orWhere('clients.address', 'like', "%{$q}%");
+                        ->orWhere('clients.address', 'like', "%{$q}%")
+                        ->orWhere('clients.interaction_method', 'like', "%{$q}%");
                 });
             }
             if ($onDemandClientsQuery && $request->filled('city_id')) {
@@ -234,23 +246,19 @@ class DeliveryListController extends Controller
             
             if ($perPage === 'all') {
                 $items = $allClients;
-                $clients = new LengthAwarePaginator(
-                    $items,
-                    $total,
-                    $total > 0 ? $total : 1,
-                    1,
-                    ['path' => $request->url(), 'query' => $request->query()]
-                );
             } else {
                 $items = $allClients->slice(($page - 1) * $perPage, $perPage)->values();
-                $clients = new LengthAwarePaginator(
-                    $items,
-                    $total,
-                    $perPage,
-                    $page,
-                    ['path' => $request->url(), 'query' => $request->query()]
-                );
             }
+
+            $this->attachCombinedSubscriberDebtToRows($items);
+
+            $clients = new LengthAwarePaginator(
+                $items,
+                $total,
+                $perPage === 'all' ? ($total > 0 ? $total : 1) : $perPage,
+                $perPage === 'all' ? 1 : $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
         }
 
         return view('admin.delivery_list', compact(
@@ -263,5 +271,44 @@ class DeliveryListController extends Controller
             'totalBottleReceived',
             'totalBottleEmpty'
         ));
+    }
+
+    /**
+     * Business Purpose: إرفاق إجمالي المستحق لكل صف — مطابق كشف الحساب (combined_subscriber_debt) وتقرير الفلاتر.
+     *
+     * @param  \Illuminate\Support\Collection<int, object>|list<object>  $rows
+     */
+    private function attachCombinedSubscriberDebtToRows($rows): void
+    {
+        $ids = collect($rows)
+            ->pluck('client_id')
+            ->filter()
+            ->unique()
+            ->map(static fn ($id): int => (int) $id)
+            ->values()
+            ->all();
+
+        if ($ids === []) {
+            return;
+        }
+
+        $clientsById = Client::query()->whereIn('id', $ids)->get()->keyBy('id');
+
+        foreach ($rows as $row) {
+            $clientId = (int) ($row->client_id ?? 0);
+            $model = $clientsById->get($clientId);
+            $amount = $model !== null
+                ? round((float) $model->combined_subscriber_debt, 2)
+                : 0.0;
+
+            // VClientsDueByTypeDaysIds يعطّل setAttribute؛ Client له accessor يمنع التخزين على نفس الاسم.
+            if ($row instanceof Model) {
+                $attributes = $row->getAttributes();
+                $attributes['total_amount_due'] = $amount;
+                $row->setRawAttributes($attributes);
+            } else {
+                $row->total_amount_due = $amount;
+            }
+        }
     }
 }
