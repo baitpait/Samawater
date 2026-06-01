@@ -66,10 +66,6 @@ class ClientPaymentCrudController extends CrudController
         CRUD::column('payment_date')
             ->label('تاريخ الدفع')
             ->type('date');
-
-        CRUD::column('for_future_obligation')
-            ->label('لدين مستقبلي')
-            ->type('boolean');
         
         CRUD::column('payment_method')
             ->label('طريقة الدفع')
@@ -100,7 +96,9 @@ class ClientPaymentCrudController extends CrudController
     {
         CRUD::setValidation(ClientPaymentRequest::class);
 
-        CRUD::field('client_id')
+        $prefillClientId = $this->resolveBillingParentClientIdFromRequest();
+
+        $clientField = CRUD::field('client_id')
             ->label('المشترك')
             ->type('select')
             ->model('App\Models\Client')
@@ -111,6 +109,10 @@ class ClientPaymentCrudController extends CrudController
                 return $query->whereNull('parent_id')->orderBy('name')->get();
             })
             ->hint('يتم عرض المشتركين الرئيسيين فقط (الأب)');
+
+        if ($prefillClientId !== null) {
+            $clientField->default($prefillClientId);
+        }
         
         CRUD::field('amount')
             ->label('المبلغ (شيكل)')
@@ -160,6 +162,29 @@ class ClientPaymentCrudController extends CrudController
     {
         $this->setupCreateOperation();
         $this->crud->removeField('created_by');
+    }
+
+    /**
+     * Business Purpose: عند فتح إنشاء دفعة من ملف المشترك (?client_id=) نحدّد المشترك الرئيسي للفوترة في القائمة.
+     */
+    private function resolveBillingParentClientIdFromRequest(): ?int
+    {
+        if (! request()->filled('client_id')) {
+            return null;
+        }
+
+        $clientId = (int) request('client_id');
+        $client = Client::query()->find($clientId);
+
+        if ($client === null) {
+            return $clientId > 0 ? $clientId : null;
+        }
+
+        if ($client->parent_id !== null) {
+            return (int) $client->parent_id;
+        }
+
+        return $clientId;
     }
 
     /**
