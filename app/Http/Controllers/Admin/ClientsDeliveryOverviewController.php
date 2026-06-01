@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\VClientsDeliveryOverview;
 use App\Models\City;
+use App\Models\Client;
+use App\Models\Delivery;
 use App\Models\Distributor;
 use App\Models\SubscriptionStatus;
 use App\Models\SubscriptionType;
-use App\Models\Delivery;
+use App\Models\VClientsDeliveryOverview;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Mpdf\Mpdf;
 
 class ClientsDeliveryOverviewController extends Controller
@@ -23,38 +25,7 @@ class ClientsDeliveryOverviewController extends Controller
     'cities.city_name as city_name'
 );
 
-    // فلترة بين تاريخين (آخر تسليم)
-    if ($request->filled('from') && $request->filled('to')) {
-        $query->whereDate('last_delivery_date', '>=', $request->from)
-              ->whereDate('last_delivery_date', '<=', $request->to);
-    }
-
-    // فلترة المدينة
-    if ($request->filled('city_id')) {
-        $query->where('v_clients_delivery_overview.city_id', $request->city_id);
-    }
-
-    // فلترة الموزع
-    if ($request->filled('distributor_id')) {
-        $query->where('v_clients_delivery_overview.distributor_id', $request->distributor_id);
-    }
-
-    // فلترة حالة الاشتراك
-    if ($request->filled('subscription_status_id')) {
-        $query->where('v_clients_delivery_overview.subscription_status_id', $request->subscription_status_id);
-    }
-
-    // فلترة البحث بالاسم
-    if ($request->filled('name')) {
-        $query->where('v_clients_delivery_overview.client_name', 'like', '%' . $request->name . '%');
-    }
-
-    // فلترة نوع الاشتراك (من خلال join مع clients)
-    if ($request->filled('subscription_type_id')) {
-        $query->leftJoin('clients', 'clients.id', '=', 'v_clients_delivery_overview.client_id')
-              ->where('clients.subscription_type_id', $request->subscription_type_id)
-              ->groupBy('v_clients_delivery_overview.client_id'); // لمنع التكرار
-    }
+    $this->applyOverviewFilters($query, $request);
 
     $rows = collect();
 
@@ -124,9 +95,55 @@ class ClientsDeliveryOverviewController extends Controller
     $distributors = Distributor::select('id', 'name')->orderBy('name')->get();
     $subscriptionStatuses = SubscriptionStatus::orderBy('status_name')->get();
     $subscriptionTypes = SubscriptionType::orderBy('type_name')->get();
+    $clients = Client::query()
+        ->orderBy('name')
+        ->get(['id', 'name', 'contract_no']);
 
-    return view('admin.reports.clients_delivery_overview', compact('rows', 'cities', 'distributors', 'subscriptionStatuses', 'subscriptionTypes'));
+    return view('admin.reports.clients_delivery_overview', compact(
+        'rows',
+        'cities',
+        'distributors',
+        'subscriptionStatuses',
+        'subscriptionTypes',
+        'clients',
+    ));
 }
+
+    /**
+     * Business Purpose: تطبيق فلاتر تقرير التسليمات (تاريخ، مدينة، موزع، مشترك).
+     */
+    private function applyOverviewFilters(Builder $query, Request $request): void
+    {
+        if ($request->filled('from') && $request->filled('to')) {
+            $query->whereDate('last_delivery_date', '>=', $request->from)
+                ->whereDate('last_delivery_date', '<=', $request->to);
+        }
+
+        if ($request->filled('city_id')) {
+            $query->where('v_clients_delivery_overview.city_id', $request->city_id);
+        }
+
+        if ($request->filled('distributor_id')) {
+            $query->where('v_clients_delivery_overview.distributor_id', $request->distributor_id);
+        }
+
+        if ($request->filled('subscription_status_id')) {
+            $query->where('v_clients_delivery_overview.subscription_status_id', $request->subscription_status_id);
+        }
+
+        if ($request->filled('client_id')) {
+            $query->where('v_clients_delivery_overview.client_id', (int) $request->client_id);
+        } elseif ($request->filled('name')) {
+            $query->where('v_clients_delivery_overview.client_name', 'like', '%'.$request->name.'%');
+        }
+
+        if ($request->filled('subscription_type_id')) {
+            $query->leftJoin('clients', 'clients.id', '=', 'v_clients_delivery_overview.client_id')
+                ->where('clients.subscription_type_id', $request->subscription_type_id)
+                ->groupBy('v_clients_delivery_overview.client_id');
+        }
+    }
+
 public function show($clientId, Request $request)
 {
     $cityName = $request->query('city_name');
@@ -150,32 +167,7 @@ public function show($clientId, Request $request)
                 'cities.city_name as city_name'
             );
 
-        if ($request->filled('from') && $request->filled('to')) {
-            $query->whereDate('last_delivery_date', '>=', $request->from)
-                  ->whereDate('last_delivery_date', '<=', $request->to);
-        }
-
-        if ($request->filled('city_id')) {
-            $query->where('v_clients_delivery_overview.city_id', $request->city_id);
-        }
-
-        if ($request->filled('distributor_id')) {
-            $query->where('v_clients_delivery_overview.distributor_id', $request->distributor_id);
-        }
-
-        if ($request->filled('subscription_status_id')) {
-            $query->where('v_clients_delivery_overview.subscription_status_id', $request->subscription_status_id);
-        }
-
-        if ($request->filled('name')) {
-            $query->where('v_clients_delivery_overview.client_name', 'like', '%' . $request->name . '%');
-        }
-
-        if ($request->filled('subscription_type_id')) {
-            $query->leftJoin('clients', 'clients.id', '=', 'v_clients_delivery_overview.client_id')
-                  ->where('clients.subscription_type_id', $request->subscription_type_id)
-                  ->groupBy('v_clients_delivery_overview.client_id');
-        }
+        $this->applyOverviewFilters($query, $request);
 
         $rows = $query->orderByDesc('v_clients_delivery_overview.last_delivery_date')
             ->orderByDesc('v_clients_delivery_overview.last_delivery_id')
@@ -267,32 +259,7 @@ public function show($clientId, Request $request)
                 'cities.city_name as city_name'
             );
 
-        if ($request->filled('from') && $request->filled('to')) {
-            $query->whereDate('last_delivery_date', '>=', $request->from)
-                  ->whereDate('last_delivery_date', '<=', $request->to);
-        }
-
-        if ($request->filled('city_id')) {
-            $query->where('v_clients_delivery_overview.city_id', $request->city_id);
-        }
-
-        if ($request->filled('distributor_id')) {
-            $query->where('v_clients_delivery_overview.distributor_id', $request->distributor_id);
-        }
-
-        if ($request->filled('subscription_status_id')) {
-            $query->where('v_clients_delivery_overview.subscription_status_id', $request->subscription_status_id);
-        }
-
-        if ($request->filled('name')) {
-            $query->where('v_clients_delivery_overview.client_name', 'like', '%' . $request->name . '%');
-        }
-
-        if ($request->filled('subscription_type_id')) {
-            $query->leftJoin('clients', 'clients.id', '=', 'v_clients_delivery_overview.client_id')
-                  ->where('clients.subscription_type_id', $request->subscription_type_id)
-                  ->groupBy('v_clients_delivery_overview.client_id');
-        }
+        $this->applyOverviewFilters($query, $request);
 
         $rows = $query->orderByDesc('v_clients_delivery_overview.last_delivery_date')
             ->orderByDesc('v_clients_delivery_overview.last_delivery_id')

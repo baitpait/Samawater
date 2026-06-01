@@ -470,8 +470,15 @@
                 <form method="GET" class="row g-3 g-md-4 filter-form-rtl">
                     <input type="hidden" name="search" value="1">
                     <div class="col-12">
-                        <label class="form-label-modern">بحث بالاسم</label>
-                        <input type="text" name="name" class="form-control form-control-modern w-100" value="{{ request('name') }}" placeholder="اسم المشترك">
+                        <label class="form-label-modern">المشترك</label>
+                        <select name="client_id" class="form-select form-select-modern w-100">
+                            <option value="">الكل</option>
+                            @foreach($clients ?? [] as $client)
+                                <option value="{{ $client->id }}" @selected((string) request('client_id') === (string) $client->id)>
+                                    {{ $client->name }}{{ $client->contract_no ? ' (' . $client->contract_no . ')' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label-modern">من تاريخ</label>
