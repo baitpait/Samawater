@@ -84,6 +84,9 @@
             <x-backpack::menu-item title="المصروفات" icon="la la-money-bill" :link="backpack_url('expense')" />
             <x-backpack::menu-item title="الموردين" icon="la la-truck" :link="backpack_url('vendor')" />
             <x-backpack::menu-item title="مدفوعات الموردين" icon="la la-money-bill-wave" :link="backpack_url('vendor-payment')" />
+            @if(config('features.purchase_invoices', true))
+            <x-backpack::menu-item title="فواتير المشتريات" icon="la la-shopping-cart" :link="backpack_url('purchase-invoice')" />
+            @endif
 
             <li class="sidebar-divider"></li>
 

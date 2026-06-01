@@ -17,6 +17,7 @@ class VendorPayment extends Model
     protected $fillable = [
         'vendor_id',
         'expense_id',
+        'purchase_invoice_id',
         'amount',
         'method',
         'payment_date',
@@ -44,6 +45,14 @@ class VendorPayment extends Model
     public function expense()
     {
         return $this->belongsTo(Expense::class, 'expense_id');
+    }
+
+    /**
+     * Business Purpose: فاتورة المشتريات المرتبطة بهذه الدفعة (إن وُجدت).
+     */
+    public function purchaseInvoice()
+    {
+        return $this->belongsTo(PurchaseInvoice::class, 'purchase_invoice_id');
     }
 
     /**

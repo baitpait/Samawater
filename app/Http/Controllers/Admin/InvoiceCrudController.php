@@ -384,6 +384,8 @@ class InvoiceCrudController extends CrudController
         }
         // unpaid = 0 (لا يتم إنشاء دفعة، المبلغ الإجمالي = الدين)
 
+        $targetStatus = (string) $request->status;
+
         // توليد رقم الفاتورة مع إعادة المحاولة في حالة التكرار
         $maxRetries = 3;
         $retryCount = 0;
@@ -397,7 +399,7 @@ class InvoiceCrudController extends CrudController
                     'client_id' => $request->client_id,
                     'invoice_number' => $invoiceNumber,
                     'invoice_date' => $request->invoice_date,
-                    'status' => $request->status,
+                    'status' => 'draft',
                     'payment_status' => $request->payment_status,
                     'amount_paid' => $amountPaid,
                     'payment_method' => ($amountPaid > 0) ? ($request->payment_method ?? 'cash') : null,
@@ -449,10 +451,7 @@ class InvoiceCrudController extends CrudController
         $invoice->total_amount = $totalAmount;
         $invoice->save();
 
-        // إذا كانت الفاتورة مؤكدة، خصم من المخزون
-        if ($request->status === 'confirmed') {
-            $invoice->confirm();
-        }
+        $this->applyInvoiceStatus($invoice, $targetStatus);
 
         // إنشاء دفعة تلقائياً إذا كان هناك مبلغ مدفوع (paid أو partial)
         if ($amountPaid > 0) {
@@ -498,8 +497,8 @@ class InvoiceCrudController extends CrudController
             return redirect($this->crud->route);
         }
 
-        $oldStatus = $invoice->status;
-        $wasConfirmed = $oldStatus === 'confirmed';
+        $wasConfirmed = $invoice->status === 'confirmed';
+        $targetStatus = (string) $request->status;
 
         $request->validate([
             'client_id' => 'required|exists:clients,id',
@@ -543,11 +542,11 @@ class InvoiceCrudController extends CrudController
             $oldPayment->delete();
         }
 
-        // تحديث بيانات الفاتورة
+        // تحديث بيانات الفاتورة (مسودة مؤقتاً حتى تطبيق الحالة النهائية وخصم المخزون)
         $invoice->update([
             'client_id' => $request->client_id,
             'invoice_date' => $request->invoice_date,
-            'status' => $request->status,
+            'status' => 'draft',
             'payment_status' => $request->payment_status,
             'amount_paid' => $amountPaid,
             'payment_method' => ($amountPaid > 0) ? ($request->payment_method ?? 'cash') : null,
@@ -573,10 +572,7 @@ class InvoiceCrudController extends CrudController
         $invoice->total_amount = $totalAmount;
         $invoice->save();
 
-        // إذا أصبحت مؤكدة، خصم من المخزون
-        if ($request->status === 'confirmed') {
-            $invoice->confirm();
-        }
+        $this->applyInvoiceStatus($invoice, $targetStatus);
 
         // إنشاء دفعة جديدة إذا كان هناك مبلغ مدفوع (paid أو partial)
         if ($amountPaid > 0) {
@@ -624,6 +620,28 @@ class InvoiceCrudController extends CrudController
 
         \Alert::success('تم حذف الفاتورة بنجاح.')->flash();
         return redirect($this->crud->route);
+    }
+
+    /**
+     * Business Purpose: تطبيق الحالة النهائية بعد حفظ البنود (تأكيد = خصم من المخزون).
+     */
+    private function applyInvoiceStatus(Invoice $invoice, string $targetStatus): void
+    {
+        $invoice->refresh();
+
+        if ($targetStatus === 'confirmed') {
+            $invoice->confirm();
+
+            return;
+        }
+
+        if ($targetStatus === 'cancelled') {
+            $invoice->update(['status' => 'cancelled']);
+
+            return;
+        }
+
+        $invoice->update(['status' => 'draft']);
     }
 
     /**

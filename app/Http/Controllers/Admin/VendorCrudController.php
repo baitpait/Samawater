@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\VendorRequest;
+use App\Models\Vendor;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -131,5 +132,56 @@ class VendorCrudController extends CrudController
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();
+    }
+
+    /**
+     * Business Purpose: معاينة المورد بالعربية مع ملخص مالي واختصارات تشغيلية.
+     */
+    protected function setupShowOperation(): void
+    {
+        CRUD::setShowView('admin.vendors.show');
+    }
+
+    /**
+     * Business Purpose: تحميل بيانات المورد والحركات المرتبطة قبل العرض.
+     */
+    public function show($id)
+    {
+        $this->crud->hasAccessOrFail('show');
+
+        $id = $this->crud->getCurrentEntryId() ?? $id;
+        $vendor = Vendor::query()->findOrFail($id);
+
+        $totalExpenses = (float) $vendor->expenses()->sum('total_amount');
+        $totalPurchases = (float) $vendor->purchaseInvoices()
+            ->where('status', 'confirmed')
+            ->sum('total_amount');
+        $totalPayments = (float) $vendor->payments()->sum('amount');
+        $balance = (float) $vendor->balance;
+
+        $this->data['entry'] = $vendor;
+        $this->data['crud'] = $this->crud;
+        $this->data['financialSummary'] = [
+            'opening_balance' => (float) $vendor->opening_balance,
+            'total_expenses' => $totalExpenses,
+            'total_purchases' => $totalPurchases,
+            'total_payments' => $totalPayments,
+            'balance' => $balance,
+        ];
+        $this->data['recentExpenses'] = $vendor->expenses()
+            ->where('is_inventory', false)
+            ->orderByDesc('payment_date')
+            ->limit(5)
+            ->get();
+        $this->data['recentPurchaseInvoices'] = $vendor->purchaseInvoices()
+            ->orderByDesc('invoice_date')
+            ->limit(5)
+            ->get();
+        $this->data['recentPayments'] = $vendor->payments()
+            ->orderByDesc('payment_date')
+            ->limit(5)
+            ->get();
+
+        return view($this->crud->getShowView(), $this->data);
     }
 }

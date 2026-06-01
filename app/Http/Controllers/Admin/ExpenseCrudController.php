@@ -6,8 +6,6 @@ use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
-use App\Models\Vendor;
-use App\Models\InventoryItem;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -34,13 +32,13 @@ class ExpenseCrudController extends CrudController
 
     protected function setupListOperation()
     {
-        // Eager loading للعلاقات لتجنب N+1 queries
-        $this->crud->addClause('with', ['category', 'vendor', 'creator']);
-        
-        // التأكد من عدم وجود تكرار - عرض المصروفات فقط (ليس التوزيعات)
+        $this->crud->addClause('with', ['category', 'creator']);
+
+        // مصروفات تشغيلية فقط — المشتريات/المخزون عبر فواتير المشتريات
+        $this->crud->addClause('where', 'is_inventory', false);
+
         $this->crud->addClause('orderBy', 'created_at', 'desc');
         
-        // فلترة حسب معلمات الطلب (فلاتر صفحة القائمة)
         $this->crud->addClause(function ($query) {
             if (request()->filled('expense_category_id')) {
                 $query->where('expense_category_id', request('expense_category_id'));
@@ -66,18 +64,6 @@ class ExpenseCrudController extends CrudController
                 return $entry->category ? e($entry->category->name) : '<span class="text-muted">-</span>';
             });
         
-        CRUD::column('vendor')
-            ->label('المورد')
-            ->type('custom_html')
-            ->value(function($entry) {
-                return $entry->vendor ? e($entry->vendor->name) : '<span class="text-muted">-</span>';
-            });
-        
-        CRUD::column('is_inventory')
-            ->label('مخزون')
-            ->type('boolean')
-            ->options([0 => 'مصروف', 1 => 'مخزون']);
-        
         CRUD::column('payment_status')
             ->label('حالة الدفع')
             ->type('select_from_array')
@@ -95,27 +81,18 @@ class ExpenseCrudController extends CrudController
         
         CRUD::column('number_of_months')
             ->label('عدد الأشهر')
-            ->type('number')
-            ->visible(function($entry) {
-                return !$entry->is_inventory;
-            });
+            ->type('number');
         
         CRUD::column('monthly_amount')
             ->label('المبلغ الشهري')
             ->type('number')
             ->suffix(' شيكل')
-            ->decimals(2)
-            ->visible(function($entry) {
-                return !$entry->is_inventory;
-            });
+            ->decimals(2);
         
         CRUD::column('start_month')
             ->label('الشهر الأول')
             ->type('date')
-            ->format('Y-m')
-            ->visible(function($entry) {
-                return !$entry->is_inventory;
-            });
+            ->format('Y-m');
         
         CRUD::column('payment_date')
             ->label('تاريخ الدفع')
@@ -214,51 +191,6 @@ class ExpenseCrudController extends CrudController
                 return $query->where('is_active', true)->orderBy('name')->get();
             });
         
-        CRUD::field('vendor_id')
-            ->label('المورد (اختياري)')
-            ->type('select')
-            ->model('App\Models\Vendor')
-            ->attribute('name')
-            ->options(function ($query) {
-                return $query->where('is_active', true)->orderBy('name')->get();
-            });
-        
-        CRUD::field('is_inventory')
-            ->label('يترحل إلى المخزن')
-            ->type('boolean')
-            ->default(false)
-            ->hint('إذا كان مخزون (مثل: قوارير مياه)، سيتم إضافة الكمية إلى المخزن')
-            ->attributes(['id' => 'is_inventory_field']);
-        
-        // حقول المخزون (تظهر فقط عند is_inventory = true)
-        // جلب جميع الأصناف من المخزن
-        $inventoryItems = InventoryItem::orderBy('item_name', 'asc')->pluck('item_name', 'item_name')->toArray();
-        // إضافة خيار "إضافة صنف جديد"
-        $inventoryItems['__new__'] = '+ إضافة صنف جديد';
-        
-        CRUD::field('inventory_item_name')
-            ->label('اسم الصنف')
-            ->type('select_from_array')
-            ->options($inventoryItems)
-            ->wrapper(['class' => 'form-group col-md-6 inventory-field'])
-            ->attributes(['id' => 'inventory_item_name_field', 'name' => 'inventory_item_name'])
-            ->hint('اختر من الأصناف الموجودة أو اختر "إضافة صنف جديد"');
-        
-        // حقل إدخال اسم الصنف الجديد (يظهر فقط عند اختيار "إضافة صنف جديد")
-        CRUD::field('new_inventory_item_name')
-            ->label('اسم الصنف الجديد')
-            ->type('text')
-            ->wrapper(['class' => 'form-group col-md-6 inventory-new-field'])
-            ->attributes(['id' => 'new_inventory_item_name_field', 'name' => 'new_inventory_item_name', 'placeholder' => 'أدخل اسم الصنف الجديد'])
-            ->hint('يظهر فقط عند اختيار "إضافة صنف جديد"');
-        
-        CRUD::field('inventory_quantity')
-            ->label('الكمية')
-            ->type('number')
-            ->attributes(['min' => 1, 'name' => 'inventory_quantity', 'id' => 'inventory_quantity_field'])
-            ->wrapper(['class' => 'form-group col-md-6 inventory-field'])
-            ->hint('عدد الوحدات المشتراة');
-        
         CRUD::field('total_amount')
             ->label('المبلغ الإجمالي (شيكل)')
             ->type('number')
@@ -322,139 +254,34 @@ class ExpenseCrudController extends CrudController
             ->label('ملاحظات')
             ->type('textarea');
         
-        // JavaScript for conditional field visibility
         $this->crud->addField([
-            'name' => 'conditional_fields_script',
+            'name' => 'expense_quick_pay_script',
             'type' => 'custom_html',
             'value' => '
             <script>
             document.addEventListener("DOMContentLoaded", function() {
                 const paymentStatusField = document.getElementById("payment_status_field");
-                const isInventoryField = document.getElementById("is_inventory_field") || document.querySelector("input[name=\'is_inventory\']");
-                const inventoryFields = document.querySelectorAll(".inventory-field");
-                
                 function toggleQuickPayFields() {
                     const status = paymentStatusField ? paymentStatusField.value : "unpaid";
-                    const quickPayFields = document.querySelectorAll(".quick-pay-field");
-                    
-                    quickPayFields.forEach(field => {
+                    document.querySelectorAll(".quick-pay-field").forEach(function(field) {
                         const parent = field.closest(".form-group");
-                        if (parent) {
-                            if (status === "paid") {
-                                // Show only method, hide amount
-                                if (field.querySelector("#amount_paid_now_field")) {
-                                    parent.style.display = "none";
-                                } else if (field.querySelector("#payment_method_field")) {
-                                    parent.style.display = "block";
-                                }
-                            } else if (status === "partial") {
-                                // Show both
-                                parent.style.display = "block";
-                            } else {
-                                // Hide both
-                                parent.style.display = "none";
-                            }
-                        }
-                    });
-                }
-                
-                function toggleInventoryFields() {
-                    let isInventory = false;
-                    if (isInventoryField) {
-                        if (isInventoryField.type === "checkbox") {
-                            isInventory = isInventoryField.checked;
+                        if (!parent) return;
+                        if (status === "paid") {
+                            parent.style.display = field.querySelector("#amount_paid_now_field") ? "none" : "block";
+                        } else if (status === "partial") {
+                            parent.style.display = "block";
                         } else {
-                            isInventory = isInventoryField.value === "1" || isInventoryField.value === "on";
-                        }
-                    }
-                    
-                    // إظهار/إخفاء حقول المخزون
-                    inventoryFields.forEach(field => {
-                        let parent = field.closest(".form-group");
-                        if (!parent) {
-                            parent = field.parentElement;
-                        }
-                        if (parent) {
-                            if (isInventory) {
-                                parent.style.display = "block";
-                                parent.style.visibility = "visible";
-                                parent.removeAttribute("hidden");
-                            } else {
-                                parent.style.display = "none";
-                                parent.style.visibility = "hidden";
-                            }
+                            parent.style.display = "none";
                         }
                     });
-                    
-                    // Make inventory fields required only if is_inventory = true
-                    const itemNameField = document.getElementById("inventory_item_name_field") || document.querySelector("select[name=\'inventory_item_name\']") || document.querySelector("input[name=\'inventory_item_name\']");
-                    const quantityField = document.getElementById("inventory_quantity_field") || document.querySelector("input[name=\'inventory_quantity\']");
-                    
-                    if (itemNameField) {
-                        itemNameField.required = isInventory;
-                        if (!isInventory) {
-                            itemNameField.value = "";
-                        }
-                    }
-                    if (quantityField) {
-                        quantityField.required = isInventory;
-                        if (!isInventory) {
-                            quantityField.value = "";
-                        }
-                    }
                 }
-                
-                function toggleNewItemField() {
-                    const itemNameField = document.getElementById("inventory_item_name_field") || document.querySelector("select[name=\'inventory_item_name\']");
-                    const newItemFields = document.querySelectorAll(".inventory-new-field");
-                    const isNewItem = itemNameField && itemNameField.value === "__new__";
-                    
-                    newItemFields.forEach(field => {
-                        let parent = field.closest(".form-group");
-                        if (parent) {
-                            if (isNewItem) {
-                                parent.style.display = "block";
-                            } else {
-                                parent.style.display = "none";
-                            }
-                        }
-                    });
-                    
-                    // Make new item name required only if "__new__" is selected
-                    const newItemNameField = document.getElementById("new_inventory_item_name_field");
-                    if (newItemNameField) {
-                        newItemNameField.required = isNewItem;
-                        if (!isNewItem) {
-                            newItemNameField.value = "";
-                        }
-                    }
-                }
-                
                 if (paymentStatusField) {
                     paymentStatusField.addEventListener("change", toggleQuickPayFields);
                 }
-                if (isInventoryField) {
-                    isInventoryField.addEventListener("change", toggleInventoryFields);
-                    isInventoryField.addEventListener("click", toggleInventoryFields);
-                }
-                
-                // Listen to inventory item name change (for dropdown)
-                setTimeout(function() {
-                    const itemNameField = document.getElementById("inventory_item_name_field") || document.querySelector("select[name=\'inventory_item_name\']");
-                    if (itemNameField) {
-                        itemNameField.addEventListener("change", toggleNewItemField);
-                    }
-                }, 200);
-                
-                // Initial state
-                setTimeout(function() {
-                    toggleQuickPayFields();
-                    toggleInventoryFields();
-                    toggleNewItemField();
-                }, 100);
+                setTimeout(toggleQuickPayFields, 100);
             });
             </script>
-            '
+            ',
         ]);
     }
 
@@ -466,14 +293,10 @@ class ExpenseCrudController extends CrudController
     /**
      * Store a newly created resource in storage.
      * 
-     * Business Purpose: إنشاء مصروف جديد مع توزيعه تلقائياً على الأشهر
-     * - دعم Inventory vs Amortization
-     * - Quick Pay: إنشاء VendorPayment تلقائياً إذا كان هناك payment details
+     * Business Purpose: إنشاء مصروف تشغيلي مع توزيعه تلقائياً على الأشهر.
      */
     public function store(Request $request)
     {
-        $isInventory = $request->boolean('is_inventory');
-        
         $rules = [
             'expense_category_id' => 'required|exists:expense_categories,id',
             'total_amount' => 'required|numeric|min:0.01',
@@ -483,18 +306,6 @@ class ExpenseCrudController extends CrudController
             'start_month' => 'required|date',
         ];
         
-        // Inventory fields required only if is_inventory = true
-        if ($isInventory) {
-            $rules['inventory_item_name'] = 'required';
-            $rules['inventory_quantity'] = 'required|integer|min:1';
-            
-            // إذا كان "__new__" محدد، يجب إدخال اسم الصنف الجديد
-            if ($request->inventory_item_name === '__new__') {
-                $rules['new_inventory_item_name'] = 'required|string|max:255|unique:inventory_items,item_name';
-            }
-        }
-        
-        // Quick Pay validation
         if ($request->payment_status === 'partial') {
             $rules['amount_paid_now'] = 'required|numeric|min:0.01|max:' . $request->total_amount;
             $rules['payment_method'] = 'required|in:cash,bank_transfer,check,credit_card,other';
@@ -509,11 +320,10 @@ class ExpenseCrudController extends CrudController
         $startMonth = Carbon::parse($request->start_month);
         $endMonth = $startMonth->copy()->addMonths($request->number_of_months - 1)->format('Y-m-01');
 
-        // إنشاء المصروف
-        $expenseData = [
+        $expense = Expense::create([
             'expense_category_id' => $request->expense_category_id,
-            'vendor_id' => $request->vendor_id,
-            'is_inventory' => $isInventory,
+            'vendor_id' => null,
+            'is_inventory' => false,
             'payment_status' => $request->payment_status,
             'total_amount' => $request->total_amount,
             'number_of_months' => $request->number_of_months,
@@ -523,9 +333,7 @@ class ExpenseCrudController extends CrudController
             'payment_date' => $request->payment_date,
             'notes' => $request->notes,
             'created_by' => auth()->id(),
-        ];
-        
-        $expense = Expense::create($expenseData);
+        ]);
 
         // إنشاء التوزيعات الشهرية (دائماً متاح)
         for ($i = 0; $i < $request->number_of_months; $i++) {
@@ -539,44 +347,7 @@ class ExpenseCrudController extends CrudController
             ]);
         }
 
-        // تحديث المخزون (فقط إذا كان is_inventory = true)
-        if ($isInventory && $request->inventory_quantity) {
-            // تحديد اسم الصنف (من القائمة أو من الحقل الجديد)
-            $itemName = $request->inventory_item_name;
-            if ($itemName === '__new__' && $request->new_inventory_item_name) {
-                $itemName = $request->new_inventory_item_name;
-            }
-            
-            if ($itemName && $itemName !== '__new__') {
-                InventoryItem::addQuantity(
-                    $itemName,
-                    (int)$request->inventory_quantity
-                );
-            }
-        }
-
-        // Quick Pay: إنشاء VendorPayment تلقائياً إذا كان هناك payment details
-        if ($expense->vendor_id && in_array($request->payment_status, ['paid', 'partial'])) {
-            $paymentAmount = $request->payment_status === 'paid' 
-                ? $request->total_amount 
-                : ($request->amount_paid_now ?? 0);
-            
-            if ($paymentAmount > 0) {
-                $expense->vendorPayments()->create([
-                    'vendor_id' => $expense->vendor_id,
-                    'amount' => $paymentAmount,
-                    'method' => $request->payment_method ?? 'cash',
-                    'payment_date' => $request->payment_date,
-                    'created_by' => auth()->id(),
-                ]);
-            }
-        }
-
-        $message = $isInventory 
-            ? 'تم إنشاء المصروف (مخزون) بنجاح.'
-            : 'تم إنشاء المصروف وتوزيعه على ' . $request->number_of_months . ' شهر بنجاح.';
-        
-        \Alert::success($message)->flash();
+        \Alert::success('تم إنشاء المصروف وتوزيعه على ' . $request->number_of_months . ' شهر بنجاح.')->flash();
         
         return redirect($this->crud->route);
     }
@@ -584,9 +355,7 @@ class ExpenseCrudController extends CrudController
     /**
      * Update the specified resource in storage.
      * 
-     * Business Purpose: تحديث مصروف موجود مع إعادة إنشاء التوزيعات الشهرية
-     * - دعم Inventory vs Amortization
-     * - Quick Pay: إنشاء VendorPayment تلقائياً إذا كان هناك payment details
+     * Business Purpose: تحديث مصروف تشغيلي مع إعادة إنشاء التوزيعات الشهرية.
      */
     public function update(Request $request)
     {
@@ -602,8 +371,12 @@ class ExpenseCrudController extends CrudController
             return redirect($this->crud->route);
         }
 
-        $isInventory = $request->boolean('is_inventory');
-        
+        if ($expense->is_inventory) {
+            \Alert::error('هذا السجل من نوع مخزون قديم — عدّله من فواتير المشتريات أو اتصل بالدعم.')->flash();
+
+            return redirect($this->crud->route);
+        }
+
         $rules = [
             'expense_category_id' => 'required|exists:expense_categories,id',
             'total_amount' => 'required|numeric|min:0.01',
@@ -612,19 +385,7 @@ class ExpenseCrudController extends CrudController
             'number_of_months' => 'required|integer|min:1',
             'start_month' => 'required|date',
         ];
-        
-        // Inventory fields required only if is_inventory = true
-        if ($isInventory) {
-            $rules['inventory_item_name'] = 'required';
-            $rules['inventory_quantity'] = 'required|integer|min:1';
-            
-            // إذا كان "__new__" محدد، يجب إدخال اسم الصنف الجديد
-            if ($request->inventory_item_name === '__new__') {
-                $rules['new_inventory_item_name'] = 'required|string|max:255|unique:inventory_items,item_name';
-            }
-        }
-        
-        // Quick Pay validation
+
         if ($request->payment_status === 'partial') {
             $rules['amount_paid_now'] = 'required|numeric|min:0.01|max:' . $request->total_amount;
             $rules['payment_method'] = 'required|in:cash,bank_transfer,check,credit_card,other';
@@ -639,11 +400,10 @@ class ExpenseCrudController extends CrudController
         $startMonth = Carbon::parse($request->start_month);
         $endMonth = $startMonth->copy()->addMonths($request->number_of_months - 1)->format('Y-m-01');
 
-        // تحديث بيانات المصروف
-        $expenseData = [
+        $expense->update([
             'expense_category_id' => $request->expense_category_id,
-            'vendor_id' => $request->vendor_id,
-            'is_inventory' => $isInventory,
+            'vendor_id' => null,
+            'is_inventory' => false,
             'payment_status' => $request->payment_status,
             'total_amount' => $request->total_amount,
             'number_of_months' => $request->number_of_months,
@@ -652,9 +412,7 @@ class ExpenseCrudController extends CrudController
             'end_month' => $endMonth,
             'payment_date' => $request->payment_date,
             'notes' => $request->notes,
-        ];
-        
-        $expense->update($expenseData);
+        ]);
 
         // حذف التوزيعات القديمة وإعادة إنشائها (دائماً متاح)
         $expense->monthlyAllocations()->delete();
@@ -670,58 +428,7 @@ class ExpenseCrudController extends CrudController
             ]);
         }
 
-        // تحديث المخزون (فقط إذا كان is_inventory = true)
-        if ($isInventory && $request->inventory_quantity) {
-            // تحديد اسم الصنف (من القائمة أو من الحقل الجديد)
-            $itemName = $request->inventory_item_name;
-            if ($itemName === '__new__' && $request->new_inventory_item_name) {
-                $itemName = $request->new_inventory_item_name;
-            }
-            
-            if ($itemName && $itemName !== '__new__') {
-                InventoryItem::addQuantity(
-                    $itemName,
-                    (int)$request->inventory_quantity
-                );
-            }
-        }
-
-        // Quick Pay: إنشاء VendorPayment تلقائياً إذا كان هناك payment details
-        if ($expense->vendor_id && in_array($request->payment_status, ['paid', 'partial'])) {
-            $paymentAmount = $request->payment_status === 'paid' 
-                ? $request->total_amount 
-                : ($request->amount_paid_now ?? 0);
-            
-            if ($paymentAmount > 0) {
-                // تحقق إذا كان هناك دفع موجود بالفعل لهذا المصروف
-                $existingPayment = $expense->vendorPayments()
-                    ->where('payment_date', $request->payment_date)
-                    ->first();
-                
-                if ($existingPayment) {
-                    // تحديث الدفع الموجود
-                    $existingPayment->update([
-                        'amount' => $paymentAmount,
-                        'method' => $request->payment_method ?? 'cash',
-                    ]);
-                } else {
-                    // إنشاء دفع جديد
-                    $expense->vendorPayments()->create([
-                        'vendor_id' => $expense->vendor_id,
-                        'amount' => $paymentAmount,
-                        'method' => $request->payment_method ?? 'cash',
-                        'payment_date' => $request->payment_date,
-                        'created_by' => auth()->id(),
-                    ]);
-                }
-            }
-        }
-
-        $message = $isInventory 
-            ? 'تم تحديث المصروف (مخزون) بنجاح.'
-            : 'تم تحديث المصروف وإعادة توزيعه على ' . $request->number_of_months . ' شهر بنجاح.';
-        
-        \Alert::success($message)->flash();
+        \Alert::success('تم تحديث المصروف وإعادة توزيعه على ' . $request->number_of_months . ' شهر بنجاح.')->flash();
         
         return redirect($this->crud->route);
     }

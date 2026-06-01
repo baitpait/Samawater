@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\VendorCrudController;
 use App\Http\Controllers\Admin\VendorPaymentCrudController;
 use App\Http\Controllers\Admin\InventoryItemCrudController;
 use App\Http\Controllers\Admin\InvoiceCrudController;
+use App\Http\Controllers\Admin\PurchaseInvoiceCrudController;
 use App\Http\Controllers\Admin\ClientPaymentCrudController;
 use App\Http\Controllers\Admin\ClientBalanceReportController;
 use App\Http\Controllers\Admin\ClientFinancialLedgerReportController;
@@ -224,6 +225,11 @@ Route::get('/distributors-list', [\App\Http\Controllers\Admin\DistributorListCon
         ->name('expenses.current-month.transfer-all');
     Route::crud('vendor', VendorCrudController::class);
     Route::crud('vendor-payment', VendorPaymentCrudController::class);
+    if (config('features.purchase_invoices', true)) {
+        Route::crud('purchase-invoice', PurchaseInvoiceCrudController::class);
+        Route::get('purchase-invoice/generate-number', [PurchaseInvoiceCrudController::class, 'generateInvoiceNumber'])
+            ->name('purchase-invoice.generate-number');
+    }
     Route::crud('inventory-item', InventoryItemCrudController::class);
     Route::crud('invoice', InvoiceCrudController::class);
     Route::get('invoice/generate-number', [InvoiceCrudController::class, 'generateInvoiceNumber'])->name('invoice.generate-number');

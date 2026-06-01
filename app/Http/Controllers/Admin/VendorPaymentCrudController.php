@@ -96,7 +96,7 @@ class VendorPaymentCrudController extends CrudController
 
     protected function setupCreateOperation()
     {
-        CRUD::field('vendor_id')
+        $vendorField = CRUD::field('vendor_id')
             ->label('المورد')
             ->type('select')
             ->model('App\Models\Vendor')
@@ -105,6 +105,10 @@ class VendorPaymentCrudController extends CrudController
             ->options(function ($query) {
                 return $query->where('is_active', true)->orderBy('name')->get();
             });
+
+        if (request()->filled('vendor_id')) {
+            $vendorField->default((int) request('vendor_id'));
+        }
         
         CRUD::field('expense_id')
             ->label('المصروف (اختياري)')

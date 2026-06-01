@@ -1,6 +1,5 @@
 @php
     $categories = \App\Models\ExpenseCategory::where('is_active', true)->orderBy('name')->get();
-    $vendors = \App\Models\Vendor::where('is_active', true)->orderBy('name')->get();
 @endphp
 <div class="card filter-card mb-4" id="expense-filters-card">
     <div class="card-header bg-light py-3">
@@ -19,15 +18,6 @@
                     </select>
                 </div>
                 <div class="col-12 col-md-4">
-                    <label class="form-label fw-semibold mb-1">المورد</label>
-                    <select name="vendor_id" class="form-select form-control">
-                        <option value="">الكل</option>
-                        @foreach($vendors as $v)
-                            <option value="{{ $v->id }}" {{ request('vendor_id') == $v->id ? 'selected' : '' }}>{{ $v->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-12 col-md-4">
                     <label class="form-label fw-semibold mb-1">حالة الدفع</label>
                     <select name="payment_status" class="form-select form-control">
                         <option value="">الكل</option>
@@ -36,12 +26,12 @@
                         <option value="unpaid" {{ request('payment_status') === 'unpaid' ? 'selected' : '' }}>غير مدفوع</option>
                     </select>
                 </div>
-            </div>
-            <div class="row g-3 align-items-end">
                 <div class="col-12 col-md-4">
                     <label class="form-label fw-semibold mb-1">من تاريخ الدفع</label>
                     <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
                 </div>
+            </div>
+            <div class="row g-3 align-items-end">
                 <div class="col-12 col-md-4">
                     <label class="form-label fw-semibold mb-1">إلى تاريخ الدفع</label>
                     <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
