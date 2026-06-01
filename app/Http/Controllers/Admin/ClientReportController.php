@@ -13,6 +13,7 @@ class ClientReportController extends Controller
     {
         // ✅ يجب تعريف client دائمًا
         $client = null;
+        $bottleSnapshot = null;
 
         $clients = Client::select('id', 'name')->get();
         
@@ -33,12 +34,15 @@ class ClientReportController extends Controller
                       ->orderBy('delivery_date', 'desc');
                 }
             ])->findOrFail($request->client_id);
+
+            $bottleSnapshot = $client->bottleBalanceFromDeliveriesFormula();
         }
 
         return view('admin.client_report_page', compact(
             'clients',
             'client',
-            'distributors'
+            'distributors',
+            'bottleSnapshot',
         ));
 
     }

@@ -127,6 +127,23 @@ public function getBottleBalanceAttribute()
 }
 
     /**
+     * Business Purpose: رصيد القوارير = مجموع الممتلئة − مجموع الفارغة (كل تسليمات هذا المشترك).
+     *
+     * @return array{total_bottle_received: int, total_bottle_empty: int, bottle_balance: int}
+     */
+    public function bottleBalanceFromDeliveriesFormula(): array
+    {
+        $received = (int) $this->deliveries()->sum('bottle_received');
+        $empty = (int) $this->deliveries()->sum('bottle_empty');
+
+        return [
+            'total_bottle_received' => $received,
+            'total_bottle_empty' => $empty,
+            'bottle_balance' => $received - $empty,
+        ];
+    }
+
+    /**
      * العلاقة مع الفواتير
      */
     public function invoices()

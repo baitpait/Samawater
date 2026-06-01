@@ -88,6 +88,22 @@
                                 <h6 class="stat-label" style="color: rgba(255, 255, 255, 0.7); font-size: 13px; font-weight: 600; margin-bottom: 6px;">عنوان الزبون</h6>
                                 <p class="mb-0" style="color: #fff; font-size: 16px; font-weight: 600; line-height: 1.5;">{{ $client->address ?? '-' }}</p>
                             </div>
+                            @if(!empty($bottleSnapshot))
+                            <div class="mt-3 pt-3" style="border-top: 1px solid rgba(255, 255, 255, 0.15);">
+                                <h6 class="stat-label" style="color: rgba(255, 255, 255, 0.7); font-size: 13px; font-weight: 600; margin-bottom: 6px;">رصيد القوارير عنده</h6>
+                                <p class="mb-1" style="color: #fff; font-size: 28px; font-weight: 800; line-height: 1.2;">
+                                    {{ (int) ($bottleSnapshot['bottle_balance'] ?? 0) }}
+                                </p>
+                                <p class="mb-0 small" style="color: rgba(255, 255, 255, 0.85); font-weight: 600;">
+                                    {{ (int) ($bottleSnapshot['total_bottle_received'] ?? 0) }}
+                                    −
+                                    {{ (int) ($bottleSnapshot['total_bottle_empty'] ?? 0) }}
+                                    =
+                                    {{ (int) ($bottleSnapshot['bottle_balance'] ?? 0) }}
+                                    <span style="opacity: 0.75; font-weight: 500;">(ممتلئة − فارغة، كل التسليمات المسجّلة)</span>
+                                </p>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
