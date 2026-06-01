@@ -3,33 +3,37 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\ClientDeliveryReportService;
 use Illuminate\Http\Request;
-use App\Models\Client;
-use Mpdf\Mpdf;
 
 class ReportController extends Controller
 {
+    public function __construct(
+        private readonly ClientDeliveryReportService $clientDeliveryReport,
+    ) {
+    }
+
+    /**
+     * Business Purpose: تصدير تقرير تسليمات المشترك بصيغة PDF مع نفس أعمدة الصفحة (مالي + عبوات).
+     */
     public function exportClientReportPdf(Request $request)
     {
-        $client = Client::with(['city','deliveries.distributor'])
-            ->findOrFail($request->client_id);
+        $report = $this->clientDeliveryReport->load($request, (int) $request->client_id);
 
-        // HTML
-        $html = view('reports.client-pdf', compact('client'))->render();
+        $html = view('reports.client-pdf', $report)->render();
 
         $mpdf = new \Mpdf\Mpdf([
-    'mode' => 'utf-8',
-    'format' => 'A4',
-    'directionality' => 'rtl',
-    'default_font' => 'dejavusans',
-    'tempDir' => storage_path('app/mpdf'),
-]);
-
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'directionality' => 'rtl',
+            'default_font' => 'dejavusans',
+            'tempDir' => storage_path('app/mpdf'),
+        ]);
 
         $mpdf->WriteHTML($html);
 
         return response($mpdf->Output(
-            'client-report-'.$client->id.'.pdf',
+            'client-report-'.$report['client']->id.'.pdf',
             'S'
         ))->header('Content-Type', 'application/pdf');
     }

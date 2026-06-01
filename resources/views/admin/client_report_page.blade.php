@@ -1,19 +1,16 @@
 @extends(backpack_view('blank'))
 
 @section('after_styles')
-    {{-- Unified Forms Design System - الهوية البصرية الموحدة --}}
     <link rel="stylesheet" href="{{ asset('css/unified-forms.css') }}?v={{ time() }}">
-    
     <style>
         .badge-success-custom { background: var(--success-gradient) !important; color: #fff !important; }
         .badge-warning-custom { background: var(--warning-color) !important; color: #fff !important; }
         .badge-info-custom { background: var(--primary-deep) !important; color: #fff !important; }
-        
         .btn-edit-delivery {
             background: var(--warning-color);
             border: none;
             color: #fff;
-            padding: 8px 16px;
+            padding: 8px 12px;
             border-radius: 10px;
             font-weight: 600;
             font-size: 13px;
@@ -21,18 +18,18 @@
             box-shadow: var(--shadow-sm);
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
-        
-        .btn-edit-delivery:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-            color: #fff;
-        }
+        .btn-edit-delivery:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); color: #fff; }
+        .client-report-table th { white-space: nowrap; font-size: 13px; }
+        .client-report-table td { font-size: 13px; }
     </style>
 @endsection
 
 @section('header')
+    @php
+        $amountDue = (float) ($accountSnapshot['amount_due'] ?? ($client->combined_subscriber_debt ?? 0));
+    @endphp
     <section class="header-operation container-fluid animated fadeIn d-flex mb-2 align-items-center d-print-none" bp-section="page-header" style="background: var(--primary-deep) !important; border-radius: 20px; padding: 1.5rem 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-md) !important; width: 100%; display: flex; align-items: center; justify-content: space-between; position: relative; overflow: visible;">
         <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 1;">
             <div style="width: 56px; height: 56px; background: rgba(255, 255, 255, 0.1); border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center;">
@@ -42,8 +39,8 @@
                 <h1 class="text-capitalize mb-0" bp-section="page-heading" style="color: #fff; font-size: 24px; font-weight: 800; margin: 0; font-family: 'Cairo', sans-serif;">تسليمات المشترك</h1>
                 @if(isset($client))
                 <div class="mt-1" style="color: rgba(255, 255, 255, 0.9); font-size: 15px; font-weight: 700;">
-                    <span style="color: rgba(255, 255, 255, 0.7);">رصيده المالي:</span>
-                    <span style="{{ ($client->balance ?? 0) >= 0 ? 'color: #86efac;' : 'color: #fca5a5;' }}">₪ {{ number_format($client->balance ?? 0, 0) }}</span>
+                    <span style="color: rgba(255, 255, 255, 0.7);">المبلغ المستحق (إجمالي):</span>
+                    <span style="{{ $amountDue > 0 ? 'color: #fca5a5;' : ($amountDue < 0 ? 'color: #86efac;' : 'color: #fff;') }}">₪ {{ number_format($amountDue, 2) }}</span>
                 </div>
                 @endif
             </div>
@@ -53,7 +50,14 @@
                 <i class="la la-arrow-right"></i> العودة للمشتركين
             </a>
             @if($client)
-            <a href="{{ route('client.report.pdf',['client_id'=>$client->id]) }}" class="btn btn-light" style="color: var(--primary-deep); font-weight: 700; border-radius: 12px; margin-right: 10px;">
+            @php
+                $pdfQuery = array_filter([
+                    'client_id' => $client->id,
+                    'from' => request('from'),
+                    'to' => request('to'),
+                ], static fn ($v) => $v !== null && $v !== '');
+            @endphp
+            <a href="{{ route('client.report.pdf', $pdfQuery) }}" class="btn btn-light" style="color: var(--primary-deep); font-weight: 700; border-radius: 12px; margin-right: 10px;">
                 <i class="la la-file-pdf"></i> PDF
             </a>
             @endif
@@ -68,7 +72,6 @@
             👆 الرجاء اختيار مشترك من القائمة لعرض التقرير
         </div>
     @else
-        {{-- بطاقة اسم المشترك + بوكس رصيد القوارير --}}
         <div class="row g-4 mb-4">
             <div class="col-12 {{ !empty($bottleSnapshot) ? 'col-lg-8' : '' }}">
                 <div class="dashboard-stat-card h-100" style="background: var(--primary-deep) !important; border-radius: 20px; padding: 28px; box-shadow: var(--shadow-md); border: 1px solid rgba(255, 255, 255, 0.05); position: relative; overflow: hidden;">
@@ -80,14 +83,39 @@
                             <h6 class="stat-label" style="color: rgba(255, 255, 255, 0.7); font-size: 14px; font-weight: 600; margin-bottom: 8px;">اسم المشترك</h6>
                             <h3 class="stat-value" style="color: #fff; font-size: 28px; font-weight: 800; margin: 0 0 12px 0;">{{ $client->name }}</h3>
                             <div class="mt-2 d-flex flex-wrap gap-2 align-items-center">
+                                @if(!empty($client->contract_no))
+                                <span class="badge" style="background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 6px 14px; font-weight: 600;">
+                                    <i class="la la-file-contract"></i> عقد: {{ $client->contract_no }}
+                                </span>
+                                @endif
                                 <span class="badge" style="background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 6px 14px; font-weight: 600;">
                                     <i class="la la-map-marker"></i> {{ $client->city->city_name ?? '-' }}
                                 </span>
+                                @if(!empty($client->phone_one) || !empty($client->phone_two))
+                                <span class="badge" style="background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 6px 14px; font-weight: 600;">
+                                    <i class="la la-phone"></i>
+                                    {{ $client->phone_one ?: '-' }}
+                                    @if(!empty($client->phone_two))
+                                        / {{ $client->phone_two }}
+                                    @endif
+                                </span>
+                                @endif
+                                @if($client->distributor)
+                                <span class="badge" style="background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 6px 14px; font-weight: 600;">
+                                    <i class="la la-truck"></i> موزع المشترك: {{ $client->distributor->name }}
+                                </span>
+                                @endif
                             </div>
                             <div class="mt-3 pt-3" style="border-top: 1px solid rgba(255, 255, 255, 0.15);">
                                 <h6 class="stat-label" style="color: rgba(255, 255, 255, 0.7); font-size: 13px; font-weight: 600; margin-bottom: 6px;">عنوان الزبون</h6>
                                 <p class="mb-0" style="color: #fff; font-size: 16px; font-weight: 600; line-height: 1.5;">{{ $client->address ?? '-' }}</p>
                             </div>
+                            @if(!empty(trim((string) ($client->notes ?? ''))))
+                            <div class="mt-3 pt-3" style="border-top: 1px solid rgba(255, 255, 255, 0.15);">
+                                <h6 class="stat-label" style="color: rgba(255, 255, 255, 0.7); font-size: 13px; font-weight: 600; margin-bottom: 6px;">ملاحظات المشترك</h6>
+                                <p class="mb-0" style="color: #fff; font-size: 15px; font-weight: 500; line-height: 1.6;">{{ $client->notes }}</p>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -117,7 +145,6 @@
             @endif
         </div>
 
-        {{-- Filter Card --}}
         <div class="card filter-card mb-4">
             <div class="card-body p-4">
                 <form method="GET" action="{{ route('client.report') }}" class="row g-3 align-items-end">
@@ -139,41 +166,76 @@
             </div>
         </div>
 
-        {{-- Table Card --}}
+        @php
+            $periodRequired = (float) $client->deliveries->sum('required_amount');
+            $periodPaid = (float) $client->deliveries->sum('paymant');
+            $periodDebt = round($periodRequired - $periodPaid, 2);
+        @endphp
+
         <div class="card">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-clean align-middle mb-0">
+                    <table class="table table-clean align-middle mb-0 client-report-table">
                         <thead>
                             <tr>
                                 <th>التاريخ</th>
                                 <th>الموزع</th>
-                                <th>قوارير ممتلئة</th>
-                                <th>قوارير فارغة</th>
-                                <th>رصيد القوارير</th>
-                                <th>الدفع</th>
-                                <th style="width: 100px;"></th>
+                                <th>ممتلئة</th>
+                                <th>فارغة</th>
+                                <th>فرق اليوم</th>
+                                <th>المبلغ المطلوب</th>
+                                <th>المبلغ المدفوع</th>
+                                <th>الدين المتبقي</th>
+                                <th style="width: 110px;">إجراء</th>
                             </tr>
                         </thead>
                         <tbody>
                         @forelse($client->deliveries as $row)
+                            @php
+                                $required = (float) ($row->required_amount ?? 0);
+                                $paid = (float) ($row->paymant ?? 0);
+                                $remaining = round($required - $paid, 2);
+                                $dayDelta = (int) $row->bottle_received - (int) $row->bottle_empty;
+                            @endphp
                             <tr>
                                 <td class="ps-4 fw-bold">{{ $row->delivery_date ? \Carbon\Carbon::parse($row->delivery_date)->format('Y-m-d') : '-' }}</td>
                                 <td>{{ $row->distributor->name ?? '-' }}</td>
                                 <td><span class="badge badge-success-custom">{{ $row->bottle_received }}</span></td>
                                 <td><span class="badge badge-warning-custom">{{ $row->bottle_empty }}</span></td>
-                                <td class="fw-bold text-primary-deep">{{ $row->bottle_received - $row->bottle_empty }}</td>
-                                <td class="fw-bold">₪ {{ number_format($row->paymant ?? 0, 0) }}</td>
+                                <td class="fw-semibold">{{ $dayDelta }}</td>
+                                <td>₪ {{ number_format($required, 2) }}</td>
+                                <td class="fw-bold" style="color: var(--primary-deep);">₪ {{ number_format($paid, 2) }}</td>
+                                <td class="fw-bold {{ $remaining > 0 ? 'text-danger' : ($remaining < 0 ? 'text-success' : 'text-muted') }}">
+                                    ₪ {{ number_format($remaining, 2) }}
+                                </td>
                                 <td class="pe-4">
-                                    <button type="button" class="btn btn-sm btn-primary" onclick="editDelivery({{ $row->id }})">
-                                        <i class="la la-pen"></i>
-                                    </button>
+                                    <div class="d-flex gap-1">
+                                        <button type="button" class="btn btn-sm btn-primary" onclick="editDelivery({{ $row->id }})" title="تعديل سريع">
+                                            <i class="la la-pen"></i>
+                                        </button>
+                                        <a href="{{ backpack_url('delivery/'.$row->id.'/edit') }}" class="btn btn-sm btn-outline-secondary" title="فتح نموذج التسليم">
+                                            <i class="la la-external-link-alt"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="7" class="text-center py-5 text-muted">لا توجد عمليات مسجلة</td></tr>
+                            <tr><td colspan="9" class="text-center py-5 text-muted">لا توجد عمليات مسجلة في الفترة المحددة</td></tr>
                         @endforelse
                         </tbody>
+                        @if($client->deliveries->isNotEmpty())
+                        <tfoot>
+                            <tr style="background: #f8fafc; font-weight: 700;">
+                                <td colspan="5" class="ps-4 text-end">إجمالي الفترة المعروضة:</td>
+                                <td>₪ {{ number_format($periodRequired, 2) }}</td>
+                                <td>₪ {{ number_format($periodPaid, 2) }}</td>
+                                <td class="{{ $periodDebt > 0 ? 'text-danger' : ($periodDebt < 0 ? 'text-success' : 'text-muted') }}">
+                                    ₪ {{ number_format($periodDebt, 2) }}
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                        @endif
                     </table>
                 </div>
             </div>

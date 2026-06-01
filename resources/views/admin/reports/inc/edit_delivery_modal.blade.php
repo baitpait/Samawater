@@ -12,8 +12,12 @@
         <div class="modal-body p-4">
           <input type="hidden" name="delivery_id" id="delivery_id">
           <input type="hidden" name="client_id" id="edit_delivery_client_id" value="">
-          <input type="hidden" name="required_amount" id="required_amount" value="">
-          <input type="hidden" name="inventory_item_id" id="inventory_item_id" value="">
+          <input type="hidden" name="inventory_item_id" id="inventory_item_id" value="1">
+
+          <div class="mb-3">
+            <label for="required_amount" class="form-label fw-bold">المبلغ المطلوب <span class="text-danger">*</span></label>
+            <input type="number" name="required_amount" id="required_amount" class="form-control" min="0" step="0.01" required>
+          </div>
 
           <div class="mb-3">
             <label for="bottle_received" class="form-label fw-bold">عدد العبوات المستلمة <span class="text-danger">*</span></label>
