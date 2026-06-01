@@ -251,6 +251,7 @@ class DeliveryListController extends Controller
             }
 
             $this->attachCombinedSubscriberDebtToRows($items);
+            $this->attachBottleBalanceToRows($items);
 
             $clients = new LengthAwarePaginator(
                 $items,
@@ -308,6 +309,53 @@ class DeliveryListController extends Controller
                 $row->setRawAttributes($attributes);
             } else {
                 $row->total_amount_due = $amount;
+            }
+        }
+    }
+
+    /**
+     * Business Purpose: إرفاق رصيد العبوات (مجموع ممتلئة − مجموع فارغة) لكل مشترك — مطابق تقرير العميل.
+     *
+     * @param  \Illuminate\Support\Collection<int, object>|list<object>  $rows
+     */
+    private function attachBottleBalanceToRows($rows): void
+    {
+        $ids = collect($rows)
+            ->pluck('client_id')
+            ->filter()
+            ->unique()
+            ->map(static fn ($id): int => (int) $id)
+            ->values()
+            ->all();
+
+        if ($ids === []) {
+            return;
+        }
+
+        $totalsByClientId = Delivery::query()
+            ->whereIn('client_id', $ids)
+            ->selectRaw('client_id, COALESCE(SUM(bottle_received), 0) AS bottle_received_total, COALESCE(SUM(bottle_empty), 0) AS bottle_empty_total')
+            ->groupBy('client_id')
+            ->get()
+            ->keyBy('client_id');
+
+        foreach ($rows as $row) {
+            $clientId = (int) ($row->client_id ?? 0);
+            $agg = $totalsByClientId->get($clientId);
+            $received = (int) ($agg->bottle_received_total ?? 0);
+            $empty = (int) ($agg->bottle_empty_total ?? 0);
+            $balance = $received - $empty;
+
+            if ($row instanceof Model) {
+                $attributes = $row->getAttributes();
+                $attributes['bottle_received_total'] = $received;
+                $attributes['bottle_empty_total'] = $empty;
+                $attributes['bottle_balance_display'] = $balance;
+                $row->setRawAttributes($attributes);
+            } else {
+                $row->bottle_received_total = $received;
+                $row->bottle_empty_total = $empty;
+                $row->bottle_balance_display = $balance;
             }
         }
     }

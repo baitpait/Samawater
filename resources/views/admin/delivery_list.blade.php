@@ -493,6 +493,7 @@
                                 <th>معلومات الاشتراك</th>
                                 <th style="min-width: 140px;">طريقة التعامل</th>
                                 <th style="min-width: 120px;">إجمالي المستحق</th>
+                                <th style="min-width: 110px;">رصيد العبوات</th>
                                 <th style="min-width: 170px;">آخر تسليم والأيام</th>
                                 <th>عبوات مستلمة (آخر تسليم)</th>
                                 <th>ملاحظات المشترك</th>
@@ -528,6 +529,17 @@
                                         @endphp
                                         <a href="{{ route('reports.client-ledger', ['client_id' => $client->client_id]) }}" class="{{ $debtClass }} text-decoration-none">
                                             {{ number_format($combinedDebt, 2) }} ₪
+                                        </a>
+                                    </td>
+                                    <td class="text-center" title="ممتلئة − فارغة (كل التسليمات المسجّلة)">
+                                        @php
+                                            $bottleBalance = (int) ($client->bottle_balance_display ?? 0);
+                                            $bottleReceived = (int) ($client->bottle_received_total ?? 0);
+                                            $bottleEmpty = (int) ($client->bottle_empty_total ?? 0);
+                                        @endphp
+                                        <a href="{{ route('client.report', ['client_id' => $client->client_id]) }}" class="text-decoration-none">
+                                            <div class="fw-bold fs-5 mb-0" style="color: #0f766e;">{{ $bottleBalance }}</div>
+                                            <div class="small text-muted">{{ $bottleReceived }} − {{ $bottleEmpty }} = {{ $bottleBalance }}</div>
                                         </a>
                                     </td>
                                     <td style="min-width: 170px;">
