@@ -179,11 +179,11 @@ class InvoiceCrudController extends CrudController
             ->label('الحالة')
             ->type('select_from_array')
             ->options([
-                'draft' => 'مسودة',
                 'confirmed' => 'مؤكدة',
+                'draft' => 'مسودة',
                 'cancelled' => 'ملغاة',
             ])
-            ->default('draft');
+            ->default('confirmed');
         
         CRUD::field('payment_status')
             ->label('حالة الدفع')

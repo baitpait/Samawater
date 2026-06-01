@@ -6,7 +6,6 @@ use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use App\Models\VendorPayment;
 use App\Models\Vendor;
-use App\Models\Expense;
 
 /**
  * Business Purpose: إدارة مدفوعات الموردين (Vendor Payments)
@@ -109,17 +108,7 @@ class VendorPaymentCrudController extends CrudController
         if (request()->filled('vendor_id')) {
             $vendorField->default((int) request('vendor_id'));
         }
-        
-        CRUD::field('expense_id')
-            ->label('المصروف (اختياري)')
-            ->type('select')
-            ->model('App\Models\Expense')
-            ->attribute('id')
-            ->options(function ($query) {
-                return $query->orderBy('id', 'desc')->limit(100)->get();
-            })
-            ->hint('يمكن تركها فارغة إذا كانت المدفوعة مستقلة');
-        
+
         CRUD::field('amount')
             ->label('المبلغ (شيكل)')
             ->type('number')

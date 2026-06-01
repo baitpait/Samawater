@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 
 class UserCrudController extends CrudController
 {
@@ -140,10 +140,13 @@ class UserCrudController extends CrudController
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Business Purpose: إنشاء مستخدم جديد مع تشفير كلمة المرور وربط الدور/الموزع.
      */
-    public function store(Request $request)
+    public function store(): RedirectResponse
     {
+        $this->crud->hasAccessOrFail('create');
+
+        $request = request();
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -152,18 +155,31 @@ class UserCrudController extends CrudController
             'distributor_id' => 'nullable|exists:distributors,id',
         ]);
 
-        $request->merge([
-            'password' => bcrypt($request->password),
+        $item = $this->crud->create([
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'password' => bcrypt((string) $request->input('password')),
+            'role_id' => $request->input('role_id'),
+            'distributor_id' => $request->input('distributor_id'),
         ]);
 
-        return parent::store($request);
+        $this->data['entry'] = $this->crud->entry = $item;
+
+        \Alert::success(trans('backpack::crud.insert_success'))->flash();
+        $this->crud->setSaveAction();
+
+        return $this->crud->performSaveAction($item->getKey());
     }
 
     /**
-     * Update the specified resource in storage.
+     * Business Purpose: تحديث مستخدم مع تشفير كلمة المرور عند تغييرها فقط.
      */
-    public function update(Request $request, $id)
+    public function update(): RedirectResponse
     {
+        $this->crud->hasAccessOrFail('update');
+
+        $id = $this->crud->getCurrentEntryId();
+        $request = request();
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $id,
@@ -172,15 +188,23 @@ class UserCrudController extends CrudController
             'distributor_id' => 'nullable|exists:distributors,id',
         ]);
 
-        // إذا لم يتم إدخال كلمة مرور جديدة، احذفها من الطلب
-        if (empty($request->password)) {
-            $request->request->remove('password');
-        } else {
-            $request->merge([
-                'password' => bcrypt($request->password),
-            ]);
+        $data = [
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'role_id' => $request->input('role_id'),
+            'distributor_id' => $request->input('distributor_id'),
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt((string) $request->input('password'));
         }
 
-        return parent::update($request, $id);
+        $item = $this->crud->update($id, $data);
+        $this->data['entry'] = $this->crud->entry = $item;
+
+        \Alert::success(trans('backpack::crud.update_success'))->flash();
+        $this->crud->setSaveAction();
+
+        return $this->crud->performSaveAction($item->getKey());
     }
 }
