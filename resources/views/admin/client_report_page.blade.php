@@ -68,9 +68,9 @@
             👆 الرجاء اختيار مشترك من القائمة لعرض التقرير
         </div>
     @else
-        {{-- بطاقة اسم المشترك وعنوان الزبون (عرض كامل) --}}
+        {{-- بطاقة اسم المشترك + بوكس رصيد القوارير --}}
         <div class="row g-4 mb-4">
-            <div class="col-12">
+            <div class="col-12 {{ !empty($bottleSnapshot) ? 'col-lg-8' : '' }}">
                 <div class="dashboard-stat-card h-100" style="background: var(--primary-deep) !important; border-radius: 20px; padding: 28px; box-shadow: var(--shadow-md); border: 1px solid rgba(255, 255, 255, 0.05); position: relative; overflow: hidden;">
                     <div class="stat-card-content" style="display: flex; align-items: flex-start; gap: 24px; position: relative; z-index: 2;">
                         <div class="stat-icon-box" style="width: 72px; height: 72px; min-width: 72px; background: rgba(255, 255, 255, 0.1); border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);">
@@ -88,26 +88,33 @@
                                 <h6 class="stat-label" style="color: rgba(255, 255, 255, 0.7); font-size: 13px; font-weight: 600; margin-bottom: 6px;">عنوان الزبون</h6>
                                 <p class="mb-0" style="color: #fff; font-size: 16px; font-weight: 600; line-height: 1.5;">{{ $client->address ?? '-' }}</p>
                             </div>
-                            @if(!empty($bottleSnapshot))
-                            <div class="mt-3 pt-3" style="border-top: 1px solid rgba(255, 255, 255, 0.15);">
-                                <h6 class="stat-label" style="color: rgba(255, 255, 255, 0.7); font-size: 13px; font-weight: 600; margin-bottom: 6px;">رصيد القوارير عنده</h6>
-                                <p class="mb-1" style="color: #fff; font-size: 28px; font-weight: 800; line-height: 1.2;">
-                                    {{ (int) ($bottleSnapshot['bottle_balance'] ?? 0) }}
-                                </p>
-                                <p class="mb-0 small" style="color: rgba(255, 255, 255, 0.85); font-weight: 600;">
-                                    {{ (int) ($bottleSnapshot['total_bottle_received'] ?? 0) }}
-                                    −
-                                    {{ (int) ($bottleSnapshot['total_bottle_empty'] ?? 0) }}
-                                    =
-                                    {{ (int) ($bottleSnapshot['bottle_balance'] ?? 0) }}
-                                    <span style="opacity: 0.75; font-weight: 500;">(ممتلئة − فارغة، كل التسليمات المسجّلة)</span>
-                                </p>
-                            </div>
-                            @endif
                         </div>
                     </div>
                 </div>
             </div>
+            @if(!empty($bottleSnapshot))
+            <div class="col-12 col-lg-4">
+                <div class="dashboard-stat-card bottle-balance-box h-100" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important; border-radius: 20px; padding: 28px; box-shadow: var(--shadow-md); border: 1px solid rgba(255, 255, 255, 0.12); position: relative; overflow: hidden;">
+                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; z-index: 2;">
+                        <div style="width: 64px; height: 64px; background: rgba(255, 255, 255, 0.15); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                            <i class="la la-wine-bottle" style="font-size: 32px; color: #fff;"></i>
+                        </div>
+                        <h6 style="color: rgba(255, 255, 255, 0.85); font-size: 14px; font-weight: 600; margin-bottom: 8px;">رصيد القوارير عنده</h6>
+                        <p class="mb-2" style="color: #fff; font-size: 40px; font-weight: 900; line-height: 1;">
+                            {{ (int) ($bottleSnapshot['bottle_balance'] ?? 0) }}
+                        </p>
+                        <p class="mb-0" style="color: rgba(255, 255, 255, 0.9); font-size: 15px; font-weight: 700; padding: 10px 14px; background: rgba(0,0,0,0.12); border-radius: 12px; width: 100%;">
+                            {{ (int) ($bottleSnapshot['total_bottle_received'] ?? 0) }}
+                            <span style="opacity: 0.8;">−</span>
+                            {{ (int) ($bottleSnapshot['total_bottle_empty'] ?? 0) }}
+                            <span style="opacity: 0.8;">=</span>
+                            {{ (int) ($bottleSnapshot['bottle_balance'] ?? 0) }}
+                        </p>
+                        <p class="mb-0 mt-2 small" style="color: rgba(255, 255, 255, 0.75);">ممتلئة − فارغة (كل التسليمات)</p>
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
 
         {{-- Filter Card --}}
