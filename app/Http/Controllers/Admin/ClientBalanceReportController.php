@@ -1,63 +1,48 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 /**
- * Business Purpose: تقرير رصيد المشترك (المستحقات)
- * - يعرض رصيد المشترك المختار: إجمالي الفواتير المؤكدة، إجمالي المدفوعات، الرصيد المستحق
+ * Business Purpose: كشف حساب مختصر للمشترك (مبيعات، تسليمات، مستحق، عبوات، أمانات) دون تفصيل محاسبي إضافي.
  */
 class ClientBalanceReportController extends Controller
 {
     /**
-     * عرض تقرير الرصيد حسب المشترك المختار (client_id)
+     * Business Purpose: عرض كشف الحساب عند اختيار مشترك (يدعم معرف الأب أو عنوان فرعي في الرابط).
      */
-    public function index(Request $request)
+    public function index(Request $request): View
     {
-        $clientsList = Client::whereNull('parent_id')
+        $clientsList = Client::query()
+            ->whereNull('parent_id')
             ->orderBy('name', 'asc')
             ->get(['id', 'name', 'contract_no']);
 
-        $clients = collect();
-        $totalOpeningBalance = 0;
-        $totalInvoices = 0;
-        $totalPayments = 0;
-        $totalBalance = 0;
         $selectedClientId = $request->get('client_id');
+        $statement = null;
+        $selectedClient = null;
+        $selectParentId = null;
 
         if ($request->filled('client_id')) {
-            $client = Client::with(['invoices' => function ($q) {
-                $q->where('status', 'confirmed');
-            }, 'payments'])
-                ->whereNull('parent_id')
-                ->find($selectedClientId);
-
-            if ($client) {
-                $totalOpeningBalance = (float) ($client->opening_balance_amount ?? 0);
-                $totalInvoices = $client->invoices->sum('total_amount');
-                $totalPaymentsAll = (float) $client->payments->sum('amount');
-                $paymentsStandalone = (float) $client->payments()->whereDoesntHave('linkedDelivery')->sum('amount');
-                $totalBalance = round($totalOpeningBalance + $totalInvoices - $paymentsStandalone, 2);
-                $client->opening_balance_amount = $totalOpeningBalance;
-                $client->total_invoices_amount = $totalInvoices;
-                $client->total_paid_amount = $totalPaymentsAll;
-                $client->balance = $totalBalance;
-                $clients = collect([$client]);
-                $totalPayments = $totalPaymentsAll;
+            $selectedClient = Client::query()->find($selectedClientId);
+            if ($selectedClient !== null) {
+                $statement = $selectedClient->accountStatementSnapshot();
+                $selectParentId = (int) ($statement['billing_parent_id'] ?? $selectedClient->id);
             }
         }
 
         return view('admin.reports.client_balance', compact(
             'clientsList',
-            'clients',
-            'totalOpeningBalance',
-            'totalInvoices',
-            'totalPayments',
-            'totalBalance',
-            'selectedClientId'
+            'statement',
+            'selectedClient',
+            'selectedClientId',
+            'selectParentId',
         ));
     }
 }

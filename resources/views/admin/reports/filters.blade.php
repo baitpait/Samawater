@@ -605,7 +605,7 @@
                             <td class="small" style="max-width: 200px;" title="{{ $client->interaction_method ?? '' }}">
                                 {{ Str::limit($client->interaction_method ?? '-', 50) }}
                             </td>
-                            <td class="fw-bold" title="يشمل ما على الفواتير/المدفوعات الافتتاحية ومستحق التسليم (المطلوب − المسدَّد بالتسليم)">
+                            <td class="fw-bold" title="إجمالي الدين = رصيد الفواتير والافتتاحي + متبقّي التسليمات (نفس تقرير رصيد المشترك)">
                                 @php
                                     $balance = $client->combined_subscriber_debt ?? 0;
                                     $balanceClass = $balance > 0 ? 'text-danger' : ($balance < 0 ? 'text-success' : 'text-muted');

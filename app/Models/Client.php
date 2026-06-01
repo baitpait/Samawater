@@ -373,4 +373,117 @@ public function getBottleBalanceAttribute()
             'delivery_count_family' => $deliveryCountFamily,
         ];
     }
+
+    /**
+     * Business Purpose: ملخص «كشف حساب» المشترك — ستة مؤشرات فقط (مبيعات، تسليمات، إجمالي حجم، مستحق، عبوات، أمانات).
+     *
+     * @return array{
+     *     billing_parent_id: int,
+     *     display_client_id: int,
+     *     display_name: string,
+     *     contract_no: string|null,
+     *     phone_one: string|null,
+     *     sales_total: float,
+     *     deliveries_total: float,
+     *     sales_and_deliveries_gross: float,
+     *     amount_due: float,
+     *     bottles_on_hand: int,
+     *     deposit_totals_by_item: array<string, int>,
+     *     active_deposit_count: int
+     * }
+     */
+    public function accountStatementSnapshot(): array
+    {
+        $parent = $this->getParentClient();
+        if ($parent === null) {
+            return [
+                'billing_parent_id' => (int) $this->id,
+                'display_client_id' => (int) $this->id,
+                'display_name' => (string) ($this->name ?? ''),
+                'contract_no' => $this->contract_no,
+                'phone_one' => $this->phone_one,
+                'sales_total' => 0.0,
+                'deliveries_total' => 0.0,
+                'sales_and_deliveries_gross' => 0.0,
+                'amount_due' => 0.0,
+                'bottles_on_hand' => 0,
+                'deposit_totals_by_item' => [],
+                'active_deposit_count' => 0,
+            ];
+        }
+
+        $familyIds = $this->familyClientIds();
+        $salesTotal = round((float) $parent->invoices()->where('status', 'confirmed')->sum('total_amount'), 2);
+        $deliveriesTotal = round((float) Delivery::query()
+            ->whereIn('client_id', $familyIds)
+            ->sum('required_amount'), 2);
+        $salesAndDeliveriesGross = round($salesTotal + $deliveriesTotal, 2);
+        $amountDue = round($this->combined_subscriber_debt, 2);
+        $depositTotalsByItem = $this->activeDepositTotalsByItemFor($parent);
+
+        return [
+            'billing_parent_id' => (int) $parent->id,
+            'display_client_id' => (int) $this->id,
+            'display_name' => (string) ($this->name ?? $parent->name ?? ''),
+            'contract_no' => $this->contract_no ?? $parent->contract_no,
+            'phone_one' => $this->phone_one ?? $parent->phone_one,
+            'sales_total' => $salesTotal,
+            'deliveries_total' => $deliveriesTotal,
+            'sales_and_deliveries_gross' => $salesAndDeliveriesGross,
+            'amount_due' => $amountDue,
+            'bottles_on_hand' => $this->resolveBottlesOnHandForBillingParent($parent),
+            'deposit_totals_by_item' => $depositTotalsByItem,
+            'active_deposit_count' => (int) $parent->deposits()->where('is_withdrawn', false)->count(),
+        ];
+    }
+
+    /**
+     * Business Purpose: عبوات متوفرة لدى المشترك — من تقرير التسليمات المحسوب أو الرصيد المخزّن على ملف الأب.
+     */
+    public function resolveBottlesOnHandForBillingParent(Client $billingParent): int
+    {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('v_clients_delivery_overview')) {
+                $fromView = VClientsDeliveryOverview::query()
+                    ->where('client_id', $billingParent->id)
+                    ->value('bottle_on_hand_calculated');
+
+                if ($fromView !== null) {
+                    return (int) $fromView;
+                }
+            }
+        } catch (\Throwable) {
+            // View missing after SQL import without views — fallback to stored balance.
+        }
+
+        return (int) ($billingParent->getRawOriginal('bottle_balance') ?? 0);
+    }
+
+    /**
+     * Business Purpose: تجميع كميات الأمانات غير المسحوبة حسب اسم الصنف لملف الفوترة (الأب).
+     *
+     * @return array<string, int>
+     */
+    public function activeDepositTotalsByItemFor(Client $billingParent): array
+    {
+        $totals = [];
+        $deposits = $billingParent->deposits()
+            ->where('is_withdrawn', false)
+            ->with('items')
+            ->get();
+
+        foreach ($deposits as $deposit) {
+            foreach ($deposit->items as $item) {
+                $name = trim((string) $item->item_name);
+                if ($name === '') {
+                    continue;
+                }
+                $totals[$name] = ($totals[$name] ?? 0) + (int) $item->quantity;
+            }
+        }
+
+        ksort($totals);
+
+        return $totals;
+    }
 }

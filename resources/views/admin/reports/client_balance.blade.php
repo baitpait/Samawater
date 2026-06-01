@@ -425,8 +425,8 @@
                 <i class="la la-wallet"></i>
             </div>
             <div>
-                <h1 class="balance-header-title">تقرير رصيد المشتركين</h1>
-                <p class="balance-header-subtitle">عرض الفواتير والمدفوعات والرصيد المستحق</p>
+                <h1 class="balance-header-title">كشف حساب المشترك</h1>
+                <p class="balance-header-subtitle">ملخص: مبيعات، تسليمات، الرصيد المستحق، العبوات، والأمانات</p>
             </div>
         </div>
     </section>
@@ -449,7 +449,7 @@
                         <select name="client_id" class="form-select form-control-modern" required>
                             <option value="">— اختر مشترك لعرض رصيده —</option>
                             @foreach($clientsList ?? [] as $c)
-                                <option value="{{ $c->id }}" @selected(isset($selectedClientId) && (string)$selectedClientId === (string)$c->id)>
+                                <option value="{{ $c->id }}" @selected(isset($selectParentId) && (string)$selectParentId === (string)$c->id)>
                                     {{ $c->name }} {{ $c->contract_no ? ' (' . $c->contract_no . ')' : '' }}
                                 </option>
                             @endforeach
@@ -469,115 +469,12 @@
             </div>
         </div>
 
-        @if(!$clients->isEmpty())
-        {{-- ======================= الإحصائيات ======================= --}}
-        <div class="row g-4 mb-4">
-            <div class="col-md-3">
-                <div class="stat-card-modern">
-                    <div class="stat-card-icon">
-                        <i class="la la-wallet"></i>
-                    </div>
-                    <div class="stat-card-label">رصيد بداية المدة</div>
-                    <h3 class="stat-card-value">{{ number_format($totalOpeningBalance, 2) }} ₪</h3>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card-modern">
-                    <div class="stat-card-icon">
-                        <i class="la la-file-invoice"></i>
-                    </div>
-                    <div class="stat-card-label">إجمالي الفواتير</div>
-                    <h3 class="stat-card-value">{{ number_format($totalInvoices, 2) }} ₪</h3>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card-modern stat-card-success">
-                    <div class="stat-card-icon stat-icon-success">
-                        <i class="la la-hand-holding-usd"></i>
-                    </div>
-                    <div class="stat-card-label">إجمالي المدفوعات</div>
-                    <h3 class="stat-card-value">{{ number_format($totalPayments, 2) }} ₪</h3>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card-modern stat-card-danger">
-                    <div class="stat-card-icon stat-icon-danger">
-                        <i class="la la-balance-scale"></i>
-                    </div>
-                    <div class="stat-card-label">الرصيد المستحق</div>
-                    <h3 class="stat-card-value">{{ number_format($totalBalance, 2) }} ₪</h3>
-                </div>
-            </div>
-        </div>
+        @if($statement !== null)
+            @include('admin.reports.partials.account_statement_summary', ['statement' => $statement])
         @else
         <div class="alert alert-info text-center py-4 mb-4" style="border-radius: 16px; font-weight: 600;">
             <i class="la la-user-circle" style="font-size: 48px;"></i>
             <p class="mt-3 mb-0">اختر مشتركاً من القائمة أعلاه ثم اضغط «عرض الرصيد»</p>
-        </div>
-        @endif
-
-        {{-- ======================= جدول المشترك (عند الاختيار) ======================= --}}
-        @if(!$clients->isEmpty())
-        <div class="table-card-modern">
-            <div class="table-card-header-modern">
-                <i class="la la-users"></i>
-                <h5>قائمة المشتركين</h5>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-modern align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th style="min-width: 180px;">اسم المشترك</th>
-                            <th>الهاتف</th>
-                            <th>رصيد بداية المدة</th>
-                            <th>إجمالي الفواتير</th>
-                            <th>إجمالي المدفوعات</th>
-                            <th>الرصيد المستحق</th>
-                            <th style="width: 180px;">الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($clients as $client)
-                            <tr>
-                                <td class="fw-bold ps-4" style="color: var(--primary-deep); min-width: 180px;">{{ $client->name ?? $client->contract_no ?? '—' }}</td>
-                                <td>{{ $client->phone_one ?? '-' }}</td>
-                                <td><span class="badge badge-modern badge-secondary-modern">{{ number_format($client->opening_balance_amount ?? 0, 2) }} ₪</span></td>
-                                <td><span class="badge badge-modern badge-primary-modern">{{ number_format($client->total_invoices_amount, 2) }} ₪</span></td>
-                                <td><span class="badge badge-modern badge-success-modern">{{ number_format($client->total_paid_amount, 2) }} ₪</span></td>
-                                <td>
-                                    @if($client->balance > 0)
-                                        <span class="badge badge-modern badge-danger-modern">{{ number_format($client->balance, 2) }} ₪</span>
-                                    @elseif($client->balance < 0)
-                                        <span class="badge badge-modern badge-warning-modern">{{ number_format(abs($client->balance), 2) }} ₪ (زائد)</span>
-                                    @else
-                                        <span class="badge badge-modern badge-secondary-modern">0.00 ₪</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        <a href="{{ backpack_url('client/' . $client->id . '/show') }}" class="btn btn-action-modern btn-action-primary" title="عرض">
-                                            <i class="la la-eye"></i>
-                                        </a>
-                                        <a href="{{ backpack_url('invoice/create?client_id=' . $client->id) }}" class="btn btn-action-modern btn-action-success" title="فاتورة">
-                                            <i class="la la-file-invoice"></i>
-                                        </a>
-                                        <a href="{{ backpack_url('client-payment/create?client_id=' . $client->id) }}" class="btn btn-action-modern btn-action-info" title="دفع">
-                                            <i class="la la-money-bill"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="text-center py-5 text-muted">
-                                    <i class="la la-inbox" style="font-size: 48px; opacity: 0.3;"></i>
-                                    <p class="mt-3 mb-0">لا توجد بيانات متاحة</p>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
         </div>
         @endif
 

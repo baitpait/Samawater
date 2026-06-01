@@ -45,6 +45,13 @@
                 <td class="text-muted small">تسليمات فيها فرق مستحق / إجمالي تسليمات العائلة</td>
                 <td class="text-end small">{{ (int) ($f['deliveries_with_gap'] ?? 0) }} / {{ (int) ($f['delivery_count_family'] ?? 0) }}</td>
             </tr>
+            @php
+                $combinedDebtShow = round((float) ($f['balance_per_invoices'] ?? 0) + (float) ($f['delivery_outstanding'] ?? 0), 2);
+            @endphp
+            <tr class="border-top border-3">
+                <td class="fw-bold" style="color: #1e3a5f;">إجمالي الدين على المشترك</td>
+                <td class="fw-bold text-end @if($combinedDebtShow > 0) text-danger @endif">₪ {{ number_format($combinedDebtShow, 2) }}</td>
+            </tr>
         </tbody>
     </table>
     <div class="d-flex flex-wrap gap-2 mt-3 justify-content-start">

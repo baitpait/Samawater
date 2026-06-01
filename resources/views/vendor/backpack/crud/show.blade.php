@@ -84,6 +84,7 @@
                 $editUrl = backpack_url('client/' . $clientId . '/edit');
                 $reportUrl = route('client.report', ['client_id' => $clientId]);
                 $deliveryUrl = backpack_url('delivery/create?client_id=' . $clientId);
+                $clientBalanceUrl = route('reports.client-balance', ['client_id' => $clientId]);
                 $deleteUrl = backpack_url('client/' . $clientId);
             @endphp
             <div class="card mb-4" style="border-radius: 20px; border: none; box-shadow: var(--shadow-sm); overflow: visible;">
@@ -110,7 +111,7 @@
                             </a>
                         </div>
                         <div class="col-6 col-md-4">
-                            <a href="{{ route('reports.client-balance', ['client_id' => $clientId]) }}" class="btn w-100 text-white" style="background: #f59e0b; border-radius: 12px; font-weight: 700; padding: 12px;">
+                            <a href="{{ $clientBalanceUrl }}" class="btn w-100 text-white" style="background: #f59e0b; border-radius: 12px; font-weight: 700; padding: 12px;">
                                 <i class="la la-file-invoice-dollar"></i> رصيد المشترك
                             </a>
                         </div>
