@@ -24,14 +24,24 @@ return new class extends Migration
                 $table->decimal('required_amount', 10, 2)->default(0)->after('bottle_empty')->comment('المبلغ المطلوب الكامل من العميل');
             }
             
-            // إضافة inventory_item_id
-            if (!Schema::hasColumn('deliveries', 'inventory_item_id')) {
-                $table->foreignId('inventory_item_id')->default(1)->after('required_amount')->constrained('inventory_items')->onDelete('restrict')->comment('ربط بصنف العبوات في المخزون');
+            // إضافة inventory_item_id (يتطلب جدول inventory_items — قواعد Eliyaa المستوردة قد تفتقده)
+            if (! Schema::hasColumn('deliveries', 'inventory_item_id')) {
+                if (Schema::hasTable('inventory_items')) {
+                    $table->foreignId('inventory_item_id')->default(1)->after('required_amount')->constrained('inventory_items')->onDelete('restrict')->comment('ربط بصنف العبوات في المخزون');
+                } else {
+                    $table->unsignedBigInteger('inventory_item_id')->nullable()->after(
+                        Schema::hasColumn('deliveries', 'required_amount') ? 'required_amount' : 'bottle_empty'
+                    );
+                }
             }
-            
+
             // إضافة client_payment_id
-            if (!Schema::hasColumn('deliveries', 'client_payment_id')) {
-                $table->foreignId('client_payment_id')->nullable()->after('paymant')->constrained('client_payments')->onDelete('set null')->comment('ربط بالدفعة المرتبطة');
+            if (! Schema::hasColumn('deliveries', 'client_payment_id')) {
+                if (Schema::hasTable('client_payments')) {
+                    $table->foreignId('client_payment_id')->nullable()->after('paymant')->constrained('client_payments')->nullOnDelete()->comment('ربط بالدفعة المرتبطة');
+                } else {
+                    $table->unsignedBigInteger('client_payment_id')->nullable()->after('paymant');
+                }
             }
         });
     }

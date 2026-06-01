@@ -316,6 +316,13 @@ class ClientCrudController extends CrudController
                 'label' => 'ملاحظات',
                 'type'  => 'textarea',
             ],
+
+            [
+                'name'  => 'interaction_method',
+                'label' => 'طريقة التعامل',
+                'type'  => 'textarea',
+                'hint'  => 'كيفية التعامل مع المشترك (نص حر): أسلوب التواصل، الدفع، التوصيل، إلخ.',
+            ],
         ]);
     }
 
@@ -343,6 +350,8 @@ class ClientCrudController extends CrudController
             'bottle_balance' => 'nullable|integer|min:0',
             'opening_balance_amount' => 'nullable|numeric',
             'opening_balance_as_of' => 'nullable|date',
+            'notes' => 'nullable|string',
+            'interaction_method' => 'nullable|string',
         ]);
         
         // التحقق من رصيد القوارير وخصمه من المخزون
@@ -385,6 +394,7 @@ class ClientCrudController extends CrudController
             'opening_balance_amount' => $request->opening_balance_amount ?? 0,
             'opening_balance_as_of' => $request->opening_balance_as_of,
             'notes' => $request->notes,
+            'interaction_method' => $request->interaction_method,
             'longitude' => $request->longitude,
             'latitude' => $request->latitude,
         ]);
@@ -641,6 +651,12 @@ CRUD::addColumn([
                     'entry' => $entry,
                 ])->render();
             },
+        ]);
+
+        CRUD::addColumn([
+            'name'  => 'interaction_method',
+            'label' => 'طريقة التعامل',
+            'type'  => 'text',
         ]);
 
         // 17. الملاحظات

@@ -9,6 +9,7 @@ use App\Models\ClientDepositItem;
 use App\Models\Client;
 use App\Models\InventoryItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Carbon\Carbon;
 
 /**
@@ -65,18 +66,22 @@ class ClientDepositCrudController extends CrudController
         CRUD::column('withdraw_action')
             ->label('الإجراءات')
             ->type('custom_html')
-            ->value(function($entry) {
-                if (!$entry->is_withdrawn) {
-                    $withdrawUrl = route('client-deposit.withdraw', ['id' => $entry->id]);
-                    return '<a href="' . $withdrawUrl . '" 
-                             class="btn btn-sm btn-warning" 
-                             onclick="return confirm(\'هل تريد سحب هذه الأمانة وإرجاعها للمخزون؟\');">
-                             <i class="la la-undo"></i> سحب
-                           </a>';
-                } else {
-                    $withdrawnDate = $entry->withdrawn_at ? $entry->withdrawn_at->format('Y-m-d H:i') : '-';
-                    return '<span class="badge bg-secondary">تم السحب في ' . $withdrawnDate . '</span>';
+            ->value(function ($entry) {
+                if (! $entry->is_withdrawn) {
+                    $withdrawUrl = e(route('client-deposit.withdraw', ['id' => $entry->id]));
+                    $token = csrf_token();
+
+                    return '<form method="POST" action="' . $withdrawUrl . '" class="d-inline" '
+                        . 'onsubmit="return confirm(\'هل تريد سحب هذه الأمانة وإرجاعها للمخزون؟\');">'
+                        . '<input type="hidden" name="_token" value="' . e($token) . '">'
+                        . '<button type="submit" class="btn btn-sm btn-warning">'
+                        . '<i class="la la-undo"></i> سحب'
+                        . '</button></form>';
                 }
+
+                $withdrawnDate = $entry->withdrawn_at ? $entry->withdrawn_at->format('Y-m-d H:i') : '-';
+
+                return '<span class="badge bg-secondary">تم السحب في ' . e($withdrawnDate) . '</span>';
             });
         
         // زر سحب كل الأمانات (يظهر في أعلى الصفحة)
@@ -121,11 +126,19 @@ class ClientDepositCrudController extends CrudController
             ->type('date')
             ->attributes(['required' => true])
             ->default(Carbon::now()->format('Y-m-d'));
-        
-        // Repeater للأصناف
+
+        $existingDepositsContext = $this->existingDepositsPanelContext(
+            request()->filled('client_id') ? (int) request('client_id') : null
+        );
+
+        CRUD::field('existing_deposits_panel')
+            ->type('custom_html')
+            ->value(view('admin.client_deposits.existing_deposits_panel', $existingDepositsContext)->render());
+
+        // Repeater للأصناف (يُحمَّل كـ view ليدعم @push للسكربتات)
         CRUD::field('items_repeater')
             ->type('custom_html')
-            ->value(view('admin.client_deposits.items_repeater')->render());
+            ->value(view('admin.client_deposits.items_repeater', ['deposit' => null])->render());
         
         CRUD::field('notes')
             ->label('ملاحظات')
@@ -165,7 +178,7 @@ class ClientDepositCrudController extends CrudController
             ->attributes(['required' => true])
             ->default($deposit ? $deposit->date_given->format('Y-m-d') : Carbon::now()->format('Y-m-d'));
         
-        // Repeater للأصناف مع البيانات الموجودة
+        // Repeater للأصناف مع البيانات الموجودة (يُحمَّل كـ view ليدعم @push للسكربتات)
         CRUD::field('items_repeater')
             ->type('custom_html')
             ->value(view('admin.client_deposits.items_repeater', ['deposit' => $deposit])->render());
@@ -437,5 +450,62 @@ class ClientDepositCrudController extends CrudController
             $redirectUrl .= '?client_id=' . $clientId;
         }
         return redirect($redirectUrl);
+    }
+
+    /**
+     * Business Purpose: بيانات عرض الأمانات المعارة الحالية للمشترك في صفحة إنشاء أمانة جديدة.
+     *
+     * @return array{
+     *     client: Client|null,
+     *     activeDeposits: Collection<int, ClientDeposit>,
+     *     totalsByItem: Collection<string, int>
+     * }
+     */
+    private function existingDepositsPanelContext(?int $clientId): array
+    {
+        if ($clientId === null || $clientId <= 0) {
+            return [
+                'client' => null,
+                'activeDeposits' => collect(),
+                'totalsByItem' => collect(),
+            ];
+        }
+
+        $client = Client::query()
+            ->with([
+                'deposits' => static function ($query): void {
+                    $query->where('is_withdrawn', false)
+                        ->with('items')
+                        ->orderByDesc('date_given');
+                },
+            ])
+            ->find($clientId);
+
+        if ($client === null) {
+            return [
+                'client' => null,
+                'activeDeposits' => collect(),
+                'totalsByItem' => collect(),
+            ];
+        }
+
+        $activeDeposits = $client->deposits;
+        $totalsByItem = collect();
+
+        foreach ($activeDeposits as $deposit) {
+            foreach ($deposit->items as $item) {
+                $name = trim((string) $item->item_name);
+                if ($name === '') {
+                    continue;
+                }
+                $totalsByItem->put($name, (int) $totalsByItem->get($name, 0) + (int) $item->quantity);
+            }
+        }
+
+        return [
+            'client' => $client,
+            'activeDeposits' => $activeDeposits,
+            'totalsByItem' => $totalsByItem->sortKeys(),
+        ];
     }
 }

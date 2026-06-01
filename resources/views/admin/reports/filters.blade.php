@@ -583,6 +583,7 @@
                         <tr>
                             <th style="min-width: 200px;">المشترك</th>
                             <th>المدينة / العنوان</th>
+                            <th style="min-width: 140px;">طريقة التعامل</th>
                             <th>دين المشترك</th>
                             <th style="min-width: 170px;">آخر استلام والأيام</th>
                             <th style="min-width: 120px;">نوع الاشتراك</th>
@@ -600,6 +601,9 @@
                             <td>
                                 <div class="fw-semibold">{{ $client->city->city_name ?? '-' }}</div>
                                 <div class="text-muted small">{{ $client->address ?? '-' }}</div>
+                            </td>
+                            <td class="small" style="max-width: 200px;" title="{{ $client->interaction_method ?? '' }}">
+                                {{ Str::limit($client->interaction_method ?? '-', 50) }}
                             </td>
                             <td class="fw-bold" title="يشمل ما على الفواتير/المدفوعات الافتتاحية ومستحق التسليم (المطلوب − المسدَّد بالتسليم)">
                                 @php

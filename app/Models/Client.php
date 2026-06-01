@@ -45,6 +45,7 @@ class Client extends Model
         'opening_balance_amount',
         'opening_balance_as_of',
         'notes',
+        'interaction_method',
         'city_name',
         'distributor_id',
         'image'

@@ -42,6 +42,7 @@
             align-items: center !important;
         }
     </style>
+    @stack('crud_fields_styles')
 @endsection
 
 @section('header')
@@ -86,4 +87,9 @@
 		  </form>
 	</div>
 </div>
+@endsection
+
+@section('after_scripts')
+    @stack('crud_fields_scripts')
+    @parent
 @endsection

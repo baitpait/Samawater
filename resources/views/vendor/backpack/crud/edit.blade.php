@@ -80,3 +80,8 @@
 	</div>
 </div>
 @endsection
+
+@section('after_scripts')
+    @stack('crud_fields_scripts')
+    @parent
+@endsection

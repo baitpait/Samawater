@@ -33,7 +33,7 @@ class DisableCSPForBackpack
                    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.datatables.net https://fonts.googleapis.com https://maxst.icons8.com; " .
                    "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:; " .
                    "img-src 'self' data: https:; " .
-                   "connect-src 'self' http://127.0.0.1:* https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.datatables.net;";
+                   "connect-src 'self' http://127.0.0.1:* http://localhost:* https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.datatables.net;";
             $response->headers->set('Content-Security-Policy', $csp);
         }
 

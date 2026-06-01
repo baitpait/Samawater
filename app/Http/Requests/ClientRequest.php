@@ -25,7 +25,8 @@ class ClientRequest extends FormRequest
     public function rules()
     {
         return [
-            // 'name' => 'required|min:5|max:255'
+            'notes' => 'nullable|string',
+            'interaction_method' => 'nullable|string',
         ];
     }
 
@@ -37,7 +38,8 @@ class ClientRequest extends FormRequest
     public function attributes()
     {
         return [
-            //
+            'notes' => 'ملاحظات',
+            'interaction_method' => 'طريقة التعامل',
         ];
     }
 

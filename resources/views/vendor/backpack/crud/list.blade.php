@@ -726,6 +726,28 @@
   </div>
 @endsection
 
+@push('after_scripts')
+  <script>
+    /**
+     * Business Purpose: ضمان إرسال CSRF مع كل طلبات jQuery (حذف، DataTables) — يمنع 419 محلياً.
+     */
+    (function () {
+      function backpackCsrfToken() {
+        var meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+      }
+      if (typeof window.jQuery !== 'undefined') {
+        window.jQuery.ajaxSetup({
+          headers: {
+            'X-CSRF-TOKEN': backpackCsrfToken(),
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        });
+      }
+    })();
+  </script>
+@endpush
+
 @section('after_scripts')
   @include('crud::inc.datatables_logic')
   <script>
