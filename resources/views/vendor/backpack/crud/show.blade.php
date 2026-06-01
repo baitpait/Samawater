@@ -85,6 +85,7 @@
                 $reportUrl = route('client.report', ['client_id' => $clientId]);
                 $deliveryUrl = backpack_url('delivery/create?client_id=' . $clientId);
                 $clientBalanceUrl = route('reports.client-balance', ['client_id' => $clientId]);
+                $clientLedgerUrl = route('reports.client-ledger', ['client_id' => $clientId]);
                 $deleteUrl = backpack_url('client/' . $clientId);
             @endphp
             <div class="card mb-4" style="border-radius: 20px; border: none; box-shadow: var(--shadow-sm); overflow: visible;">
@@ -106,13 +107,13 @@
                             </a>
                         </div>
                         <div class="col-6 col-md-4">
-                            <a href="{{ $reportUrl }}" class="btn w-100 text-white" style="background: #0ea5e9; border-radius: 12px; font-weight: 700; padding: 12px;">
-                                <i class="la la-file-alt"></i> تقرير العميل
+                            <a href="{{ $clientBalanceUrl }}" class="btn w-100 text-white" style="background: #f59e0b; border-radius: 12px; font-weight: 700; padding: 12px;">
+                                <i class="la la-file-invoice-dollar"></i> رصيد المشترك
                             </a>
                         </div>
                         <div class="col-6 col-md-4">
-                            <a href="{{ $clientBalanceUrl }}" class="btn w-100 text-white" style="background: #f59e0b; border-radius: 12px; font-weight: 700; padding: 12px;">
-                                <i class="la la-file-invoice-dollar"></i> رصيد المشترك
+                            <a href="{{ $clientLedgerUrl }}" class="btn w-100 text-white" style="background: #6366f1; border-radius: 12px; font-weight: 700; padding: 12px;">
+                                <i class="la la-book"></i> كشف حساب مالي
                             </a>
                         </div>
                         <div class="col-6 col-md-4">

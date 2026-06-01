@@ -26,6 +26,7 @@ class CheckIfAdmin
         'reports.filters.export.pdf',
         'reports.filters.toggle_delivery_on_demand',
         'reports.client-balance',
+        'reports.client-ledger',
         'client.report',
         'client.report.pdf',
         'client.showDetailsRow',

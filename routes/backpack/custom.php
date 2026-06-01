@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\InventoryItemCrudController;
 use App\Http\Controllers\Admin\InvoiceCrudController;
 use App\Http\Controllers\Admin\ClientPaymentCrudController;
 use App\Http\Controllers\Admin\ClientBalanceReportController;
+use App\Http\Controllers\Admin\ClientFinancialLedgerReportController;
 use App\Http\Controllers\Admin\TreasuryCustodyReportController;
 use App\Http\Controllers\Admin\UnifiedFinancialLedgerController;
 use App\Http\Controllers\Admin\CompanyTreasuryReportController;
@@ -235,6 +236,8 @@ Route::get('/distributors-list', [\App\Http\Controllers\Admin\DistributorListCon
     // تقرير رصيد المشتركين
     Route::get('reports/client-balance', [ClientBalanceReportController::class, 'index'])
         ->name('reports.client-balance');
+    Route::get('reports/client-ledger', [ClientFinancialLedgerReportController::class, 'index'])
+        ->name('reports.client-ledger');
     Route::get('reports/treasury-custody', [TreasuryCustodyReportController::class, 'index'])
         ->name('reports.treasury-custody');
     Route::get('reports/financial-movements-unified', [UnifiedFinancialLedgerController::class, 'index'])
