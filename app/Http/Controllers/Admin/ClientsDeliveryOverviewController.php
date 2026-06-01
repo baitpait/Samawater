@@ -72,7 +72,7 @@ class ClientsDeliveryOverviewController extends Controller
     $subscriptionTypes = SubscriptionType::orderBy('type_name')->get();
     $clients = Client::query()
         ->orderBy('name')
-        ->get(['id', 'name', 'contract_no']);
+        ->get(['id', 'name']);
 
     return view('admin.reports.clients_delivery_overview', compact(
         'rows',

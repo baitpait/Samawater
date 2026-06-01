@@ -1,6 +1,3 @@
-@php
-    $clients = \App\Models\Client::whereNull('parent_id')->orderBy('name')->get();
-@endphp
 <div class="card filter-card mb-4" id="client-deposit-filters-card">
     <div class="card-header bg-light py-3">
         <h6 class="mb-0 fw-bold"><i class="la la-filter"></i> فلاتر البحث</h6>
@@ -10,12 +7,9 @@
             <div class="row g-3 align-items-end mb-3">
                 <div class="col-12 col-md-4">
                     <label class="form-label fw-semibold mb-1">المشترك</label>
-                    <select name="client_id" class="form-select form-control">
-                        <option value="">الكل</option>
-                        @foreach($clients as $c)
-                            <option value="{{ $c->id }}" {{ request('client_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
-                        @endforeach
-                    </select>
+                    @include('admin.partials.client_select_searchable', [
+                        'selectedId' => request('client_id'),
+                    ])
                 </div>
                 <div class="col-12 col-md-4">
                     <label class="form-label fw-semibold mb-1">من تاريخ</label>

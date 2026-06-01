@@ -427,20 +427,6 @@
             color: #fff !important;
         }
         
-        /* Responsive */
-        .delivery-overview-client-select + .select2-container {
-            width: 100% !important;
-        }
-        .delivery-overview-client-select + .select2-container .select2-selection {
-            min-height: 48px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 6px 10px;
-        }
-        .select2-container--bootstrap .select2-search--dropdown .select2-search__field {
-            border-radius: 8px;
-        }
-
         @media (max-width: 768px) {
             .delivery-overview-header {
                 padding: 1.5rem;
@@ -516,14 +502,13 @@
                     <input type="hidden" name="search" value="1">
                     <div class="col-12">
                         <label class="form-label-modern">المشترك</label>
-                        <select name="client_id" id="delivery-overview-client-select" class="form-select form-select-modern w-100 delivery-overview-client-select" data-placeholder="ابحث عن اسم المشترك أو رقم العقد…">
-                            <option value="">الكل</option>
-                            @foreach($clients ?? [] as $client)
-                                <option value="{{ $client->id }}" @selected((string) request('client_id') === (string) $client->id)>
-                                    {{ $client->name }}{{ $client->contract_no ? ' (' . $client->contract_no . ')' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
+                        @include('admin.partials.client_select_searchable', [
+                            'clients' => $clients ?? collect(),
+                            'selectedId' => request('client_id'),
+                            'selectId' => 'delivery-overview-client-select',
+                            'selectClass' => 'form-select form-select-modern w-100',
+                            'placeholder' => 'ابحث عن اسم المشترك…',
+                        ])
                     </div>
                     <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label-modern">من تاريخ</label>
@@ -654,21 +639,6 @@
 @push('after_scripts')
 <script>
 (function() {
-    if (window.jQuery && jQuery.fn.select2) {
-        jQuery('#delivery-overview-client-select').select2({
-            theme: 'bootstrap',
-            width: '100%',
-            dir: 'rtl',
-            allowClear: true,
-            placeholder: jQuery('#delivery-overview-client-select').data('placeholder') || 'ابحث عن مشترك…',
-            language: {
-                noResults: function() { return 'لا توجد نتائج'; },
-                searching: function() { return 'جاري البحث…'; },
-                inputTooShort: function() { return 'اكتب للبحث'; }
-            }
-        });
-    }
-
     var deliveryBaseUrl = '{{ backpack_url("delivery") }}';
     var reportPageUrl = '{{ request()->fullUrl() }}';
     var csrfToken = '{{ csrf_token() }}';

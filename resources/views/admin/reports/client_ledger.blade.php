@@ -41,14 +41,15 @@
                 <form method="GET" action="{{ route('reports.client-ledger') }}" class="row g-3 align-items-end">
                     <div class="col-12 col-md-4">
                         <label class="form-label fw-bold">المشترك</label>
-                        <select name="client_id" class="form-select" required>
-                            <option value="">— اختر مشترك —</option>
-                            @foreach($clientsList ?? [] as $c)
-                                <option value="{{ $c->id }}" @selected(isset($selectParentId) && (string)$selectParentId === (string)$c->id)>
-                                    {{ $c->name }} {{ $c->contract_no ? '('.$c->contract_no.')' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
+                        @include('admin.partials.client_select_searchable', [
+                            'clients' => $clientsList ?? collect(),
+                            'selectedId' => $selectParentId ?? request('client_id'),
+                            'allowEmpty' => true,
+                            'emptyLabel' => '— اختر مشترك —',
+                            'required' => true,
+                            'selectClass' => 'form-select',
+                            'placeholder' => 'ابحث عن اسم المشترك…',
+                        ])
                     </div>
                     <div class="col-6 col-md-2">
                         <label class="form-label fw-bold">من تاريخ</label>

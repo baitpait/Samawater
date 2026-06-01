@@ -446,14 +446,15 @@
                 <form method="GET" action="{{ route('reports.client-balance') }}" class="row g-3 g-md-4 filter-form-rtl">
                     <div class="col-12 col-md-8">
                         <label class="form-label-modern">اختر المشترك</label>
-                        <select name="client_id" class="form-select form-control-modern" required>
-                            <option value="">— اختر مشترك لعرض رصيده —</option>
-                            @foreach($clientsList ?? [] as $c)
-                                <option value="{{ $c->id }}" @selected(isset($selectParentId) && (string)$selectParentId === (string)$c->id)>
-                                    {{ $c->name }} {{ $c->contract_no ? ' (' . $c->contract_no . ')' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
+                        @include('admin.partials.client_select_searchable', [
+                            'clients' => $clientsList ?? collect(),
+                            'selectedId' => $selectParentId ?? request('client_id'),
+                            'allowEmpty' => true,
+                            'emptyLabel' => '— اختر مشترك لعرض رصيده —',
+                            'required' => true,
+                            'selectClass' => 'form-select form-control-modern',
+                            'placeholder' => 'ابحث عن اسم المشترك…',
+                        ])
                     </div>
                     <div class="col-12 col-sm-6 col-md-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-filter-submit w-100">

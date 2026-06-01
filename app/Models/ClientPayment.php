@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use App\Models\User;
 
 /**
  * Business Purpose: مدفوعات المشتركين

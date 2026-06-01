@@ -163,6 +163,30 @@ class ClientPaymentCrudController extends CrudController
     }
 
     /**
+     * Business Purpose: معاينة الدفعة بالعربية مع تفاصيل المشترك ومصدر الربط (تسليم/فاتورة).
+     */
+    protected function setupShowOperation(): void
+    {
+        CRUD::setShowView('admin.client_payments.show');
+    }
+
+    /**
+     * Business Purpose: تحميل علاقات الدفعة قبل عرض صفحة المعاينة.
+     */
+    public function show($id)
+    {
+        $this->crud->hasAccessOrFail('show');
+
+        $id = $this->crud->getCurrentEntryId() ?? $id;
+        $this->data['entry'] = ClientPayment::query()
+            ->with(['client', 'creator', 'linkedDelivery'])
+            ->findOrFail($id);
+        $this->data['crud'] = $this->crud;
+
+        return view($this->crud->getShowView(), $this->data);
+    }
+
+    /**
      * Business Purpose: حفظ دفعة جديدة
      */
     public function store(Request $request)
