@@ -6,15 +6,11 @@
     $totalsByItem = $totalsByItem ?? collect();
 @endphp
 
+@if ($client)
 <div class="form-group col-md-12 client-existing-deposits-panel mb-4">
     <label class="d-block mb-2">أمانات المشترك الحالية (معارة)</label>
 
-    @if (! $client)
-        <div class="alert alert-light border mb-0" style="border-radius: 12px;">
-            <i class="la la-info-circle"></i>
-            اختر المشترك أولاً لعرض الأمانات المعارة لديه، أو افتح الصفحة برابط يحتوي <code>client_id</code>.
-        </div>
-    @elseif ($activeDeposits->isEmpty())
+    @if ($activeDeposits->isEmpty())
         <div class="alert alert-success border mb-0" style="border-radius: 12px;">
             <i class="la la-check-circle"></i>
             لا توجد أمانات معارة حالياً لـ <strong>{{ $client->name }}</strong>.
@@ -92,8 +88,8 @@
         </div>
     @endif
 </div>
+@endif
 
-@if ($client)
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const clientSelect = document.querySelector('select[name="client_id"]');
@@ -111,4 +107,3 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-@endif

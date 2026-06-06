@@ -399,19 +399,25 @@ class ClientCrudController extends CrudController
             'latitude' => $request->latitude,
         ]);
         
-        \Alert::success('تم إنشاء المشترك بنجاح' . ($bottleBalance > 0 ? ' وتم خصم ' . $bottleBalance . ' قارورة من المخزون' : '') . '.')->flash();
-        
+        \Alert::success(
+            'تم إنشاء المشترك بنجاح'
+            . ($bottleBalance > 0 ? ' وتم خصم ' . $bottleBalance . ' قارورة من المخزون' : '')
+            . '. يمكنك الآن إضافة الأمانات.'
+        )->flash();
+
         // إعادة التوجيه حسب save action
         $saveAction = $request->input('_save_action', 'save_and_back');
         $redirectUrl = $this->crud->route;
-        
+
         if ($saveAction === 'save_and_edit') {
             return redirect($redirectUrl . '/' . $client->id . '/edit');
-        } elseif ($saveAction === 'save_and_new') {
+        }
+
+        if ($saveAction === 'save_and_new') {
             return redirect($redirectUrl . '/create');
         }
-        
-        return redirect($redirectUrl);
+
+        return redirect(backpack_url('client-deposit/create') . '?client_id=' . $client->id);
     }
 
     /**
