@@ -29,3 +29,6 @@
 - **OS:** Ubuntu 22.04 LTS (Case-Sensitive).
 - **Web Server:** Nginx (Configuration must handle WebSocket upgrades for Reverb).
 - **Queue:** Redis (Required for Broadcasting).
+- **Production Path:** `/home/sarfesak/public_html/sama`
+- **Git Remote:** `https://github.com/baitpait/Samawater.git` (Public read) أو SSH deploy key — راجع `docs/DEPLOYMENT.md`.
+- **Node (Build):** Vite 6 يتطلب Node ≥ 18؛ الإنتاج: Node 20 عبر NVM (`NODE_UPGRADE_SAFE_GUIDE.md`).

@@ -2,6 +2,76 @@
 
 ---
 
+## [2026-06-01] — لوحة المالك، أصحاب المصروف، تقارير القوارير، النشر على السيرفر
+
+- **الهدف:** إكمال ميزات الإدارة المطلوبة (لوحة تحكم فعلية، مصروفات بأصحاب، رصيد قوارير، مخزون)، إصلاح أخطاء النشر على `server1`، وتوثيق مسار Git/Node للسحب الآمن.
+
+- **التغييرات التقنية:**
+
+  ### أ) لوحة التحكم (`/admin/dashboard`)
+  - **`AdminController`:** المسؤولون → `vendor.backpack.ui.dashboard` بدلاً من `dashboard_admin` المحذوفة.
+  - **`DashboardService`:** KPIs (تسليمات اليوم، كاش اليوم، عهدة، مستحقات)، رسوم بيانية، جدول تسليمات اليوم.
+  - **`AppServiceProvider`:** View Composer يحقن `ownerDashboard`.
+  - **إصلاح `ParseError`:** إغلاق `@if ($isDistributor)` بـ `@endif` في Blade.
+  - **إزالة تنبيه مخزون منخفض** من الواجهة (يبقى تنبيه المصروفات غير المدفوعة فقط).
+  - **ADR:** `docs/decisions/ADR-008-owner-dashboard-routing.md`
+
+  ### ب) أصحاب المصروف (Expense Beneficiaries)
+  - جداول: `expense_beneficiaries` + `expense_beneficiary_id` إلزامي على `expenses`.
+  - الهجرة الثانية: `beneficiary_type` → `expense_category_id` (فئات من `expense_categories`).
+  - عرض: `الفئة ( صاحب المصروف )` في القائمة، التصدير Excel/PDF، الفلاتر.
+  - ربط تلقائي بـ `vendors` عند تطابق الاسم (`ExpenseBeneficiaryVendorLinkService`).
+  - CRUD: `/admin/expense-beneficiary`
+  - **ADR:** `docs/decisions/ADR-007-expense-beneficiaries.md`
+
+  ### ج) تقارير رصيد القوارير
+  - **`ClientBottleBalanceService`:** رصيد عائلة المشترك (أب + أبناء) من التسليمات.
+  - **تقرير العميل:** لوحة «رصيد القوارير عنده» في رأس `client_report_page`.
+  - **التقارير المتقدمة:** جدول + بطاقة ملخص لكل العملاء المفلترين.
+
+  ### د) المخزون
+  - عمود **المجموع** في `/admin/inventory-item`.
+  - توحيد شارة الكمية مع عمود الأمانات.
+  - `InventoryItem::activeDepositTotalsByItemName()` للمجاميع.
+
+  ### هـ) دفتر مالي موحّد
+  - **`UnifiedFinancialLedgerService`:** سطر التفصيل يعرض اسم صاحب المصروف بدلاً من `—`.
+
+  ### و) تحسينات CRUD وواجهة
+  - **`ClientSelectFieldService`:** بحث Select2 موحّد للمشتركين.
+  - تحديثات على: مدفوعات، فواتير، تسليمات، أمانات، نظرة عامة التسليمات.
+  - **`config/sama.php`:** `inventory_low_stock_threshold` (افتراضي 50).
+
+- **الاختبارات الجديدة/المحدّثة:**
+  `DashboardServiceTest`, `AdminDashboardViewTest`, `ExpenseBeneficiaryTest`, `ClientBottleBalanceServiceTest`, `InventoryItemActiveDepositTotalsTest`, `ClientSelectFieldServiceTest`, `ClientDeliveryReportServiceTest`, `ClientsDeliveryOverviewDateFilterTest`, `ClientsDeliveryOverviewClientDetailTest`, `ClientPaymentDeleteSyncsDeliveryTest`, `InvoiceDestroyDeletesAutoPaymentTest`, `UnifiedFinancialLedgerExcludesWithdrawsTest`, وغيرها.
+
+- **Git والنشر:**
+  - **كوميت رئيسي:** `8b3b54e` — `feat(admin): owner dashboard, expense beneficiaries, and reporting`
+  - **المستودع:** https://github.com/baitpait/Samawater — **تحوّل إلى عام (Public)** لتسهيل `git pull` بدون token.
+  - **مشاكل السيرفر الموثّقة:**
+    1. HTTPS + كلمة مرور → مرفوض من GitHub.
+    2. Deploy Key على repo `Doooor` → `Repository not found` لـ Samawater (مفتاح لكل repo).
+    3. `npm run build` + Node قديم → `crypto.getRandomValues is not a function` → NVM + Node 20.
+    4. `Nothing to migrate` عند فشل `git pull` — الكود لم يُسحَب.
+  - **دليل النشر:** `docs/DEPLOYMENT.md`
+
+- **التنبيه (يدوي على السيرفر بعد كل `pull` ناجح):**
+  ```bash
+  cd /home/sarfesak/public_html/sama
+  git pull origin main
+  composer install --no-dev --optimize-autoloader
+  php artisan migrate --force
+  php artisan optimize:clear
+  php artisan view:clear
+  source ~/.nvm/nvm.sh && nvm use 20 && npm install && npm run build
+  ```
+
+- **Plan B (بدائل الموردين):**
+  - Git: مستودع خاص + Deploy Key أو PAT بدلاً من Public.
+  - Node: بناء `npm run build` محلياً ورفع مجلد `public/build` يدوياً (غير موصى به طويل الأمد).
+
+---
+
 ## [2026-05-24] — استمرارية تشغيل: دفع الرئيسية، عنوان GitHub، هجرات إصلاح Elyaa، وتجاهل Excel
 
 - **الهدف:** توحيد ممرّ النشر بين الأجهزة/SaaS بعد دمج كل التحديثات، وتقليل تكرار أخطاء الجداول/الأعمدة الناقصة عند قواعد `eliyaa_local`/الاستيراد، مع عدم ضياع الـ remote الصحيح بعد إعلان GitHub نقل الاسم إلى `baitpait`.

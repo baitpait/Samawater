@@ -12,7 +12,7 @@
 
 ## القرار
 
-1. جدول **`expense_beneficiaries`**: الاسم، النوع، `vendor_id` اختياري، `soft deletes`.
+1. جدول **`expense_beneficiaries`**: الاسم، **`expense_category_id`** (فئة من `expense_categories` بدلاً من نوع ثابت موظف/كازية)، `vendor_id` اختياري، `soft deletes`.
 2. عمود **`expense_beneficiary_id`** على `expenses` — **إلزامي** عند الإنشاء/التعديل عبر التحقق.
 3. **ربط تلقائي:** عند حفظ صاحب مصروف، إن وُجد `vendors.name` مطابق يُحدَّث `vendor_id`.
 4. **العرض:** `الفئة ( صاحب المصروف )` في القائمة، مصروفات الشهر، التصدير، والفلاتر.
