@@ -57,4 +57,28 @@ class ClientPayment extends Model
     {
         return $this->hasOne(Delivery::class, 'client_payment_id');
     }
+
+    /**
+     * Business Purpose: عند حذف دفعة صادرة من تسليم، يُصفَّر المدفوع على سطر التسليم ليبقى الأثر المالي متسقاً.
+     */
+    public function syncLinkedDeliveryOnPaymentRemoval(): void
+    {
+        $delivery = $this->linkedDelivery;
+
+        if ($delivery === null) {
+            return;
+        }
+
+        $delivery->update([
+            'paymant' => 0,
+            'client_payment_id' => null,
+        ]);
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (self $payment): void {
+            $payment->syncLinkedDeliveryOnPaymentRemoval();
+        });
+    }
 }

@@ -8,6 +8,7 @@ use App\Models\Delivery;
 use App\Models\InventoryItem;
 use App\Models\ClientPayment;
 use App\Models\Client;
+use App\Services\ClientSelectFieldService;
 use App\Http\Requests\DeliveryRequest;
 use Illuminate\Http\Request;
 
@@ -167,51 +168,27 @@ class DeliveryCrudController extends CrudController
 
         // إذا كان هناك client_id في query parameter، نحدد المشترك تلقائياً
         $clientId = request()->query('client_id');
-        $selectedId = $clientId ?: (request()->route('id') ? \App\Models\Delivery::find(request()->route('id'))?->client_id : null);
-
-        $clientOptions = ['' => '-- اختر المشترك --'];
-        $clients = \App\Models\Client::query()->orderBy('name')->get();
-        foreach ($clients as $client) {
-            $label = $client->name;
-            if (!empty($client->contract_no)) {
-                $label .= ' (' . $client->contract_no . ')';
-            }
-            if (!empty($client->phone_one)) {
-                $label .= ' - ' . $client->phone_one;
-            }
-            $clientOptions[$client->id] = $label;
+        $selectedId = old('client_id', $clientId);
+        if ($this->crud->getOperation() === 'update') {
+            $selectedId = old('client_id', $this->crud->getCurrentEntry()?->client_id ?? $clientId);
         }
 
-        CRUD::addField([
-            'name'  => 'client_search_helper',
-            'type'  => 'custom_html',
-            'value' => '<div class="form-group col-sm-12 mb-2"><label class="control-label">بحث في قائمة المشتركين</label><input type="text" id="client_search_filter" class="form-control" placeholder="اكتب اسم المشترك أو رقم العقد أو الهاتف..." style="border-radius: 10px; border: 2px solid #e2e8f0;"></div>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    var select = document.getElementById("client_id_select");
-    var filter = document.getElementById("client_search_filter");
-    if (!select || !filter) return;
-    var options = Array.from(select.options);
-    filter.addEventListener("input", function() {
-        var q = this.value.trim().toLowerCase();
-        options.forEach(function(opt) {
-            if (opt.value === "") { opt.hidden = false; return; }
-            opt.hidden = q === "" ? false : !opt.text.toLowerCase().includes(q);
-        });
-    });
-});
-</script>',
-        ]);
+        $clientSelectService = app(ClientSelectFieldService::class);
 
-        CRUD::field('client_id')
-            ->type('select_from_array')
-            ->label('المشترك')
-            ->options($clientOptions)
-            ->default($selectedId)
-            ->attributes([
-                'required' => 'required',
-                'id'       => 'client_id_select',
-            ]);
+        CRUD::addField([
+            'name' => 'client_id',
+            'type' => 'custom_html',
+            'value' => $clientSelectService->crudFieldHtml([
+                'label' => 'المشترك',
+                'selectedId' => $selectedId,
+                'required' => true,
+                'allowEmpty' => true,
+                'emptyLabel' => '-- اختر المشترك --',
+                'selectId' => 'client_id_select',
+                'placeholder' => 'ابحث عن اسم المشترك أو رقم العقد أو الهاتف…',
+                'richLabels' => true,
+            ]),
+        ]);
 
         CRUD::field('delivery_date')
             ->type('date')
@@ -385,7 +362,11 @@ document.addEventListener("DOMContentLoaded", function () {
         var id = sel.value;
         ta.value = id !== "" && Object.prototype.hasOwnProperty.call(map, id) ? String(map[id]) : "";
     }
-    sel.addEventListener("change", syncNotesFromMap);
+    if (window.jQuery) {
+        jQuery(sel).on("change", syncNotesFromMap);
+    } else {
+        sel.addEventListener("change", syncNotesFromMap);
+    }
 });
 </script>'
             );

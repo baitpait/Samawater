@@ -17,14 +17,13 @@
         <li class="sidebar-divider"></li>
 
         {{-- 2. المشتركين --}}
-        <li class="menu-section-label">المشتركين</li>
-        <x-backpack::menu-item title="بحث المشتركين" icon="la la-search" :link="route('reports.filters')" />
         @if (! $isDistributor)
+            <li class="menu-section-label">المشتركين</li>
             <x-backpack::menu-item title="إدارة المشتركين" icon="la la-users" :link="backpack_url('client')" />
             <x-backpack::menu-item title="التقارير المتقدمة" icon="la la-chart-line" :link="route('reports.advanced')" />
-        @endif
 
-        <li class="sidebar-divider"></li>
+            <li class="sidebar-divider"></li>
+        @endif
 
         {{-- 3. التسليمات --}}
         <li class="menu-section-label">التسليمات</li>
@@ -85,6 +84,7 @@
             {{-- 7. المصروفات التشغيلية --}}
             <li class="menu-section-label">المصروفات التشغيلية</li>
             <x-backpack::menu-item title="المصروفات" icon="la la-receipt" :link="backpack_url('expense')" />
+            <x-backpack::menu-item title="أصحاب المصروف" icon="la la-user-tag" :link="backpack_url('expense-beneficiary')" />
             <x-backpack::menu-item title="فئات المصروفات" icon="la la-folder" :link="backpack_url('expense-category')" />
             <x-backpack::menu-item title="مصروفات الشهر" icon="la la-calendar-check" :link="route('expenses.current-month')" />
 

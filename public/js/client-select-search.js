@@ -8,8 +8,28 @@
     /**
      * Business Purpose: تفعيل Select2 على عنصر واحد إن لم يكن مفعّلاً مسبقاً.
      */
+    function shouldSkipSelect(el) {
+        if (!el || !el.getAttribute) {
+            return true;
+        }
+
+        if (el.getAttribute('data-guarded') === 'true') {
+            return true;
+        }
+
+        if (el.classList.contains('client-select-ajax') && el.style.display === 'none') {
+            return true;
+        }
+
+        return false;
+    }
+
     function initOne($el) {
         if (!$el.length || $el.hasClass('select2-hidden-accessible')) {
+            return;
+        }
+
+        if (shouldSkipSelect($el[0])) {
             return;
         }
 
@@ -48,7 +68,7 @@
 
         var $targets = selector
             ? jQuery(selector)
-            : jQuery('select.client-select-searchable');
+            : jQuery('select.client-select-searchable, select[name="client_id"]');
 
         $targets.each(function () {
             initOne(jQuery(this));
@@ -56,12 +76,33 @@
     };
 
     function boot() {
+        if (!window.jQuery || !jQuery.fn.select2) {
+            return false;
+        }
+
         window.initClientSelect2();
+        return true;
+    }
+
+    function bootWithRetry(attempt) {
+        if (boot() !== false) {
+            return;
+        }
+
+        if (attempt >= 30) {
+            return;
+        }
+
+        window.setTimeout(function () {
+            bootWithRetry(attempt + 1);
+        }, 100);
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', boot);
+        document.addEventListener('DOMContentLoaded', function () {
+            bootWithRetry(0);
+        });
     } else {
-        boot();
+        bootWithRetry(0);
     }
 })();

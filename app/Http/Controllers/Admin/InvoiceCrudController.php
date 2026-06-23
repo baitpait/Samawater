@@ -10,6 +10,7 @@ use App\Models\InvoiceItem;
 use App\Models\Client;
 use App\Models\InventoryItem;
 use App\Models\ClientPayment;
+use App\Services\ClientSelectFieldService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -37,20 +38,18 @@ class InvoiceCrudController extends CrudController
 
     protected function setupListOperation()
     {
-        // فلترة: عرض الفواتير للعملاء الأب فقط (parent_id = null)
-        $this->crud->addClause('whereHas', 'client', function($query) {
-            $query->whereNull('parent_id');
-        });
-
         // فلترة حسب معلمات الطلب (بدون Backpack PRO)
         $this->crud->addClause(function ($query) {
+            $query->whereHas('client', function ($clientQuery) {
+                $clientQuery->whereNull('parent_id');
+
+                if (request()->filled('subscription_status_id')) {
+                    $clientQuery->where('subscription_status_id', (int) request('subscription_status_id'));
+                }
+            });
+
             if (request()->filled('client_id')) {
-                $query->where('client_id', request('client_id'));
-            }
-            if (request()->filled('subscription_status_id')) {
-                $query->whereHas('client', function ($q) {
-                    $q->where('subscription_status_id', request('subscription_status_id'));
-                });
+                $query->where('client_id', (int) request('client_id'));
             }
             if (request()->filled('date_from')) {
                 $query->whereDate('invoice_date', '>=', request('date_from'));
@@ -120,17 +119,26 @@ class InvoiceCrudController extends CrudController
     {
         CRUD::setValidation(InvoiceRequest::class);
 
-        CRUD::field('client_id')
-            ->label('المشترك')
-            ->type('select')
-            ->model('App\Models\Client')
-            ->attribute('name')
-            ->attributes(['required' => 'required'])
-            ->options(function ($query) {
-                // عرض المشتركين الأب فقط (parent_id = null)
-                return $query->whereNull('parent_id')->orderBy('name')->get();
-            })
-            ->hint('يتم عرض المشتركين الرئيسيين فقط (الأب)');
+        $selectedClientId = old('client_id', request('client_id'));
+        if ($this->crud->getOperation() === 'update') {
+            $selectedClientId = old('client_id', $this->crud->getCurrentEntry()?->client_id);
+        }
+
+        CRUD::addField([
+            'name' => 'client_id',
+            'type' => 'custom_html',
+            'value' => app(ClientSelectFieldService::class)->crudFieldHtml([
+                'label' => 'المشترك',
+                'selectedId' => $selectedClientId,
+                'required' => true,
+                'allowEmpty' => true,
+                'emptyLabel' => '-- اختر المشترك --',
+                'selectId' => 'invoice_client_id_select',
+                'placeholder' => 'ابحث عن اسم المشترك…',
+                'parentsOnly' => true,
+                'hint' => 'يتم عرض المشتركين الرئيسيين فقط (الأب)',
+            ]),
+        ]);
         
         CRUD::field('invoice_number')
             ->label('رقم الفاتورة')
@@ -323,10 +331,19 @@ class InvoiceCrudController extends CrudController
         $this->crud->hasAccessOrFail('show');
 
         $id = $this->crud->getCurrentEntryId() ?? $id;
-        $this->data['entry'] = Invoice::query()
+        $entry = Invoice::query()
             ->with(['client', 'items', 'creator'])
-            ->findOrFail($id);
+            ->find($id);
+
+        if ($entry === null) {
+            \Alert::warning('الفاتورة غير موجودة أو تم حذفها.')->flash();
+
+            return redirect($this->crud->route);
+        }
+
+        $this->data['entry'] = $entry;
         $this->data['crud'] = $this->crud;
+        $this->data['linkedClientPayments'] = $entry->resolveAutoClientPayments();
 
         return view($this->crud->getShowView(), $this->data);
     }
@@ -535,7 +552,7 @@ class InvoiceCrudController extends CrudController
         }
 
         // حذف الدفعة القديمة المرتبطة بهذه الفاتورة (إن وجدت)
-        $oldPayment = ClientPayment::where('notes', 'like', '%' . $invoice->invoice_number . '%')
+        $oldPayment = ClientPayment::where('notes', 'like', $invoice->autoPaymentNotesLikePattern())
             ->where('client_id', $invoice->client_id)
             ->first();
         if ($oldPayment) {
@@ -600,25 +617,42 @@ class InvoiceCrudController extends CrudController
     }
 
     /**
-     * Business Purpose: حذف الفاتورة
+     * Business Purpose: حذف الفاتورة مع إرجاع المخزون وحذف الدفعة التلقائية المرتبطة.
      */
     public function destroy($id)
     {
-        $invoice = $this->crud->getCurrentEntry();
-        
-        if (!$invoice) {
+        $this->crud->hasAccessOrFail('delete');
+
+        $id = $this->crud->getCurrentEntryId() ?? $id;
+        $invoice = Invoice::query()->find($id);
+
+        if ($invoice === null) {
+            if (request()->ajax()) {
+                return (string) 0;
+            }
+
             \Alert::error('الفاتورة غير موجودة.')->flash();
+
             return redirect($this->crud->route);
         }
 
-        // إذا كانت مؤكدة، إرجاع المخزون
         if ($invoice->status === 'confirmed') {
             $invoice->cancel();
         }
 
+        ClientPayment::query()
+            ->where('client_id', $invoice->client_id)
+            ->where('notes', 'like', $invoice->autoPaymentNotesLikePattern())
+            ->delete();
+
         $invoice->delete();
 
+        if (request()->ajax()) {
+            return (string) 1;
+        }
+
         \Alert::success('تم حذف الفاتورة بنجاح.')->flash();
+
         return redirect($this->crud->route);
     }
 

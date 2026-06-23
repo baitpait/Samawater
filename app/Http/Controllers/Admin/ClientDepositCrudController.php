@@ -8,6 +8,7 @@ use App\Models\ClientDeposit;
 use App\Models\ClientDepositItem;
 use App\Models\Client;
 use App\Models\InventoryItem;
+use App\Services\ClientSelectFieldService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
@@ -110,16 +111,25 @@ class ClientDepositCrudController extends CrudController
 
     protected function setupCreateOperation()
     {
-        // جلب جميع العملاء للقائمة المنسدلة
-        $clients = Client::orderBy('name', 'asc')->pluck('name', 'id')->toArray();
-        
-        CRUD::field('client_id')
-            ->label('العميل')
-            ->type('select_from_array')
-            ->options($clients)
-            ->attributes(['required' => 'required'])
-            ->default(request()->get('client_id'))
-            ->hint('اختر العميل');
+        $selectedClientId = old('client_id', request()->get('client_id'));
+        if ($this->crud->getOperation() === 'update') {
+            $selectedClientId = old('client_id', $this->crud->getCurrentEntry()?->client_id);
+        }
+
+        CRUD::addField([
+            'name' => 'client_id',
+            'type' => 'custom_html',
+            'value' => app(ClientSelectFieldService::class)->crudFieldHtml([
+                'label' => 'العميل',
+                'selectedId' => $selectedClientId,
+                'required' => true,
+                'allowEmpty' => true,
+                'emptyLabel' => '-- اختر العميل --',
+                'selectId' => 'client_deposit_client_id_select',
+                'placeholder' => 'ابحث عن اسم المشترك…',
+                'hint' => 'اختر العميل',
+            ]),
+        ]);
         
         CRUD::field('date_given')
             ->label('تاريخ الإعارة')
@@ -151,9 +161,6 @@ class ClientDepositCrudController extends CrudController
 
     protected function setupUpdateOperation()
     {
-        // جلب جميع العملاء للقائمة المنسدلة
-        $clients = Client::orderBy('name', 'asc')->pluck('name', 'id')->toArray();
-        
         $deposit = $this->crud->getCurrentEntry();
         
         // منع تعديل الأمانات المسحوبة
@@ -163,14 +170,23 @@ class ClientDepositCrudController extends CrudController
                 ->value('<div class="alert alert-warning">هذه الأمانة تم سحبها في ' . $deposit->withdrawn_at->format('Y-m-d H:i') . ' ولا يمكن تعديلها.</div>');
             return;
         }
-        
-        CRUD::field('client_id')
-            ->label('العميل')
-            ->type('select_from_array')
-            ->options($clients)
-            ->attributes(['required' => 'required'])
-            ->default($deposit ? $deposit->client_id : null)
-            ->hint('اختر العميل');
+
+        $selectedClientId = old('client_id', $deposit?->client_id);
+
+        CRUD::addField([
+            'name' => 'client_id',
+            'type' => 'custom_html',
+            'value' => app(ClientSelectFieldService::class)->crudFieldHtml([
+                'label' => 'العميل',
+                'selectedId' => $selectedClientId,
+                'required' => true,
+                'allowEmpty' => true,
+                'emptyLabel' => '-- اختر العميل --',
+                'selectId' => 'client_deposit_client_id_select',
+                'placeholder' => 'ابحث عن اسم المشترك…',
+                'hint' => 'اختر العميل',
+            ]),
+        ]);
         
         CRUD::field('date_given')
             ->label('تاريخ الإعارة')

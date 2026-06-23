@@ -127,6 +127,28 @@ public function getBottleBalanceAttribute()
 }
 
     /**
+     * Business Purpose: رصيد القوارير لملف العائلة = ∑ ممتلئة − ∑ فارغة (كل التسليمات).
+     *
+     * @return array{total_bottle_received: int, total_bottle_empty: int, bottle_balance: int}
+     */
+    public function familyBottleBalanceFromDeliveries(): array
+    {
+        $familyIds = $this->familyClientIds();
+        $received = (int) Delivery::query()
+            ->whereIn('client_id', $familyIds)
+            ->sum('bottle_received');
+        $empty = (int) Delivery::query()
+            ->whereIn('client_id', $familyIds)
+            ->sum('bottle_empty');
+
+        return [
+            'total_bottle_received' => $received,
+            'total_bottle_empty' => $empty,
+            'bottle_balance' => $received - $empty,
+        ];
+    }
+
+    /**
      * Business Purpose: رصيد القوارير = مجموع الممتلئة − مجموع الفارغة (كل تسليمات هذا المشترك).
      *
      * @return array{total_bottle_received: int, total_bottle_empty: int, bottle_balance: int}
@@ -279,11 +301,28 @@ public function getBottleBalanceAttribute()
     }
 
     /**
-     * Business Purpose: مجموع المتبقي من التسليمات لجميع جهات ملف العائلة: في كل سطر ∑ max(0، المطلوب − المسدَّد على التسليم).
+     * Business Purpose: مجموع المتبقي من التسليمات لجميع جهات ملف العائلة بعد خصم الزيادة (مدفوع > مطلوب) من إجمالي النقص.
      */
     public function deliveryOutstandingTotal(): float
     {
         return $this->deliveryOutstandingBreakdown()['outstanding'];
+    }
+
+    /**
+     * Business Purpose: صافي مستحق التسليمات لمجموعة أسطر — الزيادة على سطر تُخصم من مجموع النقص (max(0، ∑مطلوب − ∑مدفوع)).
+     *
+     * @param  iterable<Delivery>  $deliveries
+     */
+    public static function netDeliveryOutstandingFrom(iterable $deliveries): float
+    {
+        $totalRequired = 0.0;
+        $totalPaid = 0.0;
+        foreach ($deliveries as $delivery) {
+            $totalRequired += (float) ($delivery->required_amount ?? 0);
+            $totalPaid += (float) ($delivery->paymant ?? 0);
+        }
+
+        return round(max(0.0, $totalRequired - $totalPaid), 2);
     }
 
     /**
@@ -297,18 +336,16 @@ public function getBottleBalanceAttribute()
             ->whereIn('client_id', $this->familyClientIds())
             ->get();
 
-        $total = 0.0;
         $withGap = 0;
         foreach ($collection as $d) {
             $gap = max(0.0, (float) ($d->required_amount ?? 0) - (float) ($d->paymant ?? 0));
-            $total += $gap;
             if ($gap > 0.0000001) {
                 $withGap++;
             }
         }
 
         return [
-            'outstanding' => round($total, 2),
+            'outstanding' => self::netDeliveryOutstandingFrom($collection),
             'deliveries_with_gap' => $withGap,
             'delivery_count_family' => $collection->count(),
         ];
@@ -405,6 +442,7 @@ public function getBottleBalanceAttribute()
      *     sales_and_deliveries_gross: float,
      *     amount_due: float,
      *     bottles_on_hand: int,
+     *     bottle_snapshot: array{total_bottle_received: int, total_bottle_empty: int, bottle_balance: int},
      *     deposit_totals_by_item: array<string, int>,
      *     active_deposit_count: int
      * }
@@ -424,6 +462,11 @@ public function getBottleBalanceAttribute()
                 'sales_and_deliveries_gross' => 0.0,
                 'amount_due' => 0.0,
                 'bottles_on_hand' => 0,
+                'bottle_snapshot' => [
+                    'total_bottle_received' => 0,
+                    'total_bottle_empty' => 0,
+                    'bottle_balance' => 0,
+                ],
                 'deposit_totals_by_item' => [],
                 'active_deposit_count' => 0,
             ];
@@ -437,6 +480,7 @@ public function getBottleBalanceAttribute()
         $salesAndDeliveriesGross = round($salesTotal + $deliveriesTotal, 2);
         $amountDue = round($this->combined_subscriber_debt, 2);
         $depositTotalsByItem = $this->activeDepositTotalsByItemFor($parent);
+        $bottleSnapshot = $this->familyBottleBalanceFromDeliveries();
 
         return [
             'billing_parent_id' => (int) $parent->id,
@@ -448,7 +492,8 @@ public function getBottleBalanceAttribute()
             'deliveries_total' => $deliveriesTotal,
             'sales_and_deliveries_gross' => $salesAndDeliveriesGross,
             'amount_due' => $amountDue,
-            'bottles_on_hand' => $this->resolveBottlesOnHandForBillingParent($parent),
+            'bottles_on_hand' => $bottleSnapshot['bottle_balance'],
+            'bottle_snapshot' => $bottleSnapshot,
             'deposit_totals_by_item' => $depositTotalsByItem,
             'active_deposit_count' => (int) $parent->deposits()->where('is_withdrawn', false)->count(),
         ];

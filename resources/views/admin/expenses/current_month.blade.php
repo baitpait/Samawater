@@ -96,7 +96,8 @@
                 <table class="table table-clean align-middle mb-0">
                     <thead>
                         <tr>
-                            <th>الفئة</th>
+                            <th>المصروف</th>
+                            <th>صاحب المصروف</th>
                             <th>المبلغ</th>
                             <th>المصروف الأصلي</th>
                             <th>تاريخ الدفع</th>
@@ -105,10 +106,17 @@
                     </thead>
                     <tbody>
                         @forelse($allocations as $allocation)
+                            @php
+                                $expense = $allocation->expense;
+                                $category = $expense->category->name ?? '—';
+                                $beneficiary = $expense->beneficiary->name ?? '';
+                                $display = $beneficiary !== '' ? $category.' ( '.$beneficiary.' )' : $category;
+                            @endphp
                             <tr>
                                 <td class="ps-4">
-                                    <span class="badge bg-primary-deep text-white">{{ $allocation->expense->category->name ?? '-' }}</span>
+                                    <span class="badge bg-primary-deep text-white">{{ $display }}</span>
                                 </td>
+                                <td>{{ $beneficiary !== '' ? $beneficiary : '—' }}</td>
                                 <td class="fw-bold text-primary-deep">{{ number_format($allocation->amount, 2) }} ₪</td>
                                 <td>
                                     <div class="small fw-bold">{{ number_format($allocation->expense->total_amount, 2) }} ₪</div>
@@ -123,7 +131,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">لا توجد مصروفات مسجلة لهذا الشهر</td>
+                                <td colspan="6" class="text-center py-5 text-muted">لا توجد مصروفات مسجلة لهذا الشهر</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -132,7 +140,7 @@
                         <tr>
                             <td class="ps-4 fw-bold">المجموع:</td>
                             <td class="fw-bold text-primary-deep" style="font-size: 18px;">{{ number_format($totalAmount, 2) }} ₪</td>
-                            <td colspan="3"></td>
+                            <td colspan="4"></td>
                         </tr>
                     </tfoot>
                     @endif

@@ -4,6 +4,11 @@
     $amountDue = (float) ($statement['amount_due'] ?? 0);
     $deposits = $statement['deposit_totals_by_item'] ?? [];
     $billingParentId = (int) ($statement['billing_parent_id'] ?? 0);
+    $bottleSnapshot = $statement['bottle_snapshot'] ?? [
+        'total_bottle_received' => 0,
+        'total_bottle_empty' => 0,
+        'bottle_balance' => (int) ($statement['bottles_on_hand'] ?? 0),
+    ];
 @endphp
 
 <div class="account-statement-panel mb-4">
@@ -66,11 +71,18 @@
 
     <div class="row g-3 g-md-4">
         <div class="col-md-4">
-            <div class="stat-card-modern h-100">
-                <div class="stat-card-icon"><i class="la la-wine-bottle"></i></div>
-                <div class="stat-card-label">العبوات المتوفرة عنده</div>
-                <p class="stat-card-value mb-0">{{ (int) ($statement['bottles_on_hand'] ?? 0) }}</p>
-                <p class="small text-muted mb-0 mt-1">رصيد محسوب (ملف المشترك الرئيسي)</p>
+            <div class="stat-card-modern h-100 text-center">
+                <div class="stat-card-icon mx-auto"><i class="la la-wine-bottle"></i></div>
+                <div class="stat-card-label">رصيد القوارير عنده</div>
+                <p class="stat-card-value mb-2">{{ (int) ($bottleSnapshot['bottle_balance'] ?? 0) }}</p>
+                <p class="mb-0 small fw-bold text-muted px-2 py-2" style="background: #f1f5f9; border-radius: 12px;">
+                    {{ (int) ($bottleSnapshot['total_bottle_received'] ?? 0) }}
+                    <span class="opacity-75">−</span>
+                    {{ (int) ($bottleSnapshot['total_bottle_empty'] ?? 0) }}
+                    <span class="opacity-75">=</span>
+                    {{ (int) ($bottleSnapshot['bottle_balance'] ?? 0) }}
+                </p>
+                <p class="small text-muted mb-0 mt-2">ممتلئة − فارغة (كل التسليمات)</p>
             </div>
         </div>
         <div class="col-md-8">

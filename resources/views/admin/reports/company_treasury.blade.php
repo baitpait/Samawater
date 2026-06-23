@@ -100,32 +100,33 @@
 
     <h6 class="fw-bold mb-3 text-secondary">داخل الصندوق (وارد)</h6>
     <div class="row g-3 mb-4">
-        <div class="col-md-6 col-lg-4">
-            <div class="p-4 h-100 border rounded-3 bg-success bg-opacity-10">
-                <div class="small text-muted mb-1">تسليمات — نقد مسجّل على التسليم</div>
-                <div class="fs-4 fw-bold">₪ {{ number_format($inflow['deliveries_cash_on_delivery'], 2) }}</div>
-                <div class="small text-muted mt-2">مجموع حقل الدفع في التسليمات بحسب تاريخ التسليم</div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-4">
-            <div class="p-4 h-100 border rounded-3 bg-primary bg-opacity-10">
-                <div class="small text-muted mb-1">مبيعات — فواتير مؤكّدة</div>
-                <div class="fs-4 fw-bold">₪ {{ number_format($inflow['confirmed_invoice_sales'], 2) }}</div>
-                <div class="small text-muted mt-2">إجمالي فواتير الحالة «مؤكّد» بحسب تاريخ الفاتورة</div>
+        <div class="col-12">
+            <div class="p-4 border rounded-3 border-success border-2">
+                <div class="small text-muted mb-1">إجمالي الوارد — مدفوعات المشتركين المسجّلة (كاش فعلي)</div>
+                <div class="fs-3 fw-bold text-success">₪ {{ number_format($inflow['total_in'], 2) }}</div>
+                <div class="small text-muted mt-2">مصدر واحد: جدول «مدفوعات المشتركين» بحسب تاريخ الدفع (يشمل تحصيل التسليم والفاتورة دون جمع مزدوج)</div>
             </div>
         </div>
         <div class="col-md-6 col-lg-4">
             <div class="p-4 h-100 border rounded-3 bg-info bg-opacity-10">
                 <div class="small text-muted mb-1">مدفوعات المشتركين المسجّلة</div>
                 <div class="fs-4 fw-bold">₪ {{ number_format($inflow['registered_client_payments'], 2) }}</div>
-                <div class="small text-muted mt-2">مبالغ مسجَّلة من «مدفوعات المشتركين» بحسب تاريخ الدفع؛ تُحتسب كلها في الإجمالي</div>
+                <div class="small text-muted mt-2">يطابق إجمالي الوارد أعلاه</div>
                 <div class="small text-muted mt-2 border-top pt-2">منها مدفوعات مفعّل لها «لدين مستقبلي» عند الإدخال: <span class="fw-bold">₪ {{ number_format($inflow['registered_client_payments_future_obligation'], 2) }}</span></div>
             </div>
         </div>
-        <div class="col-12">
-            <div class="p-4 border rounded-3 border-success border-2">
-                <div class="small text-muted mb-1">إجمالي الوارد (+ تسليمات + فواتير + مدفوعات مسجّلة)</div>
-                <div class="fs-3 fw-bold text-success">₪ {{ number_format($inflow['total_in'], 2) }}</div>
+        <div class="col-md-6 col-lg-4">
+            <div class="p-4 h-100 border rounded-3 bg-success bg-opacity-10">
+                <div class="small text-muted mb-1">تسليمات — نقد على التسليم <span class="badge bg-secondary">مرجعي</span></div>
+                <div class="fs-4 fw-bold">₪ {{ number_format($inflow['deliveries_cash_on_delivery'], 2) }}</div>
+                <div class="small text-muted mt-2">مجموع حقل الدفع في التسليمات؛ مُدرج ضمن المدفوعات المسجّلة ولا يُجمع في الإجمالي</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="p-4 h-100 border rounded-3 bg-primary bg-opacity-10">
+                <div class="small text-muted mb-1">مبيعات — فواتير مؤكّدة <span class="badge bg-secondary">مرجعي</span></div>
+                <div class="fs-4 fw-bold">₪ {{ number_format($inflow['confirmed_invoice_sales'], 2) }}</div>
+                <div class="small text-muted mt-2">إجمالي فواتير «مؤكّد»؛ التحصيل الفعلي يظهر في المدفوعات المسجّلة</div>
             </div>
         </div>
     </div>
@@ -174,8 +175,9 @@
     <div class="alert alert-secondary border-0 small mb-0" style="border-radius: 12px;">
         <p class="fw-bold mb-2">قراءة مهمة</p>
         <ul class="mb-0 ps-3">
-            <li>فعِّل خيار «لدين مستقبلي» عند تسجيل دفعة تحصيل لمستحقات لاحقة كي تظهر مفصَّلة في هذا التقرير؛ المبلغ لا يُضاف مرتين — هو جزء من «مدفوعات المشتركين».</li>
-            <li>قد يتداخل سطر التسليمات أو الفواتير مع المدفوعات المسجّلة؛ استخدم الأرقام كملخص تشغيلي.</li>
+            <li>إجمالي الوارد = مدفوعات المشتركين فقط؛ بطاقتا التسليمات والفواتير للمراجعة ولا تُضاف إلى الإجمالي.</li>
+            <li>تحصيل التسليم والفاتورة يُسجَّل تلقائياً في «مدفوعات المشتركين»؛ لذلك لا يُعدّ مرتين.</li>
+            <li>فعِّل خيار «لدين مستقبلي» عند تسجيل دفعة تحصيل لمستحقات لاحقة كي تظهر مفصَّلة في هذا التقرير.</li>
             <li><a href="{{ backpack_url('vendor-payment?' . http_build_query(['date_from' => $p['from'], 'date_to' => $p['to']])) }}" class="fw-bold">صفحة مدفوعات الموردين</a> لفترة التقرير تعرض نفس الأسطر التي يُجمَّع مجموعها في «مشتريات — مدفوعات الموردين». قد تتداخل أحياناً مسجَّلات المصروفات مع دفع مورد مرتبط؛ راجع السجل عند المواءمة.</li>
             <li>لتفصيل الحركة من كل الأبواب راجع <a href="{{ route('reports.financial-movements-unified') }}" class="fw-bold">الحركة المالية الشاملة</a>.</li>
         </ul>

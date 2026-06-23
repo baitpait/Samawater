@@ -191,12 +191,7 @@ final class ClientFinancialLedgerService
             ->whereDate('delivery_date', '<=', $asOfDate)
             ->get();
 
-        $total = 0.0;
-        foreach ($collection as $delivery) {
-            $total += max(0.0, (float) ($delivery->required_amount ?? 0) - (float) ($delivery->paymant ?? 0));
-        }
-
-        return round($total, 2);
+        return Client::netDeliveryOutstandingFrom($collection);
     }
 
     /**

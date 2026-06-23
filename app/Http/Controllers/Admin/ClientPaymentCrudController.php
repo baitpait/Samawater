@@ -7,6 +7,7 @@ use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use App\Models\ClientPayment;
 use App\Models\Client;
+use App\Services\ClientSelectFieldService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -97,22 +98,26 @@ class ClientPaymentCrudController extends CrudController
         CRUD::setValidation(ClientPaymentRequest::class);
 
         $prefillClientId = $this->resolveBillingParentClientIdFromRequest();
-
-        $clientField = CRUD::field('client_id')
-            ->label('المشترك')
-            ->type('select')
-            ->model('App\Models\Client')
-            ->attribute('name')
-            ->attributes(['required' => 'required'])
-            ->options(function ($query) {
-                // عرض المشتركين الأب فقط (parent_id = null)
-                return $query->whereNull('parent_id')->orderBy('name')->get();
-            })
-            ->hint('يتم عرض المشتركين الرئيسيين فقط (الأب)');
-
-        if ($prefillClientId !== null) {
-            $clientField->default($prefillClientId);
+        $selectedClientId = old('client_id', $prefillClientId);
+        if ($this->crud->getOperation() === 'update') {
+            $selectedClientId = old('client_id', $this->crud->getCurrentEntry()?->client_id ?? $prefillClientId);
         }
+
+        CRUD::addField([
+            'name' => 'client_id',
+            'type' => 'custom_html',
+            'value' => app(ClientSelectFieldService::class)->crudFieldHtml([
+                'label' => 'المشترك',
+                'selectedId' => $selectedClientId,
+                'required' => true,
+                'allowEmpty' => true,
+                'emptyLabel' => '-- اختر المشترك --',
+                'selectId' => 'client_payment_client_id_select',
+                'placeholder' => 'ابحث عن اسم المشترك…',
+                'parentsOnly' => true,
+                'hint' => 'يتم عرض المشتركين الرئيسيين فقط (الأب)',
+            ]),
+        ]);
         
         CRUD::field('amount')
             ->label('المبلغ (شيكل)')
@@ -261,4 +266,39 @@ class ClientPaymentCrudController extends CrudController
         return redirect($redirectUrl);
     }
 
+    /**
+     * Business Purpose: حذف دفعة مع مزامنة التسليم المرتبط (تصفير paymant عبر نموذج ClientPayment).
+     */
+    public function destroy($id)
+    {
+        $this->crud->hasAccessOrFail('delete');
+
+        $id = $this->crud->getCurrentEntryId() ?? $id;
+        $payment = ClientPayment::query()->find($id);
+
+        if ($payment === null) {
+            if (request()->ajax()) {
+                return (string) 0;
+            }
+
+            \Alert::error('الدفعة غير موجودة.')->flash();
+
+            return redirect($this->crud->route);
+        }
+
+        $hadLinkedDelivery = $payment->linkedDelivery()->exists();
+        $payment->delete();
+
+        if (request()->ajax()) {
+            return (string) 1;
+        }
+
+        $message = $hadLinkedDelivery
+            ? 'تم حذف الدفعة وتحديث التسليم المرتبط (تصفير المبلغ المدفوع).'
+            : 'تم حذف الدفعة بنجاح.';
+
+        \Alert::success($message)->flash();
+
+        return redirect($this->crud->route);
+    }
 }

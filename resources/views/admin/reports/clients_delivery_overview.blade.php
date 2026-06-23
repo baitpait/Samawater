@@ -491,14 +491,20 @@
                     <h6>فلاتر البحث</h6>
                 </div>
                 @if(request()->has('search') && !empty($overviewTotals))
-                <div class="overview-total-paymant" title="مجموع عمود «المبلغ المدفوع» لآخر تسليم لكل مشترك في النتائج ({{ (int) ($overviewTotals['row_count'] ?? 0) }} مشترك)">
+                @php
+                    $isClientDeliveryMode = ($reportMode ?? 'overview') === 'client_deliveries';
+                    $totalsTitle = $isClientDeliveryMode
+                        ? 'مجموع المبلغ المدفوع لـ '.(int) ($overviewTotals['row_count'] ?? 0).' تسليم'
+                        : 'مجموع عمود «المبلغ المدفوع» لآخر تسليم لكل مشترك في النتائج ('.(int) ($overviewTotals['row_count'] ?? 0).' مشترك)';
+                @endphp
+                <div class="overview-total-paymant" title="{{ $totalsTitle }}">
                     <span>مجموع المبلغ المدفوع:</span>
                     <span class="amount">₪ {{ number_format((float) ($overviewTotals['total_paymant'] ?? 0), 2) }}</span>
                 </div>
                 @endif
             </div>
             <div class="filter-card-body">
-                <form method="GET" class="row g-3 g-md-4 filter-form-rtl">
+                <form method="GET" action="{{ route('reports.clients_delivery_overview') }}" class="row g-3 g-md-4 filter-form-rtl">
                     <input type="hidden" name="search" value="1">
                     <div class="col-12">
                         <label class="form-label-modern">المشترك</label>
@@ -550,7 +556,11 @@
             <div class="table-card-modern">
                 <div class="table-card-header-modern">
                     <i class="la la-list"></i>
-                    <h5>نتائج البحث</h5>
+                    @if(($reportMode ?? 'overview') === 'client_deliveries')
+                    <h5>تسليمات المشترك ({{ (int) ($overviewTotals['row_count'] ?? $rows->total()) }})</h5>
+                    @else
+                    <h5>نتائج البحث — آخر تسليم لكل مشترك</h5>
+                    @endif
                 </div>
                 <div class="table-responsive table-scroll-wrapper">
                     <table class="table table-modern align-middle mb-0">

@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\SubscriptionTypeCrudController;
 use App\Http\Controllers\Admin\ClientStatusCrudController;
 use App\Http\Controllers\Admin\SubscriptionStatusCrudController;
 use App\Http\Controllers\Admin\ExpenseCategoryCrudController;
+use App\Http\Controllers\Admin\ExpenseBeneficiaryCrudController;
 use App\Http\Controllers\Admin\ExpenseCrudController;
 use App\Http\Controllers\Admin\CurrentMonthExpensesController;
 use App\Http\Controllers\Admin\CashWithdrawController;
@@ -214,6 +215,11 @@ Route::get('/distributors-list', [\App\Http\Controllers\Admin\DistributorListCon
         Route::crud('user', UserCrudController::class);
     });
     Route::crud('expense-category', ExpenseCategoryCrudController::class);
+    Route::get('expense/export/excel', [ExpenseCrudController::class, 'exportExcel'])
+        ->name('expense.export.excel');
+    Route::get('expense/export/pdf', [ExpenseCrudController::class, 'exportPdf'])
+        ->name('expense.export.pdf');
+    Route::crud('expense-beneficiary', ExpenseBeneficiaryCrudController::class);
     Route::crud('expense', ExpenseCrudController::class);
     
     // المصروفات الشهرية

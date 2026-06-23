@@ -139,6 +139,7 @@ return [
         'vendor/noty/noty.min.js',
         'vendor/sweetalert/sweetalert.min.js',
         'js/datatables-fix.js',
+        'js/client-select-search.js',
     ],
 
     // JS files that are loaded in all pages, using Laravel's mix() helper

@@ -96,14 +96,18 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!clientSelect) {
         return;
     }
-    clientSelect.addEventListener('change', function () {
-        const id = this.value;
+    function redirectForClientSelection() {
+        const id = clientSelect.value;
         const base = @json(url(config('backpack.base.route_prefix') . '/client-deposit/create'));
-        if (id) {
-            window.location.href = base + '?client_id=' + encodeURIComponent(id);
-        } else {
-            window.location.href = base;
-        }
-    });
+        window.location.href = id
+            ? base + '?client_id=' + encodeURIComponent(id)
+            : base;
+    }
+
+    if (window.jQuery) {
+        window.jQuery(clientSelect).on('change', redirectForClientSelection);
+    } else {
+        clientSelect.addEventListener('change', redirectForClientSelection);
+    }
 });
 </script>

@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\CashWithdraw;
 use App\Models\ClientPayment;
 use App\Models\Expense;
 use App\Models\Invoice;
@@ -11,7 +10,7 @@ use Carbon\Carbon;
 
 /**
  * Business Purpose: دمج نقاط مسجَّلة مختلفة لتقرير «حَركة مالية ظاهرة» في فترة
- * بدون عدّ ضعف لدفعات العملاء مع التحصيل الميداني (لا نُضاعف عمود التسليم لأنه يخلق عموماً مدفوعاً في client_payments).
+ * بدون عدّ ضعف لدفعات العملاء مع التحصيل الميداني أو سحوبات الموزّعين (السحوبات في تقرير العهدة فقط).
  */
 final class UnifiedFinancialLedgerService
 {
@@ -26,9 +25,6 @@ final class UnifiedFinancialLedgerService
         $fromD = $fromInclusive->format('Y-m-d');
         $toD = $toInclusive->format('Y-m-d');
 
-        $tsStart = $fromInclusive->copy()->startOfDay();
-        $tsEnd = $toInclusive->copy()->endOfDay();
-
         /** @var list<array<string, mixed>> $rows */
         $rows = [];
 
@@ -37,10 +33,6 @@ final class UnifiedFinancialLedgerService
         }
 
         foreach ($this->loadVendorPayments($fromD, $toD) as $row) {
-            $rows[] = $row;
-        }
-
-        foreach ($this->loadCashWithdrawals($tsStart, $tsEnd) as $row) {
             $rows[] = $row;
         }
 
@@ -65,10 +57,6 @@ final class UnifiedFinancialLedgerService
         $sumCashOutVendors = VendorPayment::query()
             ->whereBetween('payment_date', [$fromD, $toD])
             ->sum('amount');
-        /** @phpstan-ignore-next-next-line */
-        $sumCashInFromWithdrawsToHq = CashWithdraw::query()
-            ->whereBetween('created_at', [$tsStart, $tsEnd])
-            ->sum('total_amount');
 
         /** @phpstan-ignore-next-next-line */
         $sumInvoiceConfirmed = Invoice::query()
@@ -81,7 +69,7 @@ final class UnifiedFinancialLedgerService
             ->whereBetween('payment_date', [$fromD, $toD])
             ->sum('total_amount');
 
-        $netOperationalCashSuggested = ((float) $sumCashInClients + (float) $sumCashInFromWithdrawsToHq) - (float) $sumCashOutVendors;
+        $netOperationalCashSuggested = (float) $sumCashInClients - (float) $sumCashOutVendors;
 
         return [
             'period' => [
@@ -91,11 +79,10 @@ final class UnifiedFinancialLedgerService
             'summary' => [
                 'cash_in_from_clients' => (float) $sumCashInClients,
                 'cash_out_to_vendors' => (float) $sumCashOutVendors,
-                'cash_in_from_distributors_withdraw_to_hq' => (float) $sumCashInFromWithdrawsToHq,
                 'sales_on_invoices_confirmed' => (float) $sumInvoiceConfirmed,
                 'expenses_recorded_dates' => (float) $sumExpensesRecorded,
-                /** قد لا يساوي الخزينة الحقيقية — يعتمد سياساتك المحاسبية */
-                'net_cash_formula_clients_plus_dist_minus_vendors' => (float) $netOperationalCashSuggested,
+                /** مطابق لصندوق الشركة: عملاء − موردين (بدون سحوبات موزّعين) */
+                'net_cash_clients_minus_vendors' => $netOperationalCashSuggested,
             ],
             'rows' => $rows,
         ];
@@ -170,37 +157,6 @@ final class UnifiedFinancialLedgerService
     /**
      * @return iterable<int, array<string, mixed>>
      */
-    private function loadCashWithdrawals(Carbon $start, Carbon $end): iterable
-    {
-        foreach (CashWithdraw::query()
-                     ->with('distributor')
-                     ->whereBetween('created_at', [$start, $end])
-                     ->orderByDesc('created_at')
-                     ->get() as $w) {
-
-            /** @phpstan-ignore-next-next-line Carbon|\DateTime|string */
-            $at = $w->created_at;
-            $sort = $at instanceof \Carbon\CarbonInterface ? $at->timestamp : strtotime((string) $at);
-
-            yield [
-                'sort_key' => (float) $sort,
-                /** @phpstan-ignore-next-next-line */
-                'occurred_date' => $at instanceof \Carbon\CarbonInterface ? $at->format('Y-m-d H:i') : (string) $at,
-                'gate_ar' => 'سحوبات الموِّعين',
-                'detail' => 'تسليم نقد لمقرّ الشركة من: ' . ($w->distributor?->name ?? '—'),
-                /** @phpstan-ignore-next-next-line */
-                'cash_in' => (float) $w->total_amount,
-                'cash_out' => null,
-                'non_cash_amount' => null,
-                /** @phpstan-ignore-next-next-line */
-                'ledger_ref_id' => (int) $w->id,
-            ];
-        }
-    }
-
-    /**
-     * @return iterable<int, array<string, mixed>>
-     */
     private function loadConfirmedInvoices(string $fromD, string $toD): iterable
     {
         foreach (Invoice::query()
@@ -237,7 +193,7 @@ final class UnifiedFinancialLedgerService
     private function loadExpenses(string $fromD, string $toD): iterable
     {
         foreach (Expense::query()
-                     ->with(['category', 'vendor'])
+                     ->with(['category', 'beneficiary'])
                      ->whereBetween('payment_date', [$fromD, $toD])
                      ->orderByDesc('payment_date')
                      ->get() as $e) {
@@ -248,13 +204,14 @@ final class UnifiedFinancialLedgerService
             $sort = $d instanceof \Carbon\CarbonInterface ? (float) $d->timestamp : (float) strtotime((string) $d);
 
             $cat = $e->category?->name ?? '—';
+            $beneficiaryName = trim((string) ($e->beneficiary?->name ?? ''));
 
             yield [
                 'sort_key' => $sort + 0.06,
                 /** @phpstan-ignore-next-next-line */
                 'occurred_date' => $d->format('Y-m-d'),
                 'gate_ar' => 'المصروفات',
-                'detail' => $cat . ' · ' . ($e->vendor?->name ?? '—'),
+                'detail' => $cat.' · '.($beneficiaryName !== '' ? $beneficiaryName : '—'),
                 'cash_in' => null,
                 'cash_out' => null,
                 /** المبلغ المسجل كمصروف في يوم هذا التاريخ — قد تتداخل مع مدفوع مورد */

@@ -43,6 +43,7 @@
         }
     </style>
     @stack('crud_fields_styles')
+    @include('admin.partials.client_select_search_assets')
 @endsection
 
 @section('header')

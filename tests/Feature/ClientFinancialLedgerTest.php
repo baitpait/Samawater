@@ -62,4 +62,41 @@ class ClientFinancialLedgerTest extends TestCase
         self::assertEquals(120.0, round((float) $ledger['summary']['final_combined_debt'], 2));
         self::assertEquals(120.0, round((float) $client->fresh()->combined_subscriber_debt, 2));
     }
+
+    public function test_delivery_overpayment_reduces_running_outstanding_on_ledger(): void
+    {
+        $item = InventoryItem::create(['item_name' => 'BottleOver', 'quantity' => 100]);
+        $client = Client::create(['name' => 'Overpay Client']);
+
+        Delivery::create([
+            'client_id' => $client->id,
+            'delivery_date' => '2026-03-01',
+            'bottle_received' => 5,
+            'bottle_empty' => 0,
+            'required_amount' => '100.00',
+            'inventory_item_id' => $item->id,
+            'paymant' => '60.00',
+            'distributor_id' => null,
+        ]);
+
+        Delivery::create([
+            'client_id' => $client->id,
+            'delivery_date' => '2026-03-05',
+            'bottle_received' => 5,
+            'bottle_empty' => 0,
+            'required_amount' => '100.00',
+            'inventory_item_id' => $item->id,
+            'paymant' => '120.00',
+            'distributor_id' => null,
+        ]);
+
+        $ledger = app(ClientFinancialLedgerService::class)->build($client->fresh());
+        $rows = $ledger['rows'];
+        $afterFirstDelivery = $rows[0];
+        $afterOverpayDelivery = $rows[1];
+
+        self::assertEquals(40.0, round((float) $afterFirstDelivery['delivery_outstanding_running'], 2));
+        self::assertEquals(20.0, round((float) $afterOverpayDelivery['delivery_outstanding_running'], 2));
+        self::assertEquals(20.0, round((float) $ledger['summary']['final_delivery_outstanding'], 2));
+    }
 }

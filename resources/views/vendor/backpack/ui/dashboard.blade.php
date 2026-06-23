@@ -1,5 +1,9 @@
 @extends(backpack_view('blank'))
 
+@php
+    $isDistributor = backpack_user()?->isDistributor() ?? false;
+@endphp
+
 @section('header')
     <section class="header-operation container-fluid animated fadeIn d-flex mb-2 align-items-center d-print-none" bp-section="page-header" style="background: var(--primary-deep); border-radius: 20px; padding: 1.5rem 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-md); width: 100%; display: flex; align-items: center; justify-content: space-between; position: relative; overflow: visible;">
         <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 1;">
@@ -17,9 +21,6 @@
 @section('content')
 <div class="container-fluid py-4">
 
-@php
-    $isDistributor = backpack_user()?->isDistributor() ?? false;
-@endphp
 @if ($isDistributor)
     <div class="row g-4">
         <div class="col-md-4">
@@ -72,85 +73,97 @@
     </div>
 @else
 
-    {{-- ======================= حساب البيانات ======================= --}}
     @php
-        // ===== إحصائيات القوارير =====
-        $overallEmpty = \App\Models\Delivery::sum('bottle_empty');
-        $customerBottles =
-            \App\Models\Client::sum('bottle_balance') +
-            \App\Models\Delivery::sum('bottle_received') -
-            \App\Models\Delivery::sum('bottle_empty');
-        $totalSystemBottles = $customerBottles + $overallEmpty;
-
-        // ===== إحصائيات التسليمات =====
-        $deliveriesToday = \App\Models\Delivery::whereDate('created_at', today())->count();
-        $deliveriesThisMonth = \App\Models\Delivery::whereYear('created_at', now()->year)
-            ->whereMonth('created_at', now()->month)
-            ->count();
-        $deliveriesLastMonth = \App\Models\Delivery::whereYear('created_at', now()->subMonth()->year)
-            ->whereMonth('created_at', now()->subMonth()->month)
-            ->count();
-
-        // ===== إحصائيات العملاء =====
-        $totalClients = \App\Models\Client::count();
-        // حساب العملاء المستحقين بدون استخدام View
-        try {
-            // حساب بسيط: العملاء الذين لديهم اشتراك نشط
-            $clientsDueCount = \App\Models\Client::where('subscription_status_id', 1)->count();
-        } catch(\Exception $e) {
-            $clientsDueCount = 0;
-        }
-        $activeClients = \App\Models\Client::where('subscription_status_id', 1)->count();
-
-        // ===== إحصائيات حسب حالة الالتزام =====
-        try {
-            $clientStatuses = \App\Models\ClientStatus::orderBy('min_percentage')->get();
-        } catch(\Exception $e) {
-            $clientStatuses = collect([]);
-        }
-        $clientStatusStats = [];
-        foreach ($clientStatuses as $status) {
-            try {
-                // حساب بسيط: استخدام subscription_status_id كبديل
-                $count = \App\Models\Client::where('subscription_status_id', $status->id ?? 1)->count();
-            } catch(\Exception $e) {
-                $count = 0;
-            }
-            $clientStatusStats[] = [
-                'name' => $status->status_name ?? 'غير محدد',
-                'count' => $count,
-                'color' => ($status->status_name ?? '') == 'مميز' ? '#22c55e' : 
-                          (($status->status_name ?? '') == 'جيد جدًا' ? '#34d399' : 
-                          (($status->status_name ?? '') == 'ملتزم إلى حد ما' ? '#fbbf24' : '#ef4444'))
-            ];
-        }
-
-        // ===== إحصائيات حسب حالة الاشتراك =====
-        $subscriptionStatuses = \App\Models\SubscriptionStatus::orderBy('id')->get();
-        $subscriptionStatusStats = [];
-        foreach ($subscriptionStatuses as $status) {
-            $count = \App\Models\Client::where('subscription_status_id', $status->id)->count();
-            $subscriptionStatusStats[] = [
-                'name' => $status->status_name,
-                'count' => $count
-            ];
-        }
-
-        // ===== إحصائيات المدن =====
-        $cityStats = \App\Models\City::withCount('clients')->get()->sortByDesc('clients_count');
-        $topCities = $cityStats->take(6);
-        $labelsCities = $topCities->pluck('city_name')->toArray();
-        $valuesCities = $topCities->pluck('clients_count')->toArray();
-
-        // ===== العملاء الذين استلموا اليوم (أول 10) =====
-        $clientsReceivedToday = \App\Models\Delivery::whereDate('delivery_date', today())
-            ->with(['client.city', 'client.subscriptionType', 'distributor'])
-            ->orderByDesc('delivery_date')
-            ->orderByDesc('id')
-            ->take(10)
-            ->get();
+        $dash = $ownerDashboard ?? [];
+        $hero = $dash['hero'] ?? [];
+        $totals = $dash['totals'] ?? [];
+        $bottles = $dash['bottles'] ?? [];
+        $alerts = $dash['alerts'] ?? [];
+        $clientStatusStats = $dash['client_status_stats'] ?? [];
+        $subscriptionStatusStats = $dash['subscription_status_stats'] ?? [];
+        $cityChart = $dash['city_chart'] ?? ['labels' => [], 'values' => []];
+        $labelsCities = $cityChart['labels'] ?? [];
+        $valuesCities = $cityChart['values'] ?? [];
+        $clientsReceivedToday = $dash['deliveries_today_rows'] ?? collect();
+        $deliveriesThisMonth = (int) ($totals['deliveries_this_month'] ?? 0);
+        $deliveriesLastMonth = (int) ($totals['deliveries_last_month'] ?? 0);
+        $totalClients = (int) ($totals['total_clients'] ?? 0);
+        $activeClients = (int) ($totals['active_clients'] ?? 0);
+        $overallEmpty = (int) ($totals['warehouse_inventory'] ?? 0);
+        $todayStr = today()->format('Y-m-d');
     @endphp
 
+    {{-- ======================= مؤشرات المالك الرئيسية ======================= --}}
+    <div class="row g-4 mb-2">
+        <div class="col-md-3">
+            <a href="{{ route('reports.clients_delivery_overview') }}?search=1&from={{ $todayStr }}&to={{ $todayStr }}" class="text-decoration-none">
+                <div class="dashboard-stat-card stat-card-purple dashboard-hero-card">
+                    <div class="stat-card-content">
+                        <div class="stat-icon-box icon-box-purple"><i class="la la-truck"></i></div>
+                        <div class="stat-info">
+                            <h6 class="stat-label">التسليمات اليوم</h6>
+                            <h3 class="stat-value">{{ number_format((int) ($hero['deliveries_today'] ?? 0)) }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ backpack_url('client-payment?date_from='.$todayStr.'&date_to='.$todayStr) }}" class="text-decoration-none">
+                <div class="dashboard-stat-card stat-card-green dashboard-hero-card">
+                    <div class="stat-card-content">
+                        <div class="stat-icon-box icon-box-green"><i class="la la-money-bill-wave"></i></div>
+                        <div class="stat-info">
+                            <h6 class="stat-label">الكاش اليوم</h6>
+                            <h3 class="stat-value">₪ {{ number_format((float) ($hero['cash_today'] ?? 0), 0) }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ route('reports.treasury-custody') }}" class="text-decoration-none">
+                <div class="dashboard-stat-card stat-card-purple dashboard-hero-card">
+                    <div class="stat-card-content">
+                        <div class="stat-icon-box icon-box-purple"><i class="la la-hand-holding-usd"></i></div>
+                        <div class="stat-info">
+                            <h6 class="stat-label">العهدة لدى الموزعين</h6>
+                            <h3 class="stat-value">₪ {{ number_format((float) ($hero['custody_now'] ?? 0), 0) }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ backpack_url('clients-due') }}" class="text-decoration-none">
+                <div class="dashboard-stat-card stat-card-green dashboard-hero-card">
+                    <div class="stat-card-content">
+                        <div class="stat-icon-box icon-box-green"><i class="la la-calendar-check"></i></div>
+                        <div class="stat-info">
+                            <h6 class="stat-label">المستحقون للتوزيع</h6>
+                            <h3 class="stat-value">{{ number_format((int) ($hero['dues_count'] ?? 0)) }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    @if((int) ($alerts['unpaid_expenses_count'] ?? 0) > 0)
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="alert alert-warning border-0 mb-0" style="border-radius: 16px;">
+                <div class="fw-bold mb-2"><i class="la la-exclamation-triangle"></i> تنبيهات</div>
+                <ul class="mb-0 ps-3">
+                    <li>
+                        {{ number_format((int) $alerts['unpaid_expenses_count']) }} مصروف غير مدفوع
+                        — <a href="{{ backpack_url('expense?payment_status=unpaid') }}">عرض</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    @endif
 
     {{-- ======================= الكــروت ======================= --}}
     <div class="row g-4">
@@ -176,55 +189,17 @@
                         <i class="la la-truck"></i>
                     </div>
                     <div class="stat-info">
-                        <h6 class="stat-label">التوزيعات اليوم</h6>
-                        <h3 class="stat-value">{{ number_format($deliveriesToday) }}</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="dashboard-stat-card stat-card-purple">
-                <div class="stat-card-content">
-                    <div class="stat-icon-box icon-box-purple">
-                        <i class="la la-user-tie"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h6 class="stat-label">عدد الموزعين</h6>
-                        <h3 class="stat-value">{{ number_format(\App\Models\Distributor::count()) }}</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="dashboard-stat-card stat-card-green">
-                <div class="stat-card-content">
-                    <div class="stat-icon-box icon-box-green">
-                        <i class="la la-city"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h6 class="stat-label">عدد المدن</h6>
-                        <h3 class="stat-value">{{ number_format(\App\Models\City::count()) }}</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    {{-- ======================= كروت إضافية ======================= --}}
-    <div class="row g-4 mt-2">
-
-        <div class="col-md-3">
-            <div class="dashboard-stat-card stat-card-purple">
-                <div class="stat-card-content">
-                    <div class="stat-icon-box icon-box-purple">
-                        <i class="la la-calendar-check"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h6 class="stat-label">العملاء المستحقين</h6>
-                        <h3 class="stat-value">{{ number_format($clientsDueCount) }}</h3>
+                        <h6 class="stat-label">تسليمات الشهر</h6>
+                        <h3 class="stat-value">{{ number_format($deliveriesThisMonth) }}</h3>
+                        @if($deliveriesLastMonth > 0)
+                            <div class="stat-trend">
+                                @if($deliveriesThisMonth > $deliveriesLastMonth)
+                                    <span class="trend-up">↑ {{ round((($deliveriesThisMonth - $deliveriesLastMonth) / $deliveriesLastMonth) * 100) }}%</span>
+                                @else
+                                    <span class="trend-down">↓ {{ round((($deliveriesLastMonth - $deliveriesThisMonth) / $deliveriesLastMonth) * 100) }}%</span>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -248,33 +223,10 @@
             <div class="dashboard-stat-card stat-card-purple">
                 <div class="stat-card-content">
                     <div class="stat-icon-box icon-box-purple">
-                        <i class="la la-truck"></i>
+                        <i class="la la-warehouse"></i>
                     </div>
                     <div class="stat-info">
-                        <h6 class="stat-label">التسليمات هذا الشهر</h6>
-                        <h3 class="stat-value">{{ number_format($deliveriesThisMonth) }}</h3>
-                        @if($deliveriesLastMonth > 0)
-                            <div class="stat-trend">
-                                @if($deliveriesThisMonth > $deliveriesLastMonth)
-                                    <span class="trend-up">↑ {{ round((($deliveriesThisMonth - $deliveriesLastMonth) / $deliveriesLastMonth) * 100) }}%</span>
-                                @else
-                                    <span class="trend-down">↓ {{ round((($deliveriesLastMonth - $deliveriesThisMonth) / $deliveriesLastMonth) * 100) }}%</span>
-                                @endif
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="dashboard-stat-card stat-card-green">
-                <div class="stat-card-content">
-                    <div class="stat-icon-box icon-box-green">
-                        <i class="la la-recycle"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h6 class="stat-label">مخزون المستودع</h6>
+                        <h6 class="stat-label">كمية المخزون</h6>
                         <h3 class="stat-value">{{ number_format($overallEmpty) }}</h3>
                     </div>
                 </div>
@@ -312,7 +264,7 @@
                                     <th>الموزع</th>
                                     <th>قوارير مستلمة</th>
                                     <th>قوارير فارغة</th>
-                                    <th>رصيد</th>
+                                    <th>رصيد العائلة</th>
                                     <th>إجراءات</th>
                                 </tr>
                             </thead>
@@ -334,7 +286,10 @@
                                     </td>
                                     <td>
                                         @php
-                                            $balance = ($delivery->bottle_received ?? 0) - ($delivery->bottle_empty ?? 0);
+                                            $clientModel = $delivery->client;
+                                            $balance = $clientModel
+                                                ? (int) ($clientModel->familyBottleBalanceFromDeliveries()['bottle_balance'] ?? 0)
+                                                : 0;
                                             $balanceClass = $balance > 0 ? 'badge-balance-positive' : ($balance < 0 ? 'badge-balance-negative' : 'badge-balance-zero');
                                         @endphp
                                         <span class="{{ $balanceClass }}">{{ number_format($balance) }}</span>
@@ -414,6 +369,8 @@
         </div>
     </div>
 
+@endif
+
 </div>
 @endsection
 
@@ -452,6 +409,10 @@
     .dashboard-stat-card:hover {
         transform: translateY(-6px);
         box-shadow: var(--shadow-lg) !important;
+    }
+
+    .dashboard-hero-card .stat-value {
+        font-size: 2rem;
     }
 
     .stat-card-green:hover {
@@ -926,16 +887,17 @@
 @endsection
 
 @section('after_scripts')
+@if (! $isDistributor)
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 // ===== رسم بياني للقوارير =====
 new Chart(document.getElementById('overallBottlesChart'), {
     type: 'bar',
     data: {
-        labels: ['مخزون المستودع', 'لدى الزبائن', 'الإجمالي'],
+        labels: ['مخزون الأصناف', 'قوارير عند الزبائن', 'أمانات عند الزبائن'],
         datasets: [{
-            label: 'عدد القوارير',
-            data: [{{ $overallEmpty }}, {{ $customerBottles }}, {{ $totalSystemBottles }}],
+            label: 'العدد',
+            data: [{{ (int) ($bottles['warehouse'] ?? 0) }}, {{ (int) ($bottles['at_customers'] ?? 0) }}, {{ (int) ($bottles['on_loan'] ?? 0) }}],
             backgroundColor: ['#ef4444', '#059669', '#1e3a5f'],
             borderRadius: 8
         }]
@@ -1021,5 +983,5 @@ new Chart(document.getElementById('subscriptionStatusChart'), {
     }
 });
 </script>
+@endif
 @endsection
-

@@ -204,6 +204,7 @@
             }
         }
     </style>
+    @include('admin.partials.client_select_search_assets')
 @endsection
 
 @extends(backpack_view('blank'))

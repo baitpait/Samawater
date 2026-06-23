@@ -34,6 +34,7 @@
             padding: 2rem !important;
         }
     </style>
+    @include('admin.partials.client_select_search_assets')
 @endsection
 
 @section('header')

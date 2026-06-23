@@ -578,9 +578,10 @@
             @include('admin.distributor_filters')
         @endif
 
-        {{-- فلاتر الفواتير (صفحة قائمة الفواتير فقط) --}}
         @php $path = request()->path(); @endphp
-        @if(str_contains($path, 'invoice') && !str_contains($path, 'invoice/'))
+
+        {{-- فلاتر فواتير المبيعات (قائمة فقط — لا تشمل فواتير المشتريات) --}}
+        @if (request()->routeIs('invoice.index'))
             @include('admin.invoice_filters')
         @endif
 
@@ -595,7 +596,7 @@
         @endif
 
         {{-- فلاتر المصروفات --}}
-        @if(str_contains($path, 'expense') && !str_contains($path, 'expense/'))
+        @if(preg_match('#/expense$#', '/'.trim($path, '/')))
             @include('admin.expense_filters')
         @endif
 
@@ -607,12 +608,34 @@
         {{-- فلاتر المخزون + عرض المجموع --}}
         @if(str_contains($path, 'inventory-item') && !str_contains($path, 'inventory-item/'))
             @include('admin.inventory_item_filters')
-            @php $inventoryTotal = $crud->get('inventoryQuantityTotal'); @endphp
-            @if($inventoryTotal !== null)
-            <div class="alert alert-light border mb-3 d-flex align-items-center" style="background: #f8fafc; border-radius: 12px;">
-                <i class="la la-calculator la-lg me-2" style="color: var(--primary-deep);"></i>
-                <strong class="text-dark" style="margin-inline-end: 4.5rem;">مجموع الكميات (النتائج المفلترة):</strong>
-                <span class="fw-bold" style="color: var(--primary-deep); font-size: 1.5rem;">{{ number_format($inventoryTotal) }}</span>
+            @php
+                $inventoryTotal = $crud->get('inventoryQuantityTotal');
+                $inventoryOnLoanTotal = $crud->get('inventoryOnLoanTotal');
+                $inventoryGrandTotal = $crud->get('inventoryGrandTotal');
+            @endphp
+            @if($inventoryTotal !== null || $inventoryOnLoanTotal !== null || $inventoryGrandTotal !== null)
+            <div class="alert alert-light border mb-3 d-flex flex-wrap align-items-center gap-4" style="background: #f8fafc; border-radius: 12px;">
+                @if($inventoryTotal !== null)
+                <div class="d-flex align-items-center">
+                    <i class="la la-calculator la-lg me-2" style="color: var(--primary-deep);"></i>
+                    <strong class="text-dark" style="margin-inline-end: 1rem;">مجموع الكميات في المخزون:</strong>
+                    <span class="fw-bold" style="color: var(--primary-deep); font-size: 1.5rem;">{{ number_format($inventoryTotal) }}</span>
+                </div>
+                @endif
+                @if($inventoryOnLoanTotal !== null)
+                <div class="d-flex align-items-center">
+                    <i class="la la-hand-holding la-lg me-2" style="color: var(--primary-deep);"></i>
+                    <strong class="text-dark" style="margin-inline-end: 1rem;">مجموع الأمانات عند الزبائن:</strong>
+                    <span class="fw-bold" style="color: var(--primary-deep); font-size: 1.5rem;">{{ number_format($inventoryOnLoanTotal) }}</span>
+                </div>
+                @endif
+                @if($inventoryGrandTotal !== null)
+                <div class="d-flex align-items-center">
+                    <i class="la la-layer-group la-lg me-2" style="color: var(--primary-deep);"></i>
+                    <strong class="text-dark" style="margin-inline-end: 1rem;">المجموع الكلي:</strong>
+                    <span class="fw-bold" style="color: #059669; font-size: 1.5rem;">{{ number_format($inventoryGrandTotal) }}</span>
+                </div>
+                @endif
             </div>
             @endif
         @endif

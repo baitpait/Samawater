@@ -2,10 +2,12 @@
 @once
     @push('after_styles')
         <style>
-            .client-select-searchable + .select2-container {
+            .client-select-searchable + .select2-container,
+            select[name="client_id"] + .select2-container {
                 width: 100% !important;
             }
-            .client-select-searchable + .select2-container .select2-selection {
+            .client-select-searchable + .select2-container .select2-selection,
+            select[name="client_id"] + .select2-container .select2-selection {
                 min-height: 48px;
                 border: 2px solid #e2e8f0;
                 border-radius: 12px;
@@ -17,6 +19,6 @@
         </style>
     @endpush
     @push('after_scripts')
-        <script src="{{ asset('js/client-select-search.js') }}?v=1"></script>
+        <script src="{{ asset('js/client-select-search.js') }}?v=3"></script>
     @endpush
 @endonce

@@ -14,7 +14,7 @@
      * @var array<int, string>|null $optionLabels تسميات مخصّصة حسب معرّف المشترك
      */
     $name = $name ?? 'client_id';
-    $selectedId = $selectedId ?? request($name);
+    $selectedId = old($name, $selectedId ?? request($name));
     $allowEmpty = $allowEmpty ?? true;
     $emptyLabel = $emptyLabel ?? 'الكل';
     $required = $required ?? false;

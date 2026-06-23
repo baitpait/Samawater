@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Admin;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use App\Models\Expense;
-use App\Models\ExpenseCategory;
+use App\Services\ExpenseQueryService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Mpdf\Mpdf;
 
 /**
  * Business Purpose: إدارة المصروفات مع توزيعها التلقائي على الأشهر
@@ -23,6 +25,12 @@ class ExpenseCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 
+    public function __construct(
+        private readonly ExpenseQueryService $expenseQuery,
+    ) {
+        parent::__construct();
+    }
+
     public function setup()
     {
         CRUD::setModel(Expense::class);
@@ -32,36 +40,26 @@ class ExpenseCrudController extends CrudController
 
     protected function setupListOperation()
     {
-        $this->crud->addClause('with', ['category', 'creator']);
+        $this->crud->query = $this->expenseQuery->filteredOperationalQuery(request());
 
-        // مصروفات تشغيلية فقط — المشتريات/المخزون عبر فواتير المشتريات
-        $this->crud->addClause('where', 'is_inventory', false);
-
-        $this->crud->addClause('orderBy', 'created_at', 'desc');
-        
-        $this->crud->addClause(function ($query) {
-            if (request()->filled('expense_category_id')) {
-                $query->where('expense_category_id', request('expense_category_id'));
-            }
-            if (request()->filled('vendor_id')) {
-                $query->where('vendor_id', request('vendor_id'));
-            }
-            if (request()->filled('payment_status')) {
-                $query->where('payment_status', request('payment_status'));
-            }
-            if (request()->filled('date_from')) {
-                $query->whereDate('payment_date', '>=', request('date_from'));
-            }
-            if (request()->filled('date_to')) {
-                $query->whereDate('payment_date', '<=', request('date_to'));
-            }
-        });
-        
-        CRUD::column('category_name')
-            ->label('الفئة')
+        CRUD::column('expense_display')
+            ->label('المصروف')
             ->type('custom_html')
-            ->value(function($entry) {
-                return $entry->category ? e($entry->category->name) : '<span class="text-muted">-</span>';
+            ->value(function ($entry): string {
+                return '<span class="fw-bold" style="color: var(--primary-deep);">'
+                    .e($this->expenseQuery->formatExpenseLabel($entry))
+                    .'</span>';
+            });
+
+        CRUD::column('beneficiary_name')
+            ->label('صاحب المصروف')
+            ->type('custom_html')
+            ->value(function ($entry): string {
+                $name = trim((string) ($entry->beneficiary?->name ?? ''));
+
+                return $name !== ''
+                    ? '<span class="badge bg-primary">'.e($name).'</span>'
+                    : '<span class="text-muted">—</span>';
             });
         
         CRUD::column('payment_status')
@@ -190,6 +188,26 @@ class ExpenseCrudController extends CrudController
             ->options(function ($query) {
                 return $query->where('is_active', true)->orderBy('name')->get();
             });
+
+        CRUD::field('expense_beneficiary_id')
+            ->label('صاحب المصروف')
+            ->type('select')
+            ->model('App\Models\ExpenseBeneficiary')
+            ->attribute('name')
+            ->attributes(['required' => 'required'])
+            ->options(function ($query) {
+                $categoryId = (int) (request()->input('expense_category_id')
+                    ?? optional($this->crud->getCurrentEntry())->expense_category_id
+                    ?? 0);
+
+                $builder = $query->where('is_active', true)->orderBy('name');
+                if ($categoryId > 0) {
+                    $builder->where('expense_category_id', $categoryId);
+                }
+
+                return $builder->get();
+            })
+            ->hint('يُعرض أصحاب المصروف المرتبطون بالفئة المختارة — أضفهم من «أصحاب المصروف»');
         
         CRUD::field('total_amount')
             ->label('المبلغ الإجمالي (شيكل)')
@@ -299,6 +317,12 @@ class ExpenseCrudController extends CrudController
     {
         $rules = [
             'expense_category_id' => 'required|exists:expense_categories,id',
+            'expense_beneficiary_id' => [
+                'required',
+                Rule::exists('expense_beneficiaries', 'id')->where(
+                    static fn ($query) => $query->where('expense_category_id', (int) $request->input('expense_category_id'))
+                ),
+            ],
             'total_amount' => 'required|numeric|min:0.01',
             'payment_status' => 'required|in:paid,partial,unpaid',
             'payment_date' => 'required|date',
@@ -322,6 +346,7 @@ class ExpenseCrudController extends CrudController
 
         $expense = Expense::create([
             'expense_category_id' => $request->expense_category_id,
+            'expense_beneficiary_id' => $request->expense_beneficiary_id,
             'vendor_id' => null,
             'is_inventory' => false,
             'payment_status' => $request->payment_status,
@@ -379,6 +404,12 @@ class ExpenseCrudController extends CrudController
 
         $rules = [
             'expense_category_id' => 'required|exists:expense_categories,id',
+            'expense_beneficiary_id' => [
+                'required',
+                Rule::exists('expense_beneficiaries', 'id')->where(
+                    static fn ($query) => $query->where('expense_category_id', (int) $request->input('expense_category_id'))
+                ),
+            ],
             'total_amount' => 'required|numeric|min:0.01',
             'payment_status' => 'required|in:paid,partial,unpaid',
             'payment_date' => 'required|date',
@@ -402,6 +433,7 @@ class ExpenseCrudController extends CrudController
 
         $expense->update([
             'expense_category_id' => $request->expense_category_id,
+            'expense_beneficiary_id' => $request->expense_beneficiary_id,
             'vendor_id' => null,
             'is_inventory' => false,
             'payment_status' => $request->payment_status,
@@ -464,5 +496,91 @@ class ExpenseCrudController extends CrudController
         \Alert::success('تم حذف المصروف و ' . $allocationsCount . ' توزيع شهري بنجاح.')->flash();
         
         return redirect($this->crud->route);
+    }
+
+    /**
+     * Business Purpose: تصدير المصروفات التشغيلية المفلترة إلى CSV مع صاحب المصروف.
+     */
+    public function exportExcel(Request $request)
+    {
+        $expenses = $this->expenseQuery->filteredOperationalQuery($request)->get();
+
+        $filename = 'المصروفات_'.date('Y-m-d').'.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ];
+
+        $paymentLabels = [
+            'paid' => 'مدفوع',
+            'partial' => 'جزئي',
+            'unpaid' => 'غير مدفوع',
+        ];
+
+        $callback = function () use ($expenses, $paymentLabels): void {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            fputcsv($file, ['المصروفات التشغيلية'], ';');
+            fputcsv($file, []); 
+
+            fputcsv($file, [
+                'المصروف',
+                'الفئة',
+                'صاحب المصروف',
+                'المبلغ الإجمالي',
+                'حالة الدفع',
+                'تاريخ الدفع',
+                'عدد الأشهر',
+                'المبلغ الشهري',
+                'ملاحظات',
+            ], ';');
+
+            foreach ($expenses as $expense) {
+                fputcsv($file, [
+                    $this->expenseQuery->formatExpenseLabel($expense),
+                    $expense->category?->name ?? '',
+                    $expense->beneficiary?->name ?? '',
+                    number_format((float) $expense->total_amount, 2, '.', ''),
+                    $paymentLabels[$expense->payment_status] ?? $expense->payment_status,
+                    $expense->payment_date?->format('Y-m-d') ?? '',
+                    (int) $expense->number_of_months,
+                    number_format((float) $expense->monthly_amount, 2, '.', ''),
+                    $expense->notes ?? '',
+                ], ';');
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Business Purpose: تصدير المصروفات التشغيلية المفلترة إلى PDF مع صاحب المصروف.
+     */
+    public function exportPdf(Request $request)
+    {
+        $expenses = $this->expenseQuery->filteredOperationalQuery($request)->get();
+
+        $html = view('admin.expenses.export_pdf', [
+            'expenses' => $expenses,
+            'expenseQuery' => $this->expenseQuery,
+        ])->render();
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4-L',
+            'directionality' => 'rtl',
+            'default_font' => 'dejavusans',
+            'tempDir' => storage_path('app/mpdf'),
+        ]);
+
+        $mpdf->WriteHTML($html);
+
+        return response($mpdf->Output(
+            'المصروفات_'.date('Y-m-d').'.pdf',
+            'I'
+        ))->header('Content-Type', 'application/pdf');
     }
 }

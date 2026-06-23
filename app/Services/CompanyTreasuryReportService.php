@@ -10,8 +10,8 @@ use App\Models\VendorPayment;
 use Carbon\Carbon;
 
 /**
- * Business Purpose: تجميع مؤشرات «صندوق الشركة» في فترة: وارد التسليمات والمبيعات (فواتير مؤكّدة)
- * ومدفوعات المشتركين من جدول client_payments، مقابل صادر المشتريات (vendor_payments بنفس شرط الفترة في الحركة الشاملة) والمصروفات.
+ * Business Purpose: تجميع مؤشرات «صندوق الشركة» في فترة: الكاش الوارد من مدفوعات المشتركين
+ * (مصدر واحد دون تكرار)، مع بطاقات مرجعية للتسليمات والفواتير، مقابل صادر المشتريات والمصروفات.
  */
 final class CompanyTreasuryReportService
 {
@@ -61,7 +61,8 @@ final class CompanyTreasuryReportService
             ->whereBetween('payment_date', [$fromD, $toD])
             ->sum('total_amount');
 
-        $totalIn = $deliveriesCash + $confirmedInvoiceSales + $registeredClientPayments;
+        /** كاش وارد فعلي: مدفوعات المشتركين فقط (تشمل تحصيل التسليم والفاتورة دون عدّ مزدوج). */
+        $totalIn = $registeredClientPayments;
         $totalOut = $vendorPurchases + $expensesPaid;
         $netPeriod = $totalIn - $totalOut;
 

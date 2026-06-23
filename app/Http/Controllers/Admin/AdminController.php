@@ -29,8 +29,8 @@ class AdminController extends Controller
             ]);
         }
         
-        // للمسؤولين (Admin/Super Admin)، عرض dashboard كامل
-        return view('admin.dashboard_admin', [
+        // للمسؤولين (Admin/Super Admin)، عرض لوحة التحكم الكاملة
+        return view('vendor.backpack.ui.dashboard', [
             'title' => 'لوحة تحكم الإدارة',
             'user' => $user,
         ]);

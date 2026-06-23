@@ -7,6 +7,7 @@ use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\Request;
 use App\Models\InventoryItem;
+use App\Services\ClientSelectFieldService;
 
 class ClientCrudController extends CrudController
 {
@@ -200,20 +201,28 @@ class ClientCrudController extends CrudController
         CRUD::setValidation(ClientRequest::class);
 
         // جلب المشتركين الأب فقط (parent_id = null)
-        $parentClients = \App\Models\Client::whereNull('parent_id')
-            ->orderBy('name')
-            ->pluck('name', 'id')
-            ->toArray();
+        $selectedParentId = old('parent_id');
+        if ($this->crud->getOperation() === 'update') {
+            $selectedParentId = old('parent_id', $this->crud->getCurrentEntry()?->parent_id);
+        }
 
         CRUD::addFields([
 
             [
-                'name'      => 'parent_id',
-                'label'     => 'المشترك الأب (اختياري)',
-                'type'      => 'select_from_array',
-                'options'   => $parentClients,
-                'hint'      => 'اختر المشترك الأب إذا كان هذا عنوان فرعي. اتركه فارغاً إذا كان هذا مشترك رئيسي.',
-                'allows_null' => true,
+                'name'  => 'parent_id',
+                'type'  => 'custom_html',
+                'value' => app(ClientSelectFieldService::class)->crudFieldHtml([
+                    'name' => 'parent_id',
+                    'label' => 'المشترك الأب (اختياري)',
+                    'selectedId' => $selectedParentId,
+                    'required' => false,
+                    'allowEmpty' => true,
+                    'emptyLabel' => '— بدون (مشترك رئيسي) —',
+                    'selectId' => 'client_parent_id_select',
+                    'placeholder' => 'ابحث عن المشترك الأب…',
+                    'parentsOnly' => true,
+                    'hint' => 'اختر المشترك الأب إذا كان هذا عنوان فرعي. اتركه فارغاً إذا كان هذا مشترك رئيسي.',
+                ]),
             ],
 
             [

@@ -65,6 +65,29 @@ class Invoice extends Model
     }
 
     /**
+     * Business Purpose: نمط مطابقة ملاحظات الدفعة التلقائية المرتبطة بهذه الفاتورة (للحذف والمعاينة).
+     */
+    public function autoPaymentNotesLikePattern(): string
+    {
+        return 'دفعة تلقائية من الفاتورة: ' . $this->invoice_number . '%';
+    }
+
+    /**
+     * Business Purpose: جلب الدفعات التلقائية المرتبطة برقم هذه الفاتورة (للمعاينة والتدقيق).
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, ClientPayment>
+     */
+    public function resolveAutoClientPayments(): \Illuminate\Database\Eloquent\Collection
+    {
+        return ClientPayment::query()
+            ->where('client_id', $this->client_id)
+            ->where('notes', 'like', $this->autoPaymentNotesLikePattern())
+            ->orderBy('payment_date')
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
      * Business Purpose: توليد رقم فاتورة تلقائي مع التحقق من عدم التكرار
      * Format: INV-YYYY-XXX (مثال: INV-2026-001)
      * 

@@ -12,12 +12,18 @@ use App\Models\ClientStatus;
 use App\Models\SubscriptionStatus;
 use App\Models\SubscriptionType;
 use App\Models\VClientsDueByTypeDaysIds;
+use App\Services\ClientBottleBalanceService;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Mpdf\Mpdf;
 
 class AdvancedReportsController extends Controller
 {
+    public function __construct(
+        private readonly ClientBottleBalanceService $clientBottleBalance,
+    ) {
+    }
+
     public function index(Request $request)
     {
         // ===== تحديد الفترة الزمنية =====
@@ -297,6 +303,28 @@ class AdvancedReportsController extends Controller
         $cities = City::orderBy('city_name')->get();
         $distributors = Distributor::orderBy('name')->get();
 
+        // ===== 13. رصيد القوارير لكل المشتركين (ملف العائلة) =====
+        $clientsBottleQuery = Client::query()
+            ->with(['city', 'distributor'])
+            ->orderBy('name');
+
+        if ($cityId) {
+            $clientsBottleQuery->where('city_id', $cityId);
+        }
+        if ($distributorId) {
+            $clientsBottleQuery->where('distributor_id', $distributorId);
+        }
+
+        $filteredClientIds = (clone $clientsBottleQuery)->pluck('id')->map(static fn ($id): int => (int) $id)->all();
+        $bottleBalanceSummary = $this->clientBottleBalance->filteredFamilySummary($filteredClientIds);
+
+        $clientsWithBottleBalance = $clientsBottleQuery
+            ->paginate(50)
+            ->withQueryString();
+        $bottleSnapshotsByClientId = $this->clientBottleBalance->familySnapshotsForClients(
+            $clientsWithBottleBalance->getCollection()
+        );
+
         return view('admin.reports.advanced', compact(
             'period',
             'dateFrom',
@@ -319,7 +347,10 @@ class AdvancedReportsController extends Controller
             'clientGrowth',
             'generalStats',
             'cities',
-            'distributors'
+            'distributors',
+            'clientsWithBottleBalance',
+            'bottleSnapshotsByClientId',
+            'bottleBalanceSummary'
         ));
     }
 

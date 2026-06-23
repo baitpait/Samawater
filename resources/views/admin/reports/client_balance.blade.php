@@ -425,7 +425,7 @@
                 <i class="la la-wallet"></i>
             </div>
             <div>
-                <h1 class="balance-header-title">كشف حساب المشترك</h1>
+                <h1 class="balance-header-title">رصيد المشترك</h1>
                 <p class="balance-header-subtitle">ملخص: مبيعات، تسليمات، الرصيد المستحق، العبوات، والأمانات</p>
             </div>
         </div>

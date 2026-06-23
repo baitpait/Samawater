@@ -200,6 +200,60 @@
         </div>
     </div>
 
+    <div class="invoice-detail-card">
+        <div class="card-head d-flex justify-content-between align-items-center">
+            <span><i class="la la-money-bill"></i> الدفعات المسجّلة في جدول المدفوعات</span>
+            @if($entry->client_id)
+            <a href="{{ backpack_url('client-payment?client_id=' . (int) $entry->client_id) }}" class="btn btn-sm btn-outline-primary">
+                كل مدفوعات المشترك
+            </a>
+            @endif
+        </div>
+        <div class="card-body p-0">
+            @php $linkedPayments = $linkedClientPayments ?? collect(); @endphp
+            @if($linkedPayments->isNotEmpty())
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0 items-table">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">#</th>
+                            <th>التاريخ</th>
+                            <th>المبلغ</th>
+                            <th>طريقة الدفع</th>
+                            <th>البيان</th>
+                            <th class="text-center pe-4">إجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($linkedPayments as $payment)
+                        <tr>
+                            <td class="ps-4">{{ $payment->id }}</td>
+                            <td>{{ $payment->payment_date ? $payment->payment_date->format('Y-m-d') : '—' }}</td>
+                            <td class="fw-bold text-success">₪ {{ number_format((float) $payment->amount, 2) }}</td>
+                            <td>{{ $paymentMethodLabels[$payment->payment_method] ?? ($payment->payment_method ?? '—') }}</td>
+                            <td class="text-muted">{{ $payment->notes ?? '—' }}</td>
+                            <td class="text-center pe-4">
+                                <a href="{{ backpack_url('client-payment/' . $payment->id . '/show') }}" class="btn btn-sm btn-outline-secondary">
+                                    معاينة
+                                </a>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @elseif($paid > 0)
+            <div class="alert alert-warning m-3 mb-0">
+                الفاتورة تُظهر مبلغاً مدفوعاً (₪ {{ number_format($paid, 2) }}) لكن لا توجد دفعة مطابقة في جدول <strong>مدفوعات المشتركين</strong>. قد تحتاج تعديل الفاتورة لإعادة التسجيل التلقائي.
+            </div>
+            @else
+            <div class="alert alert-info m-3 mb-0">
+                لا توجد دفعة مسجّلة — حالة الدفع «دين» ولا يُنشأ سطر في جدول المدفوعات حتى يتم التحصيل.
+            </div>
+            @endif
+        </div>
+    </div>
+
     <div class="summary-box">
         <div class="row g-2">
             <div class="col-md-4"><strong>إجمالي الأصناف:</strong> ₪ {{ number_format($total, 2) }}</div>
@@ -210,4 +264,24 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('after_scripts')
+    @parent
+    <script>
+        $(document).ajaxSuccess(function (_event, xhr, settings) {
+            if (settings.type !== 'DELETE') {
+                return;
+            }
+
+            const url = String(settings.url || '');
+            if (!/\/invoice\/\d+$/.test(url)) {
+                return;
+            }
+
+            if (xhr.responseText === '1') {
+                window.location.href = @json(url($crud->route));
+            }
+        });
+    </script>
 @endsection

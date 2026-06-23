@@ -87,8 +87,11 @@
 
     var original = window.initClientSelect2;
     var wrapped = function () {
-      var guarded = document.querySelector('select[data-guarded="true"]');
-      if (guarded) {
+      var visibleClientSelect = document.querySelector(
+        'select[name="client_id"]:not([data-guarded="true"])'
+      );
+      var guardedOnly = document.querySelector('select[data-guarded="true"]');
+      if (guardedOnly && !visibleClientSelect) {
         return;
       }
       return original.apply(this, arguments);

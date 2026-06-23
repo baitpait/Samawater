@@ -36,7 +36,7 @@ class CurrentMonthExpensesController extends Controller
         
         // جلب جميع التوزيعات الشهرية للشهر المحدد
         $allocations = ExpenseMonthlyAllocation::where('month', $monthDate)
-            ->with(['expense.category', 'expense.creator'])
+            ->with(['expense.category', 'expense.beneficiary', 'expense.creator'])
             ->orderBy('expense_id')
             ->get();
         

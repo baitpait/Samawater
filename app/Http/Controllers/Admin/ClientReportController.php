@@ -27,11 +27,14 @@ class ClientReportController extends Controller
         $clients = Client::select('id', 'name')->get();
         $distributors = Distributor::select('id', 'name')->orderBy('name')->get();
 
+        $filterMeta = null;
+
         if ($request->filled('client_id')) {
             $report = $this->clientDeliveryReport->load($request, (int) $request->client_id);
             $client = $report['client'];
             $bottleSnapshot = $report['bottleSnapshot'];
             $accountSnapshot = $report['accountSnapshot'];
+            $filterMeta = $report['filterMeta'];
         }
 
         return view('admin.client_report_page', compact(
@@ -40,6 +43,7 @@ class ClientReportController extends Controller
             'distributors',
             'bottleSnapshot',
             'accountSnapshot',
+            'filterMeta',
         ));
     }
 }

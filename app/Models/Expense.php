@@ -17,6 +17,7 @@ class Expense extends Model
 
     protected $fillable = [
         'expense_category_id',
+        'expense_beneficiary_id',
         'vendor_id',
         'is_inventory',
         'payment_status',
@@ -45,6 +46,22 @@ class Expense extends Model
     public function category()
     {
         return $this->belongsTo(ExpenseCategory::class, 'expense_category_id');
+    }
+
+    /**
+     * العلاقة مع صاحب المصروف
+     */
+    public function beneficiary()
+    {
+        return $this->belongsTo(ExpenseBeneficiary::class, 'expense_beneficiary_id');
+    }
+
+    /**
+     * Business Purpose: تسمية العرض = الفئة ( صاحب المصروف ).
+     */
+    public function displayLabel(): string
+    {
+        return app(\App\Services\ExpenseQueryService::class)->formatExpenseLabel($this);
     }
 
     /**

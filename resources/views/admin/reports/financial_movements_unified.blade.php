@@ -51,7 +51,7 @@
             <div>
                 <h1 class="text-capitalize mb-0" bp-section="page-heading" style="color: #000 !important; font-size: 24px; font-weight: 800;">الحركة المالية الشاملة</h1>
                 <div class="mt-1" style="color: #000 !important; font-size: 14px;">
-                    دفعات، موردين، سحوبات، فواتير مؤكّدة، ومصروفات — بحسب كل باب وفترة
+                    دفعات المشتركين، موردين، فواتير مؤكّدة، ومصروفات — بحسب كل باب وفترة
                 </div>
             </div>
         </div>
@@ -97,10 +97,10 @@
             الأرقام أدناه <strong>مجاميع لنفس الفترة</strong> وليست «كم كاش معي الآن في الدرج». رصيد الصندوق الحقيقي = <strong>رصيد افتتاحي قبل الفترة</strong> ثم + وارد نقدي − صادر نقدي (حتى تاريخك)، أو <strong>عدّ/جرد</strong> على أرض الواقع.
         </p>
         <p class="small mb-2 mb-md-1">
-            <strong>صافي نقود تجريبي</strong> (عملاء − موردين + سحوبات مسجّلة) مؤشر مختصر للفترة وقد لا يطابق المحاسبة أو الكاش الفعلي؛ الفواتير المؤكّدة والمصروفات تُعرَض بمعنى مختلف في البطاقات.
+            <strong>صافي نقود تجريبي</strong> (عملاء − موردين) مؤشر مختصر للفترة ومطابق لمنطق صندوق الشركة؛ الفواتير المؤكّدة والمصروفات تُعرَض بمعنى مختلف في البطاقات.
         </p>
         <p class="small mb-0">
-            لمقارنة <strong>عهدة موزّعين</strong> مقابل <strong>ما وصل الشركة</strong> راجع <a href="{{ route('reports.treasury-custody') }}" class="fw-bold text-decoration-underline">تقرير الصندوق المالي</a>.
+            <strong>سحوبات الموزّعين</strong> (تسليم عهدة للمقر) لا تظهر هنا لتجنّب الازدواج مع مدفوعات المشتركين — راجع <a href="{{ route('reports.treasury-custody') }}" class="fw-bold text-decoration-underline">الصندوق المالي (عهدة)</a>.
         </p>
     </div>
 
@@ -122,12 +122,6 @@
             </div>
         </div>
         <div class="col-md-6 col-lg-4">
-            <div class="p-3 rounded-3 border bg-primary bg-opacity-10">
-                <div class="small text-muted">وصلكم من الموِّعين (سحوبات مسجَّلة)</div>
-                <div class="fs-5 fw-bold">₪ {{ number_format($s['cash_in_from_distributors_withdraw_to_hq'], 2) }}</div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-4">
             <div class="p-3 rounded-3 border">
                 <div class="small text-muted">مبيعات الفواتير المؤكّدة (عملاء)</div>
                 <div class="fs-6 fw-bold">₪ {{ number_format($s['sales_on_invoices_confirmed'], 2) }}</div>
@@ -143,9 +137,9 @@
         </div>
         <div class="col-md-6 col-lg-4">
             <div class="p-3 rounded-3 border border-warning">
-                <div class="small text-muted">صافي نقود تجريبي (عملاء − موردين + وصول موزِّع)</div>
-                <div class="fs-6 fw-bold">₪ {{ number_format($s['net_cash_formula_clients_plus_dist_minus_vendors'], 2) }}</div>
-                <div class="small text-muted mt-1">يشير لتتبَّع مختصر وليس اعتماد محاسبي نهائي</div>
+                <div class="small text-muted">صافي نقود تجريبي (عملاء − موردين)</div>
+                <div class="fs-6 fw-bold">₪ {{ number_format($s['net_cash_clients_minus_vendors'], 2) }}</div>
+                <div class="small text-muted mt-1">مطابق لصافي وارد صندوق الشركة في الفترة</div>
             </div>
         </div>
     </div>
@@ -192,6 +186,7 @@
         <p class="fw-bold mb-1">قراءات مهمة:</p>
         <ul class="mb-1 ps-3">
             <li>لا يُكرَّر تحصيل التسليم المعادل لدفعة عميل: نعرض مسار <strong>مدفوعات المشتركين</strong> وحده كنقد من الزبائن.</li>
+            <li>سحوبات الموزّعين (عهدة → المقر) في <a href="{{ route('reports.treasury-custody') }}">الصندوق المالي (عهدة)</a> وليس هنا.</li>
             <li>الفاتورة المؤكّدة والمصروف في عمود «غير نقد بالمعنى الضيق» لتفريقها عن عمود الوارد أو الصادر النقدى.</li>
         </ul>
         <span id="footnote-star">*</span> فواتير مؤكّدة ومصروفات مسجّلة بتواريخ مختلفة عن نقد بعضها الآخر.

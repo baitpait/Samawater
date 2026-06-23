@@ -54,9 +54,68 @@ class InventoryItemCrudController extends CrudController
             ->label('اسم الصنف')
             ->type('text');
         
-        CRUD::column('quantity')
-            ->label('الكمية')
-            ->type('number');
+        CRUD::addColumn([
+            'name' => 'quantity',
+            'label' => 'الكمية في المخزون',
+            'type' => 'custom_html',
+            'escaped' => false,
+            'value' => static function ($entry): string {
+                $quantity = (int) ($entry->quantity ?? 0);
+                $class = $quantity > 0 ? 'badge bg-primary' : 'badge bg-light text-muted border';
+
+                return '<span class="'.$class.'" style="font-size: 14px; min-width: 2.5rem;">'
+                    .number_format($quantity)
+                    .'</span>';
+            },
+        ]);
+
+        $onLoanTotals = InventoryItem::activeDepositTotalsByItemName();
+        $this->crud->set('inventoryOnLoanTotals', $onLoanTotals);
+
+        $filteredItemNames = (clone $this->crud->query)->pluck('item_name');
+        $onLoanTotalForFiltered = $filteredItemNames->sum(
+            static fn ($itemName): int => (int) ($onLoanTotals[trim((string) $itemName)] ?? 0)
+        );
+        $this->crud->set('inventoryOnLoanTotal', $onLoanTotalForFiltered);
+
+        $inventoryQuantityTotal = (int) (clone $this->crud->query)->sum('quantity');
+        $this->crud->set('inventoryQuantityTotal', $inventoryQuantityTotal);
+        $this->crud->set('inventoryGrandTotal', $inventoryQuantityTotal + $onLoanTotalForFiltered);
+
+        CRUD::addColumn([
+            'name' => 'on_loan_quantity',
+            'label' => 'أمانات عند الزبائن',
+            'type' => 'custom_html',
+            'escaped' => false,
+            'value' => static function ($entry) use ($onLoanTotals): string {
+                $onLoan = (int) ($onLoanTotals[trim((string) $entry->item_name)] ?? 0);
+                $class = $onLoan > 0 ? 'badge bg-primary' : 'badge bg-light text-muted border';
+
+                return '<span class="'.$class.'" style="font-size: 14px; min-width: 2.5rem;">'
+                    .number_format($onLoan)
+                    .'</span>';
+            },
+            'orderable' => false,
+            'searchable' => false,
+        ]);
+
+        CRUD::addColumn([
+            'name' => 'total_quantity',
+            'label' => 'المجموع',
+            'type' => 'custom_html',
+            'escaped' => false,
+            'value' => static function ($entry) use ($onLoanTotals): string {
+                $warehouse = (int) ($entry->quantity ?? 0);
+                $onLoan = (int) ($onLoanTotals[trim((string) $entry->item_name)] ?? 0);
+                $total = $warehouse + $onLoan;
+
+                return '<span class="badge bg-success" style="font-size: 14px; min-width: 2.5rem; font-weight: 700;">'
+                    .number_format($total)
+                    .'</span>';
+            },
+            'orderable' => false,
+            'searchable' => false,
+        ]);
         
         // إضافة عمود الإجراءات المخصص (معاينة، تعديل، حذف)
         CRUD::addColumn([
@@ -100,9 +159,6 @@ class InventoryItemCrudController extends CrudController
         ]);
         
         $this->crud->query->orderBy('item_name', 'asc');
-
-        // مجموع الكميات للنتائج المفلترة (للعرض في القائمة)
-        $this->crud->set('inventoryQuantityTotal', (clone $this->crud->query)->sum('quantity'));
     }
 
     protected function setupCreateOperation()

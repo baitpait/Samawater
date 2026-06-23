@@ -250,6 +250,37 @@
         .stat-card-modern.stat-card-success .stat-card-value {
             color: var(--success-gradient);
         }
+
+        .bottle-balance-cell {
+            min-width: 150px;
+        }
+
+        .bottle-balance-value {
+            color: var(--primary-deep);
+            font-size: 1.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .bottle-balance-formula {
+            margin-top: 0.35rem;
+            padding: 0.35rem 0.5rem;
+            background: #f1f5f9;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .bottle-balance-hint {
+            margin-top: 0.35rem;
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .bottle-summary-panel .stat-card-value {
+            font-size: 2.25rem;
+        }
         
         /* Chart Cards */
         .chart-card-modern {
@@ -523,6 +554,86 @@
                     <h3 class="stat-card-value">{{ number_format($clientsDueCount) }}</h3>
                 </div>
             </div>
+        </div>
+
+        {{-- ======================= ملخص رصيد القوارير (كل المشتركين المفلترين) ======================= --}}
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card-modern h-100 text-center bottle-summary-panel">
+                    <div class="stat-card-icon mx-auto"><i class="la la-wine-bottle"></i></div>
+                    <div class="stat-card-label">إجمالي رصيد القوارير عند المشتركين</div>
+                    <p class="stat-card-value mb-2">{{ (int) ($bottleBalanceSummary['bottle_balance'] ?? 0) }}</p>
+                    <p class="mb-0 small fw-bold text-muted px-2 py-2" style="background: #f1f5f9; border-radius: 12px;">
+                        {{ (int) ($bottleBalanceSummary['total_bottle_received'] ?? 0) }}
+                        <span class="opacity-75">−</span>
+                        {{ (int) ($bottleBalanceSummary['total_bottle_empty'] ?? 0) }}
+                        <span class="opacity-75">=</span>
+                        {{ (int) ($bottleBalanceSummary['bottle_balance'] ?? 0) }}
+                    </p>
+                    <p class="small text-muted mb-0 mt-2">
+                        {{ (int) ($bottleBalanceSummary['family_count'] ?? 0) }} ملف عائلة
+                        · {{ (int) ($bottleBalanceSummary['client_count'] ?? 0) }} مشترك
+                    </p>
+                    <p class="small text-muted mb-0 mt-1">ممتلئة − فارغة (كل التسليمات)</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- ======================= رصيد القوارير لكل مشترك ======================= --}}
+        <div class="table-card-modern mb-4">
+            <div class="table-card-header-modern">
+                <i class="la la-wine-bottle"></i>
+                <h5>رصيد القوارير عند المشتركين</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-modern align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>اسم المشترك</th>
+                            <th>المدينة</th>
+                            <th>الموزع</th>
+                            <th class="text-center">رصيد القوارير عنده</th>
+                            <th class="text-center">إجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($clientsWithBottleBalance as $clientRow)
+                            @php
+                                $snapshot = $bottleSnapshotsByClientId[$clientRow->id] ?? [
+                                    'total_bottle_received' => 0,
+                                    'total_bottle_empty' => 0,
+                                    'bottle_balance' => 0,
+                                ];
+                            @endphp
+                            <tr>
+                                <td class="fw-bold" style="color: var(--primary-deep);">{{ $clientRow->name }}</td>
+                                <td>{{ $clientRow->city->city_name ?? '—' }}</td>
+                                <td>{{ $clientRow->distributor->name ?? '—' }}</td>
+                                <td>
+                                    @include('admin.reports.partials.bottle_balance_cell', ['snapshot' => $snapshot])
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ route('client.report', ['client_id' => $clientRow->id]) }}" class="btn btn-sm btn-outline-primary" style="border-radius: 10px;">
+                                        <i class="la la-list"></i> التسليمات
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="la la-inbox" style="font-size: 48px; opacity: 0.3;"></i>
+                                    <p class="mt-3 mb-0">لا يوجد مشتركون مطابقون للفلاتر</p>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            @if($clientsWithBottleBalance->hasPages())
+                <div class="p-3 border-top">
+                    {{ $clientsWithBottleBalance->links() }}
+                </div>
+            @endif
         </div>
 
         {{-- ======================= الرسوم البيانية ======================= --}}
