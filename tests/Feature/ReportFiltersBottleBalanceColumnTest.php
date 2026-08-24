@@ -88,6 +88,31 @@ class ReportFiltersBottleBalanceColumnTest extends TestCase
         ]));
 
         $csv = $response->getContent();
-        $this->assertStringContainsString('10 − 4 = 6', $csv);
+        $this->assertStringContainsString('رصيد القوارير', $csv);
+        $this->assertStringContainsString('دين المشترك', $csv);
+        $this->assertStringContainsString('حسب الطلب', $csv);
+        $this->assertStringContainsString('ملاحظات العميل', $csv);
+        $this->assertStringContainsString(',"6",', $csv);
+        $this->assertStringNotContainsString('10 − 4 = 6', $csv);
+    }
+
+    /**
+     * Business Purpose: PDF يجب أن يمر عبر استجابة Laravel كبيانات ثنائية وليس Output(I) الفارغ.
+     */
+    public function test_filters_pdf_export_returns_non_empty_pdf_binary(): void
+    {
+        Client::create(['name' => 'مشترك تصدير PDF']);
+
+        $response = app(ReportFilterController::class)->exportPdf(
+            Request::create('/admin/reports/filters/export/pdf', 'GET', [
+                'q' => 'تصدير PDF',
+            ])
+        );
+
+        $content = $response->getContent();
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertStringStartsWith('%PDF', $content);
+        $this->assertGreaterThan(1000, strlen($content));
+        $this->assertStringContainsString('application/pdf', (string) $response->headers->get('Content-Type'));
     }
 }

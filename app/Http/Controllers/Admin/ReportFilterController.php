@@ -122,138 +122,77 @@ class ReportFilterController extends Controller
         return view('admin.reports.results', compact('clients'));
     }
 
-    // ===== تصدير Excel (CSV) =====
+    /**
+     * Business Purpose: تصدير CSV مطابق لأعمدة جدول الفلاتر (دين، رصيد قوارير، حسب الطلب، ملاحظات…).
+     */
     public function exportExcel(Request $request)
     {
-        $clientTypes = [
-            1 => 'فردي',
-            2 => 'مؤسسة',
-            3 => 'تجاري',
-        ];
-
-        $query = Client::query()->with('city', 'subscriptionStatus', 'subscriptionType', 'lastDelivery');
-
-        if ($request->filled('q')) {
-            $q = $request->q;
-            $query->where(function ($sub) use ($q) {
-                $sub->where('name', 'like', "%{$q}%")
-                    ->orWhere('phone_one', 'like', "%{$q}%")
-                    ->orWhere('phone_two', 'like', "%{$q}%")
-                    ->orWhere('address', 'like', "%{$q}%");
-            });
-        }
-
-        if ($request->from && $request->to) {
-            $query->whereBetween('subscription_start_date', [
-                $request->from,
-                $request->to
-            ]);
-        }
-
-        if ($request->city_id) {
-            $query->where('city_id', $request->city_id);
-        }
-
-        $this->applySubscriptionTypeFilter($query, $request);
-
-        if ($request->subscription_status_id) {
-            $query->where('subscription_status_id', $request->subscription_status_id);
-        }
-
-        $clients = $query->get();
+        $clients = $this->filteredClientsForExport($request);
         $bottleSnapshotsByClientId = $this->bottleSnapshotsFor($clients);
 
-        // إنشاء CSV
         $filename = 'قائمة_العملاء_' . date('Y-m-d') . '.csv';
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
 
-        // BOM للـ UTF-8 + علامة RTL لفتح Excel من اليمين لليسار
+        // BOM UTF-8 + علامة RTL لفتح Excel من اليمين لليسار
         $output = "\xEF\xBB\xBF\xE2\x80\x8F";
-
-        // ترتيب الأعمدة من اليمين لليسار: المشترك، العنوان، الهاتف الأول، الهاتف الثاني، ...
-        $output .= "اسم المشترك,العنوان,رقم العقد,الهاتف الأول,الهاتف الثاني,المدينة,نوع العميل,حالة الاشتراك,نوع الاشتراك,تاريخ آخر تسليم,رصيد القوارير\n";
+        $output .= implode(',', [
+            'المشترك',
+            'الهاتف',
+            'المدينة',
+            'العنوان',
+            'طريقة التعامل',
+            'دين المشترك',
+            'رصيد القوارير',
+            'آخر استلام',
+            'الأيام',
+            'نوع الاشتراك',
+            'حسب الطلب',
+            'ملاحظات العميل',
+        ]) . "\n";
 
         foreach ($clients as $client) {
-            $lastDeliveryDate = $client->lastDelivery ? \Carbon\Carbon::parse($client->lastDelivery->delivery_date)->format('Y-m-d') : '';
             $bottleSnapshot = $bottleSnapshotsByClientId[(int) $client->id] ?? [
-                'total_bottle_received' => 0,
-                'total_bottle_empty' => 0,
                 'bottle_balance' => 0,
             ];
-            $bottleCell = sprintf(
-                '%d − %d = %d',
-                (int) $bottleSnapshot['total_bottle_received'],
-                (int) $bottleSnapshot['total_bottle_empty'],
-                (int) $bottleSnapshot['bottle_balance']
-            );
-            $output .= sprintf(
-                "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
-                '"' . str_replace('"', '""', (string)($client->name ?? '')) . '"',
-                '"' . str_replace('"', '""', (string)($client->address ?? '')) . '"',
-                '"' . str_replace('"', '""', (string)($client->contract_no ?? '')) . '"',
-                '"' . str_replace('"', '""', (string)($client->phone_one ?? '')) . '"',
-                '"' . str_replace('"', '""', (string)($client->phone_two ?? '')) . '"',
-                '"' . str_replace('"', '""', (string)($client->city->city_name ?? '')) . '"',
-                '"' . ($clientTypes[$client->client_type] ?? '') . '"',
-                '"' . ($client->subscriptionStatus->status_name ?? '') . '"',
-                '"' . ($client->subscriptionType->type_name ?? '') . '"',
-                $lastDeliveryDate,
-                '"' . $bottleCell . '"'
-            );
+            $lastDeliveryDate = $client->lastDelivery
+                ? \Carbon\Carbon::parse($client->lastDelivery->delivery_date)->format('Y-m-d')
+                : '';
+
+            $output .= implode(',', [
+                $this->csvCell($client->name ?? ''),
+                $this->csvCell($client->phone_one ?? ''),
+                $this->csvCell($client->city->city_name ?? ''),
+                $this->csvCell($client->address ?? ''),
+                $this->csvCell($client->interaction_method ?? ''),
+                $this->csvCell(number_format((float) ($client->combined_subscriber_debt ?? 0), 2, '.', '')),
+                $this->csvCell((string) (int) ($bottleSnapshot['bottle_balance'] ?? 0)),
+                $this->csvCell($lastDeliveryDate),
+                $this->csvCell($this->daysSinceLastDeliveryLabel($client)),
+                $this->csvCell($client->subscriptionType->type_name ?? ''),
+                $this->csvCell($client->delivery_on_demand ? 'نعم' : 'لا'),
+                $this->csvCell($client->notes ?? ''),
+            ]) . "\n";
         }
 
         return response($output, 200, $headers);
     }
 
-    // ===== تصدير PDF =====
+    /**
+     * Business Purpose: تصدير PDF مطابق لجدول الفلاتر؛ يستخدم Output(S) حتى يصل الملف عبر استجابة Laravel.
+     */
     public function exportPdf(Request $request)
     {
-        $clientTypes = [
-            1 => 'فردي',
-            2 => 'مؤسسة',
-            3 => 'تجاري',
-        ];
-
-        $query = Client::query()->with('city', 'subscriptionStatus', 'subscriptionType', 'lastDelivery');
-
-        if ($request->filled('q')) {
-            $q = $request->q;
-            $query->where(function ($sub) use ($q) {
-                $sub->where('name', 'like', "%{$q}%")
-                    ->orWhere('phone_one', 'like', "%{$q}%")
-                    ->orWhere('phone_two', 'like', "%{$q}%")
-                    ->orWhere('address', 'like', "%{$q}%");
-            });
-        }
-
-        if ($request->from && $request->to) {
-            $query->whereBetween('subscription_start_date', [
-                $request->from,
-                $request->to
-            ]);
-        }
-
-        if ($request->city_id) {
-            $query->where('city_id', $request->city_id);
-        }
-
-        $this->applySubscriptionTypeFilter($query, $request);
-
-        if ($request->subscription_status_id) {
-            $query->where('subscription_status_id', $request->subscription_status_id);
-        }
-
-        $clients = $query->get();
+        $clients = $this->filteredClientsForExport($request);
         $bottleSnapshotsByClientId = $this->bottleSnapshotsFor($clients);
 
-        $html = view('admin.reports.filters_pdf', compact('clients', 'clientTypes', 'bottleSnapshotsByClientId'))->render();
+        $html = view('admin.reports.filters_pdf', compact('clients', 'bottleSnapshotsByClientId'))->render();
 
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
-            'format' => 'A4-L', // Landscape
+            'format' => 'A4-L',
             'directionality' => 'rtl',
             'default_font' => 'dejavusans',
             'tempDir' => storage_path('app/mpdf'),
@@ -261,10 +200,92 @@ class ReportFilterController extends Controller
 
         $mpdf->WriteHTML($html);
 
-        return response($mpdf->Output(
-            'قائمة_العملاء_' . date('Y-m-d') . '.pdf',
-            'I'
-        ))->header('Content-Type', 'application/pdf');
+        $filename = 'قائمة_العملاء_' . date('Y-m-d') . '.pdf';
+        $pdfBinary = $mpdf->Output($filename, \Mpdf\Output\Destination::STRING_RETURN);
+
+        return response($pdfBinary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
+    }
+
+    /**
+     * Business Purpose: نفس فلاتر صفحة التقارير لتصدير Excel/PDF دون ترقيم الصفحات.
+     *
+     * @return Collection<int, Client>
+     */
+    private function filteredClientsForExport(Request $request): Collection
+    {
+        $query = Client::query()->with([
+            'city',
+            'subscriptionStatus',
+            'subscriptionType',
+            'lastDelivery',
+            'invoices',
+            'payments',
+            'parent.invoices',
+            'parent.payments',
+        ]);
+
+        if ($request->filled('q')) {
+            $q = $request->q;
+            $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%{$q}%")
+                    ->orWhere('phone_one', 'like', "%{$q}%")
+                    ->orWhere('phone_two', 'like', "%{$q}%")
+                    ->orWhere('address', 'like', "%{$q}%");
+            });
+        }
+
+        if ($request->from && $request->to) {
+            $query->whereBetween('subscription_start_date', [
+                $request->from,
+                $request->to,
+            ]);
+        }
+
+        if ($request->city_id) {
+            $query->where('city_id', $request->city_id);
+        }
+
+        $this->applySubscriptionTypeFilter($query, $request);
+
+        if ($request->subscription_status_id) {
+            $query->where('subscription_status_id', $request->subscription_status_id);
+        }
+
+        return $query->orderBy('address')->get();
+    }
+
+    /**
+     * Business Purpose: نص الأيام منذ آخر تسليم بنفس صياغة جدول الفلاتر.
+     */
+    private function daysSinceLastDeliveryLabel(Client $client): string
+    {
+        if (! $client->lastDelivery) {
+            return 'لم يستلم';
+        }
+
+        $days = (int) \Carbon\Carbon::parse($client->lastDelivery->delivery_date)
+            ->startOfDay()
+            ->diffInDays(now()->startOfDay());
+
+        if ($days === 0) {
+            return 'اليوم';
+        }
+        if ($days === 1) {
+            return 'أمس';
+        }
+
+        return "منذ {$days} يوم";
+    }
+
+    /**
+     * Business Purpose: تهريب خلية CSV بأمان للعرض في Excel.
+     */
+    private function csvCell(string $value): string
+    {
+        return '"' . str_replace('"', '""', $value) . '"';
     }
 
     /**

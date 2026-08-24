@@ -7,24 +7,25 @@
         font-family: dejavusans;
         direction: rtl;
         text-align: right;
-        font-size: 11px;
+        font-size: 9px;
     }
 
     h2 {
         text-align: center;
         color: #333;
-        margin-bottom: 20px;
+        margin-bottom: 12px;
+        font-size: 14px;
     }
 
     table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 20px;
+        margin-top: 12px;
     }
 
     th, td {
         border: 1px solid #ddd;
-        padding: 8px;
+        padding: 5px;
         text-align: center;
     }
 
@@ -48,50 +49,55 @@
 <table>
     <thead>
     <tr>
-        <th>اسم المشترك</th>
-        <th>العنوان</th>
-        <th>رقم العقد</th>
-        <th>الهاتف الأول</th>
-        <th>الهاتف الثاني</th>
+        <th>المشترك</th>
+        <th>الهاتف</th>
         <th>المدينة</th>
-        <th>نوع المشترك</th>
-        <th>حالة الاشتراك</th>
-        <th>نوع الاشتراك</th>
-        <th>تاريخ آخر تسليم</th>
+        <th>العنوان</th>
+        <th>طريقة التعامل</th>
+        <th>دين المشترك</th>
         <th>رصيد القوارير</th>
+        <th>آخر استلام</th>
+        <th>الأيام</th>
+        <th>نوع الاشتراك</th>
+        <th>حسب الطلب</th>
+        <th>ملاحظات العميل</th>
     </tr>
     </thead>
     <tbody>
     @forelse($clients as $client)
+        @php
+            $bottleSnapshot = $bottleSnapshotsByClientId[(int) $client->id] ?? [
+                'bottle_balance' => 0,
+            ];
+            $lastDeliveryDate = $client->lastDelivery
+                ? \Carbon\Carbon::parse($client->lastDelivery->delivery_date)->format('Y-m-d')
+                : '-';
+            if (! $client->lastDelivery) {
+                $daysLabel = 'لم يستلم';
+            } else {
+                $days = (int) \Carbon\Carbon::parse($client->lastDelivery->delivery_date)
+                    ->startOfDay()
+                    ->diffInDays(now()->startOfDay());
+                $daysLabel = $days === 0 ? 'اليوم' : ($days === 1 ? 'أمس' : "منذ {$days} يوم");
+            }
+        @endphp
         <tr>
             <td>{{ $client->name ?? '-' }}</td>
-            <td>{{ $client->address ?? '-' }}</td>
-            <td>{{ $client->contract_no ?? '-' }}</td>
             <td>{{ $client->phone_one ?? '-' }}</td>
-            <td>{{ $client->phone_two ?? '-' }}</td>
             <td>{{ $client->city->city_name ?? '-' }}</td>
-            <td>{{ $clientTypes[$client->client_type] ?? '-' }}</td>
-            <td>{{ $client->subscriptionStatus->status_name ?? '-' }}</td>
+            <td>{{ $client->address ?? '-' }}</td>
+            <td>{{ $client->interaction_method ?? '-' }}</td>
+            <td>{{ number_format((float) ($client->combined_subscriber_debt ?? 0), 2) }} ₪</td>
+            <td>{{ (int) ($bottleSnapshot['bottle_balance'] ?? 0) }}</td>
+            <td>{{ $lastDeliveryDate }}</td>
+            <td>{{ $daysLabel }}</td>
             <td>{{ $client->subscriptionType->type_name ?? '-' }}</td>
-            <td>{{ $client->lastDelivery ? \Carbon\Carbon::parse($client->lastDelivery->delivery_date)->format('Y-m-d') : '-' }}</td>
-            <td>
-                @php
-                    $bottleSnapshot = $bottleSnapshotsByClientId[(int) $client->id] ?? [
-                        'total_bottle_received' => 0,
-                        'total_bottle_empty' => 0,
-                        'bottle_balance' => 0,
-                    ];
-                @endphp
-                {{ (int) $bottleSnapshot['total_bottle_received'] }}
-                −
-                {{ (int) $bottleSnapshot['total_bottle_empty'] }}
-                =
-                {{ (int) $bottleSnapshot['bottle_balance'] }}
-            </td>
+            <td>{{ $client->delivery_on_demand ? 'نعم' : 'لا' }}</td>
+            <td>{{ $client->notes ?? '-' }}</td>
         </tr>
     @empty
         <tr>
-            <td colspan="11" class="text-center">لا توجد بيانات</td>
+            <td colspan="12" class="text-center">لا توجد بيانات</td>
         </tr>
     @endforelse
     </tbody>
@@ -99,4 +105,3 @@
 
 </body>
 </html>
-
