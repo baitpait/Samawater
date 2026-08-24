@@ -9,6 +9,7 @@ use App\Models\SubscriptionType;
 use App\Models\City;
 use App\Services\ClientBottleBalanceService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -267,9 +268,9 @@ class ReportFilterController extends Controller
     }
 
     /**
-     * تفعيل أو إلغاء «تسليم حسب الطلب» من جدول تقارير الفلاتر.
+     * Business Purpose: تفعيل/إلغاء «تسليم حسب الطلب» من جدول الفلاتر (JSON للـ AJAX أو redirect كاحتياطي).
      */
-    public function toggleDeliveryOnDemand(Request $request, Client $client): RedirectResponse
+    public function toggleDeliveryOnDemand(Request $request, Client $client): RedirectResponse|JsonResponse
     {
         $request->validate([
             'enabled' => 'required|boolean',
@@ -278,13 +279,52 @@ class ReportFilterController extends Controller
         $client->delivery_on_demand = $request->boolean('enabled');
         $client->save();
 
-        \Alert::success(
-            $client->delivery_on_demand
-                ? 'تم تفعيل التسليم حسب الطلب لهذا المشترك.'
-                : 'تم إلغاء التسليم حسب الطلب لهذا المشترك.'
-        )->flash();
+        $enabled = (bool) $client->delivery_on_demand;
+        $message = $enabled
+            ? 'تم تفعيل التسليم حسب الطلب لهذا المشترك — سيظهر في قائمة التسليم حتى دون استحقاق الأيام.'
+            : 'تم إلغاء التسليم حسب الطلب لهذا المشترك.';
 
-        return redirect()->back();
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'enabled' => $enabled,
+                'message' => $message,
+                'client_id' => (int) $client->id,
+            ]);
+        }
+
+        \Alert::success($message)->flash();
+
+        return redirect()
+            ->route('reports.filters', $this->filtersQueryFromRequest($request))
+            ->with('success', $message);
+    }
+
+    /**
+     * Business Purpose: استعادة فلاتر صفحة المشتركين بعد POST زر حسب الطلب.
+     *
+     * @return array<string, mixed>
+     */
+    private function filtersQueryFromRequest(Request $request): array
+    {
+        $query = collect($request->only([
+            'q',
+            'city_id',
+            'subscription_type_id',
+            'subscription_type_contains',
+            'from',
+            'to',
+            'page',
+        ]))->filter(static function ($value): bool {
+            return $value !== null && $value !== '';
+        })->all();
+
+        // الإبقاء على «الكل» لحالة الاشتراك (قيمة فارغة صريحة) حتى لا يعود الافتراضي إلى «نشط».
+        if ($request->has('subscription_status_id')) {
+            $query['subscription_status_id'] = $request->input('subscription_status_id');
+        }
+
+        return $query;
     }
 
     /**

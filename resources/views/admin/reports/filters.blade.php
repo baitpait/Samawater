@@ -380,6 +380,54 @@
             vertical-align: middle;
         }
 
+        .btn-delivery-on-demand-cancel,
+        .btn-delivery-on-demand-cancel:hover,
+        .btn-delivery-on-demand-cancel:focus,
+        .btn-delivery-on-demand-cancel:active {
+            background: #dc2626 !important;
+            border-color: #dc2626 !important;
+            color: #fff !important;
+            box-shadow: none !important;
+        }
+
+        .btn-delivery-on-demand-cancel:hover,
+        .btn-delivery-on-demand-cancel:focus {
+            background: #b91c1c !important;
+            border-color: #b91c1c !important;
+            color: #fff !important;
+        }
+
+        .btn-delivery-on-demand-enable {
+            background: var(--primary-deep) !important;
+            border: none !important;
+            color: #fff !important;
+        }
+
+        .btn-delivery-on-demand.is-loading {
+            opacity: 0.65;
+            pointer-events: none;
+        }
+
+        .delivery-on-demand-toast {
+            position: fixed;
+            top: 1.25rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1080;
+            background: #065f46;
+            color: #fff;
+            font-weight: 700;
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+            max-width: min(92vw, 480px);
+            text-align: center;
+        }
+
+        .delivery-on-demand-toast.is-error {
+            background: #b91c1c;
+        }
+        
         .pagination-modern {
             direction: rtl;
             display: flex;
@@ -518,6 +566,12 @@
 <div class="reports-filters-container">
     <div class="container-fluid pb-5">
 
+        @if(session('success'))
+            <div class="alert alert-success border-0 mb-4" style="border-radius: 14px; font-weight: 600;">
+                <i class="la la-check-circle"></i> {{ session('success') }}
+            </div>
+        @endif
+
         {{-- ======================= فلاتر البحث ======================= --}}
         <div class="filter-card-modern">
             <div class="filter-card-header">
@@ -651,16 +705,24 @@
                             </td>
                             <td class="fw-semibold" style="min-width: 120px;">{{ $client->subscriptionType->type_name ?? '-' }}</td>
                             <td class="text-center align-middle pe-2" style="min-width: 56px;">
-                                <form method="POST" action="{{ route('reports.filters.toggle_delivery_on_demand', $client) }}" class="d-inline">
+                                <form method="POST" action="{{ route('reports.filters.toggle_delivery_on_demand', $client) }}" class="d-inline js-delivery-on-demand-form" data-client-id="{{ $client->id }}">
                                     @csrf
                                     <input type="hidden" name="enabled" value="{{ $client->delivery_on_demand ? '0' : '1' }}">
+                                    @foreach(request()->only(['q', 'city_id', 'subscription_type_id', 'subscription_type_contains', 'from', 'to', 'page']) as $filterKey => $filterValue)
+                                        @if($filterValue !== null && $filterValue !== '')
+                                            <input type="hidden" name="{{ $filterKey }}" value="{{ $filterValue }}">
+                                        @endif
+                                    @endforeach
+                                    @if(request()->has('subscription_status_id'))
+                                        <input type="hidden" name="subscription_status_id" value="{{ request('subscription_status_id') }}">
+                                    @endif
                                     @if($client->delivery_on_demand)
-                                        <button type="submit" class="btn btn-sm btn-outline-secondary btn-delivery-on-demand" title="إلغاء التسليم حسب الطلب">
+                                        <button type="submit" class="btn btn-sm btn-delivery-on-demand btn-delivery-on-demand-cancel" title="إلغاء التسليم حسب الطلب">
                                             <span class="sr-only visually-hidden">إلغاء التسليم حسب الطلب</span>
                                             <i class="la la-times" aria-hidden="true"></i>
                                         </button>
                                     @else
-                                        <button type="submit" class="btn btn-sm text-white btn-delivery-on-demand" style="background: var(--primary-deep); border: none;" title="يظهر المشترك في قائمة التسليم حتى دون استحقاق الأيام؛ يُعاد الإلغاء بعد التسليم">
+                                        <button type="submit" class="btn btn-sm text-white btn-delivery-on-demand btn-delivery-on-demand-enable" title="يظهر المشترك في قائمة التسليم حتى دون استحقاق الأيام؛ يُعاد الإلغاء بعد التسليم">
                                             <span class="sr-only visually-hidden">تفعيل التسليم حسب الطلب</span>
                                             <i class="la la-truck" aria-hidden="true"></i>
                                         </button>
@@ -684,4 +746,97 @@
 
     </div>
 </div>
+@endsection
+
+@section('after_scripts')
+<script>
+(function () {
+    'use strict';
+
+    function showToast(message, isError) {
+        var existing = document.querySelector('.delivery-on-demand-toast');
+        if (existing) {
+            existing.remove();
+        }
+        var toast = document.createElement('div');
+        toast.className = 'delivery-on-demand-toast' + (isError ? ' is-error' : '');
+        toast.setAttribute('role', 'status');
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        window.setTimeout(function () {
+            toast.remove();
+        }, 2800);
+    }
+
+    function renderButton(enabled) {
+        var button = document.createElement('button');
+        button.type = 'submit';
+        button.className = 'btn btn-sm btn-delivery-on-demand ' + (enabled
+            ? 'btn-delivery-on-demand-cancel'
+            : 'btn-delivery-on-demand-enable text-white');
+        button.title = enabled
+            ? 'إلغاء التسليم حسب الطلب'
+            : 'يظهر المشترك في قائمة التسليم حتى دون استحقاق الأيام؛ يُعاد الإلغاء بعد التسليم';
+
+        var label = document.createElement('span');
+        label.className = 'sr-only visually-hidden';
+        label.textContent = enabled ? 'إلغاء التسليم حسب الطلب' : 'تفعيل التسليم حسب الطلب';
+
+        var icon = document.createElement('i');
+        icon.className = enabled ? 'la la-times' : 'la la-truck';
+        icon.setAttribute('aria-hidden', 'true');
+
+        button.appendChild(label);
+        button.appendChild(icon);
+        return button;
+    }
+
+    document.addEventListener('submit', function (event) {
+        var form = event.target;
+        if (!(form instanceof HTMLFormElement) || !form.classList.contains('js-delivery-on-demand-form')) {
+            return;
+        }
+
+        event.preventDefault();
+
+        var button = form.querySelector('button[type="submit"]');
+        var enabledInput = form.querySelector('input[name="enabled"]');
+        if (!button || !enabledInput) {
+            return;
+        }
+
+        button.classList.add('is-loading');
+        button.disabled = true;
+
+        var body = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            body: body,
+            credentials: 'same-origin'
+        })
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('toggle_failed');
+                }
+                return response.json();
+            })
+            .then(function (data) {
+                var enabled = !!data.enabled;
+                enabledInput.value = enabled ? '0' : '1';
+                button.replaceWith(renderButton(enabled));
+                showToast(data.message || (enabled ? 'تم التفعيل' : 'تم الإلغاء'), false);
+            })
+            .catch(function () {
+                button.classList.remove('is-loading');
+                button.disabled = false;
+                showToast('تعذر تحديث التسليم حسب الطلب. أعد المحاولة.', true);
+            });
+    });
+})();
+</script>
 @endsection

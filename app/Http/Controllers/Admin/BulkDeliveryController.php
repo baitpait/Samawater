@@ -97,11 +97,8 @@ class BulkDeliveryController extends Controller
 
         $dueClientsQuery->orderByDesc('v_clients_due_by_type_days_ids.days_since_last_delivery');
 
-        // جلب المشتركين الذين delivery_on_demand = true
-        $onDemandClientsQuery = null;
-        $hasAnyDelivery = Delivery::query()->exists();
-        if ($hasAnyDelivery) {
-            $onDemandClientsQuery = Client::query()
+        // جلب المشتركين الذين delivery_on_demand = true (حتى إن لم توجد تسليمات في النظام)
+        $onDemandClientsQuery = Client::query()
                 ->where('delivery_on_demand', true)
                 ->leftJoin('cities', 'cities.id', '=', 'clients.city_id')
                 ->leftJoin('subscription_types', 'subscription_types.id', '=', 'clients.subscription_type_id')
@@ -127,10 +124,9 @@ class BulkDeliveryController extends Controller
                 )
                 ->leftJoin('deliveries', 'deliveries.client_id', '=', 'clients.id')
                 ->groupBy('clients.id', 'clients.contract_no', 'clients.name', 'clients.phone_one', 'clients.phone_two', 'clients.city_id', 'cities.city_name', 'clients.subscription_status_id', 'subscription_statuses.status_name', 'subscription_types.type_name', 'clients.subscription_type_id', 'clients.address', 'clients.client_type', 'distributors.name');
-        }
 
-        // تطبيق نفس الفلاتر على onDemandClientsQuery
-        if ($onDemandClientsQuery && $request->filled('q')) {
+        // تطبيق نفس الفلاتر على onDemandClientsQuery (ما عدا فلتر الأيام)
+        if ($request->filled('q')) {
             $q = $request->q;
             $onDemandClientsQuery->where(function ($sub) use ($q) {
                 $sub->where('clients.name', 'like', "%{$q}%")
@@ -141,29 +137,23 @@ class BulkDeliveryController extends Controller
             });
         }
 
-        if ($onDemandClientsQuery && $request->filled('city_id')) {
+        if ($request->filled('city_id')) {
             $onDemandClientsQuery->where('clients.city_id', $request->city_id);
         }
 
-        if ($onDemandClientsQuery && $request->filled('subscription_type_id')) {
+        if ($request->filled('subscription_type_id')) {
             $onDemandClientsQuery->where('clients.subscription_type_id', $request->subscription_type_id);
         }
 
-        if ($onDemandClientsQuery && $subscriptionStatusFilterId !== null) {
+        if ($subscriptionStatusFilterId !== null) {
             $onDemandClientsQuery->where('clients.subscription_status_id', $subscriptionStatusFilterId);
         }
 
-        if ($onDemandClientsQuery && $minDays !== null) {
-            $operator = $request->get('days_operator', '>=');
-            $onDemandClientsQuery->havingRaw(
-                'COALESCE(to_days(curdate()) - to_days(max(deliveries.delivery_date)), 999) ' . $operator . ' ?',
-                [$minDays]
-            );
-        }
+        // لا يُطبَّق min_days على حسب الطلب — الهدف ظهوره دون استحقاق الأيام.
 
         // دمج النتائج
         $dueClients = $dueClientsQuery->get();
-        $onDemandClients = $onDemandClientsQuery ? $onDemandClientsQuery->get() : collect();
+        $onDemandClients = $onDemandClientsQuery->get();
 
         $allClients = collect($dueClients)->merge($onDemandClients)
             ->unique('client_id')
