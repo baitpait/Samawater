@@ -238,7 +238,7 @@ class ImportSamaExcel extends Command
         );
         SubscriptionType::firstOrCreate(
             ['type_name' => 'غير محدود'],
-            ['distribution_days' => 0]
+            ['distribution_days' => 30]
         );
         if (SubscriptionStatus::where('status_name', 'نشط')->doesntExist()) {
             SubscriptionStatus::create(['status_name' => 'نشط']);
