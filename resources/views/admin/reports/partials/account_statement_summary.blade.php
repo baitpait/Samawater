@@ -51,6 +51,14 @@
             </div>
         </div>
         <div class="col-6 col-lg-3">
+            <div class="stat-card-modern">
+                <div class="stat-card-icon"><i class="la la-money-bill"></i></div>
+                <div class="stat-card-label">مجموع الدفعات</div>
+                <p class="stat-card-value mb-0">{{ number_format((float) ($statement['payments_total'] ?? 0), 2) }} ₪</p>
+                <p class="small text-muted mb-0 mt-1">كل ما سُجّل في المدفوعات (تسليم + يدوي)</p>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
             <div class="stat-card-modern stat-card-danger">
                 <div class="stat-card-icon stat-icon-danger"><i class="la la-balance-scale"></i></div>
                 <div class="stat-card-label">الرصيد المستحق</div>

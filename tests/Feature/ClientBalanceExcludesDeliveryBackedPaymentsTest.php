@@ -148,12 +148,20 @@ class ClientBalanceExcludesDeliveryBackedPaymentsTest extends TestCase
     }
 
     /** @test */
-    public function account_statement_snapshot_exposes_six_summary_fields(): void
+    public function account_statement_snapshot_exposes_summary_fields_including_payments_total(): void
     {
         $item = InventoryItem::create(['item_name' => 'Cooler', 'quantity' => 100]);
         $client = Client::create([
             'name' => 'Statement Client',
             'bottle_balance' => 3,
+        ]);
+
+        $payment = ClientPayment::create([
+            'client_id' => $client->id,
+            'amount' => '150.00',
+            'payment_date' => now()->toDateString(),
+            'payment_method' => 'cash',
+            'created_by' => null,
         ]);
 
         Delivery::create([
@@ -164,6 +172,7 @@ class ClientBalanceExcludesDeliveryBackedPaymentsTest extends TestCase
             'required_amount' => '200.00',
             'inventory_item_id' => $item->id,
             'paymant' => '150.00',
+            'client_payment_id' => $payment->id,
             'distributor_id' => null,
         ]);
 
@@ -172,6 +181,7 @@ class ClientBalanceExcludesDeliveryBackedPaymentsTest extends TestCase
         self::assertEquals(0.0, $s['sales_total']);
         self::assertEquals(200.0, $s['deliveries_total']);
         self::assertEquals(200.0, $s['sales_and_deliveries_gross']);
+        self::assertEquals(150.0, $s['payments_total']);
         self::assertEquals(50.0, $s['amount_due']);
         self::assertArrayHasKey('deposit_totals_by_item', $s);
         self::assertIsArray($s['deposit_totals_by_item']);

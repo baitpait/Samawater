@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
- * Business Purpose: كشف حساب مختصر للمشترك (مبيعات، تسليمات، مستحق، عبوات، أمانات) دون تفصيل محاسبي إضافي.
+ * Business Purpose: كشف حساب مختصر للمشترك (مبيعات، تسليمات، دفعات، مستحق، عبوات، أمانات) دون تفصيل محاسبي إضافي.
  */
 class ClientBalanceReportController extends Controller
 {

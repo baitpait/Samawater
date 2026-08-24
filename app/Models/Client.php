@@ -429,7 +429,7 @@ public function getBottleBalanceAttribute()
     }
 
     /**
-     * Business Purpose: ملخص «كشف حساب» المشترك — ستة مؤشرات فقط (مبيعات، تسليمات، إجمالي حجم، مستحق، عبوات، أمانات).
+     * Business Purpose: ملخص «كشف حساب» المشترك — مؤشرات تشغيلية (مبيعات، تسليمات، حجم، دفعات، مستحق، عبوات، أمانات).
      *
      * @return array{
      *     billing_parent_id: int,
@@ -440,6 +440,7 @@ public function getBottleBalanceAttribute()
      *     sales_total: float,
      *     deliveries_total: float,
      *     sales_and_deliveries_gross: float,
+     *     payments_total: float,
      *     amount_due: float,
      *     bottles_on_hand: int,
      *     bottle_snapshot: array{total_bottle_received: int, total_bottle_empty: int, bottle_balance: int},
@@ -460,6 +461,7 @@ public function getBottleBalanceAttribute()
                 'sales_total' => 0.0,
                 'deliveries_total' => 0.0,
                 'sales_and_deliveries_gross' => 0.0,
+                'payments_total' => 0.0,
                 'amount_due' => 0.0,
                 'bottles_on_hand' => 0,
                 'bottle_snapshot' => [
@@ -478,6 +480,7 @@ public function getBottleBalanceAttribute()
             ->whereIn('client_id', $familyIds)
             ->sum('required_amount'), 2);
         $salesAndDeliveriesGross = round($salesTotal + $deliveriesTotal, 2);
+        $paymentsTotal = round((float) $parent->payments()->sum('amount'), 2);
         $amountDue = round($this->combined_subscriber_debt, 2);
         $depositTotalsByItem = $this->activeDepositTotalsByItemFor($parent);
         $bottleSnapshot = $this->familyBottleBalanceFromDeliveries();
@@ -491,6 +494,7 @@ public function getBottleBalanceAttribute()
             'sales_total' => $salesTotal,
             'deliveries_total' => $deliveriesTotal,
             'sales_and_deliveries_gross' => $salesAndDeliveriesGross,
+            'payments_total' => $paymentsTotal,
             'amount_due' => $amountDue,
             'bottles_on_hand' => $bottleSnapshot['bottle_balance'],
             'bottle_snapshot' => $bottleSnapshot,
