@@ -115,4 +115,52 @@ class ReportFiltersBottleBalanceColumnTest extends TestCase
         $this->assertGreaterThan(1000, strlen($content));
         $this->assertStringContainsString('application/pdf', (string) $response->headers->get('Content-Type'));
     }
+
+    /**
+     * Business Purpose: على الإنتاج حد PHP-FPM 64MB؛ التصدير يرفع الذاكرة حتى لا ينهار mPDF.
+     */
+    public function test_filters_pdf_export_raises_memory_limit_when_too_low(): void
+    {
+        Client::create(['name' => 'مشترك ذاكرة PDF']);
+
+        $previous = ini_get('memory_limit');
+        ini_set('memory_limit', '64M');
+
+        try {
+            $response = app(ReportFilterController::class)->exportPdf(
+                Request::create('/admin/reports/filters/export/pdf', 'GET', [
+                    'q' => 'ذاكرة PDF',
+                ])
+            );
+
+            $this->assertSame(200, $response->getStatusCode());
+            $this->assertStringStartsWith('%PDF', $response->getContent());
+            $this->assertGreaterThanOrEqual(
+                256 * 1024 * 1024,
+                $this->phpMemoryLimitToBytes((string) ini_get('memory_limit'))
+            );
+        } finally {
+            ini_set('memory_limit', $previous !== false ? $previous : '256M');
+        }
+    }
+
+    /**
+     * Business Purpose: مساعدة اختبار لتحويل memory_limit إلى بايتات.
+     */
+    private function phpMemoryLimitToBytes(string $limit): int
+    {
+        if ($limit === '' || $limit === '-1') {
+            return PHP_INT_MAX;
+        }
+
+        $unit = strtolower(substr($limit, -1));
+        $value = (int) $limit;
+
+        return match ($unit) {
+            'g' => $value * 1024 * 1024 * 1024,
+            'm' => $value * 1024 * 1024,
+            'k' => $value * 1024,
+            default => (int) $limit,
+        };
+    }
 }

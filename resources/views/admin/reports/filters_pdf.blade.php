@@ -93,7 +93,7 @@
             <td>{{ $daysLabel }}</td>
             <td>{{ $client->subscriptionType->type_name ?? '-' }}</td>
             <td>{{ $client->delivery_on_demand ? 'نعم' : 'لا' }}</td>
-            <td>{{ $client->notes ?? '-' }}</td>
+            <td>{{ \Illuminate\Support\Str::limit((string) ($client->notes ?? '-'), 40) }}</td>
         </tr>
     @empty
         <tr>

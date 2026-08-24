@@ -181,10 +181,17 @@ class ReportFilterController extends Controller
     }
 
     /**
-     * Business Purpose: تصدير PDF مطابق لجدول الفلاتر؛ يستخدم Output(S) حتى يصل الملف عبر استجابة Laravel.
+     * Business Purpose: تصدير PDF مطابق لجدول الفلاتر؛ يستخدم Output(S) ويرفع حد الذاكرة مؤقتاً لأن mPDF يتجاوز 64MB على الإنتاج.
      */
     public function exportPdf(Request $request)
     {
+        // PHP-FPM على السيرفر غالباً 64MB؛ توليد جدول RTL عبر mPDF يحتاج ~100MB+.
+        $previousMemoryLimit = ini_get('memory_limit');
+        if ($this->memoryLimitBytes($previousMemoryLimit) < 256 * 1024 * 1024) {
+            ini_set('memory_limit', '256M');
+        }
+        @ini_set('max_execution_time', '120');
+
         $clients = $this->filteredClientsForExport($request);
         $bottleSnapshotsByClientId = $this->bottleSnapshotsFor($clients);
 
@@ -196,17 +203,39 @@ class ReportFilterController extends Controller
             'directionality' => 'rtl',
             'default_font' => 'dejavusans',
             'tempDir' => storage_path('app/mpdf'),
+            'simpleTables' => true,
+            'packTableData' => true,
         ]);
 
         $mpdf->WriteHTML($html);
 
-        $filename = 'قائمة_العملاء_' . date('Y-m-d') . '.pdf';
-        $pdfBinary = $mpdf->Output($filename, \Mpdf\Output\Destination::STRING_RETURN);
+        $downloadName = 'clients_filters_' . date('Y-m-d') . '.pdf';
+        $pdfBinary = $mpdf->Output($downloadName, \Mpdf\Output\Destination::STRING_RETURN);
 
         return response($pdfBinary, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+            'Content-Disposition' => 'inline; filename="' . $downloadName . '"',
         ]);
+    }
+
+    /**
+     * Business Purpose: تحويل قيمة memory_limit في php.ini إلى بايتات لمقارنة الحد الأدنى قبل رفعه.
+     */
+    private function memoryLimitBytes(string|false $limit): int
+    {
+        if ($limit === false || $limit === '' || $limit === '-1') {
+            return PHP_INT_MAX;
+        }
+
+        $unit = strtolower(substr($limit, -1));
+        $value = (int) $limit;
+
+        return match ($unit) {
+            'g' => $value * 1024 * 1024 * 1024,
+            'm' => $value * 1024 * 1024,
+            'k' => $value * 1024,
+            default => (int) $limit,
+        };
     }
 
     /**
