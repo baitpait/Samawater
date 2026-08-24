@@ -264,9 +264,20 @@
         }
 
         .reports-filters-table-scroll-wrap .table-modern {
-            min-width: 960px;
+            min-width: 1120px;
             width: 100%;
             table-layout: auto;
+        }
+
+        .bottle-balance-cell {
+            min-width: 80px;
+        }
+
+        .bottle-balance-value {
+            color: var(--primary-deep);
+            font-size: 1.25rem;
+            font-weight: 800;
+            line-height: 1.2;
         }
         
         .table-card-header-modern {
@@ -585,6 +596,7 @@
                             <th>المدينة / العنوان</th>
                             <th style="min-width: 140px;">طريقة التعامل</th>
                             <th>دين المشترك</th>
+                            <th style="min-width: 160px;" class="text-center">رصيد القوارير</th>
                             <th style="min-width: 170px;">آخر استلام والأيام</th>
                             <th style="min-width: 120px;">نوع الاشتراك</th>
                             <th style="min-width: 56px; width: 56px;" class="text-center">حسب الطلب</th>
@@ -611,6 +623,16 @@
                                     $balanceClass = $balance > 0 ? 'text-danger' : ($balance < 0 ? 'text-success' : 'text-muted');
                                 @endphp
                                 <span class="{{ $balanceClass }}">{{ number_format((float) $balance, 2) }} ₪</span>
+                            </td>
+                            <td class="text-center align-middle">
+                                @include('admin.reports.partials.bottle_balance_cell', [
+                                    'snapshot' => $bottleSnapshotsByClientId[$client->id] ?? [
+                                        'total_bottle_received' => 0,
+                                        'total_bottle_empty' => 0,
+                                        'bottle_balance' => 0,
+                                    ],
+                                    'showFormula' => false,
+                                ])
                             </td>
                             <td style="min-width: 170px;">
                                 <div class="fw-semibold">{{ $client->lastDelivery ? \Carbon\Carbon::parse($client->lastDelivery->delivery_date)->format('Y-m-d') : '-' }}</div>

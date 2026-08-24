@@ -74,7 +74,20 @@
             <td>{{ $client->subscriptionStatus->status_name ?? '-' }}</td>
             <td>{{ $client->subscriptionType->type_name ?? '-' }}</td>
             <td>{{ $client->lastDelivery ? \Carbon\Carbon::parse($client->lastDelivery->delivery_date)->format('Y-m-d') : '-' }}</td>
-            <td>{{ $client->bottle_balance ?? 0 }}</td>
+            <td>
+                @php
+                    $bottleSnapshot = $bottleSnapshotsByClientId[(int) $client->id] ?? [
+                        'total_bottle_received' => 0,
+                        'total_bottle_empty' => 0,
+                        'bottle_balance' => 0,
+                    ];
+                @endphp
+                {{ (int) $bottleSnapshot['total_bottle_received'] }}
+                −
+                {{ (int) $bottleSnapshot['total_bottle_empty'] }}
+                =
+                {{ (int) $bottleSnapshot['bottle_balance'] }}
+            </td>
         </tr>
     @empty
         <tr>

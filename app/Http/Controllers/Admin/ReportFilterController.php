@@ -7,13 +7,23 @@ use App\Models\Client;
 use App\Models\SubscriptionStatus;
 use App\Models\SubscriptionType;
 use App\Models\City;
+use App\Services\ClientBottleBalanceService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Mpdf\Mpdf;
 
 class ReportFilterController extends Controller
 {
+    public function __construct(
+        private readonly ClientBottleBalanceService $clientBottleBalance,
+    ) {
+    }
+
+    /**
+     * Business Purpose: قائمة المشتركين المفلترين مع رصيد القوارير بنفس معادلة كشف الحساب (عائلة: ممتلئة − فارغة).
+     */
     public function index(Request $request)
     {
         $query = Client::query()
@@ -71,9 +81,11 @@ class ReportFilterController extends Controller
         $query->orderBy('address', 'asc');
 
         $clients = $query->paginate(50);
+        $bottleSnapshotsByClientId = $this->bottleSnapshotsFor($clients->getCollection());
 
         return view('admin.reports.filters', [
             'clients'                      => $clients,
+            'bottleSnapshotsByClientId'    => $bottleSnapshotsByClientId,
             'cities'                       => City::orderBy('city_name')->get(),
             'subscriptions'                => SubscriptionType::orderBy('type_name')->get(),
             'subscriptionStatuses'         => SubscriptionStatus::orderBy('status_name')->get(),
@@ -148,6 +160,7 @@ class ReportFilterController extends Controller
         }
 
         $clients = $query->get();
+        $bottleSnapshotsByClientId = $this->bottleSnapshotsFor($clients);
 
         // إنشاء CSV
         $filename = 'قائمة_العملاء_' . date('Y-m-d') . '.csv';
@@ -164,6 +177,17 @@ class ReportFilterController extends Controller
 
         foreach ($clients as $client) {
             $lastDeliveryDate = $client->lastDelivery ? \Carbon\Carbon::parse($client->lastDelivery->delivery_date)->format('Y-m-d') : '';
+            $bottleSnapshot = $bottleSnapshotsByClientId[(int) $client->id] ?? [
+                'total_bottle_received' => 0,
+                'total_bottle_empty' => 0,
+                'bottle_balance' => 0,
+            ];
+            $bottleCell = sprintf(
+                '%d − %d = %d',
+                (int) $bottleSnapshot['total_bottle_received'],
+                (int) $bottleSnapshot['total_bottle_empty'],
+                (int) $bottleSnapshot['bottle_balance']
+            );
             $output .= sprintf(
                 "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
                 '"' . str_replace('"', '""', (string)($client->name ?? '')) . '"',
@@ -176,7 +200,7 @@ class ReportFilterController extends Controller
                 '"' . ($client->subscriptionStatus->status_name ?? '') . '"',
                 '"' . ($client->subscriptionType->type_name ?? '') . '"',
                 $lastDeliveryDate,
-                $client->bottle_balance ?? 0
+                '"' . $bottleCell . '"'
             );
         }
 
@@ -222,8 +246,9 @@ class ReportFilterController extends Controller
         }
 
         $clients = $query->get();
+        $bottleSnapshotsByClientId = $this->bottleSnapshotsFor($clients);
 
-        $html = view('admin.reports.filters_pdf', compact('clients', 'clientTypes'))->render();
+        $html = view('admin.reports.filters_pdf', compact('clients', 'clientTypes', 'bottleSnapshotsByClientId'))->render();
 
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
@@ -260,6 +285,17 @@ class ReportFilterController extends Controller
         )->flash();
 
         return redirect()->back();
+    }
+
+    /**
+     * Business Purpose: لقطات رصيد القوارير لصفوف القائمة دون استعلام N+1، بنفس معادلة كشف الحساب.
+     *
+     * @param  Collection<int, Client>  $clients
+     * @return array<int, array{billing_parent_id: int, total_bottle_received: int, total_bottle_empty: int, bottle_balance: int}>
+     */
+    private function bottleSnapshotsFor(Collection $clients): array
+    {
+        return $this->clientBottleBalance->familySnapshotsForClients($clients);
     }
 
     /**
