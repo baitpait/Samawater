@@ -312,13 +312,13 @@
             font-weight: 700;
             color: var(--primary-deep);
             padding: 1rem;
-            border-bottom: 2px solid #e2e8f0;
+            border-bottom: 2px solid #111111;
             font-size: 14px;
         }
         
         .table-modern tbody td {
             padding: 1rem;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid #111111;
             font-size: 14px;
         }
         
