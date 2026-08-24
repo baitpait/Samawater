@@ -188,11 +188,14 @@ class DeliveryListController extends Controller
             }
 
             // لا يُطبَّق min_days على حسب الطلب — الهدف ظهوره دون استحقاق الأيام.
-            $onDemandClients = $onDemandClientsQuery->get();
-            
+            // toBase(): تجنب Client models بـ id=null (select id as client_id) لأن
+            // Eloquent\Collection::merge يدمج بمفتاح النموذج فيُبقي صفاً واحداً فقط.
+            $onDemandClients = $onDemandClientsQuery->toBase()->get();
+
             // 3. دمج النتائج وإزالة التكرار (بناءً على client_id)
-            $allClients = $dueClients->merge($onDemandClients)
-                ->unique('client_id')
+            $allClients = collect($dueClients)->merge($onDemandClients)
+                ->unique(static fn ($row): int => (int) data_get($row, 'client_id'))
+                ->filter(static fn ($row): bool => (int) data_get($row, 'client_id') > 0)
                 ->values();
             
             // 4. حساب الإجماليات

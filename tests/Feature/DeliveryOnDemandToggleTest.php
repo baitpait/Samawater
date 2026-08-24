@@ -99,6 +99,55 @@ class DeliveryOnDemandToggleTest extends TestCase
         $this->assertContains((int) $client->id, $ids);
     }
 
+    public function test_multiple_on_demand_clients_all_appear_in_delivery_list(): void
+    {
+        $item = InventoryItem::create(['item_name' => 'OnDemandMultiBottle', 'quantity' => 100]);
+
+        $anchor = Client::create(['name' => 'عميل مرساة للتسليم']);
+        Delivery::create([
+            'client_id' => $anchor->id,
+            'delivery_date' => now()->toDateString(),
+            'bottle_received' => 1,
+            'bottle_empty' => 0,
+            'required_amount' => '0.00',
+            'paymant' => '0.00',
+            'inventory_item_id' => $item->id,
+            'distributor_id' => null,
+        ]);
+
+        $onDemandIds = [];
+        foreach (['أ', 'ب', 'ج'] as $label) {
+            $client = Client::create([
+                'name' => "حسب الطلب {$label}",
+                'delivery_on_demand' => true,
+            ]);
+            Delivery::create([
+                'client_id' => $client->id,
+                'delivery_date' => now()->toDateString(),
+                'bottle_received' => 1,
+                'bottle_empty' => 0,
+                'required_amount' => '0.00',
+                'paymant' => '0.00',
+                'inventory_item_id' => $item->id,
+                'distributor_id' => null,
+            ]);
+            $onDemandIds[] = (int) $client->id;
+        }
+
+        $view = app(DeliveryListController::class)->index(Request::create('/admin/delivery-list', 'GET', [
+            'search' => '1',
+        ]));
+
+        $ids = collect($view->getData()['clients']->items())
+            ->pluck('client_id')
+            ->map(static fn ($id): int => (int) $id)
+            ->all();
+
+        foreach ($onDemandIds as $id) {
+            $this->assertContains($id, $ids);
+        }
+    }
+
     public function test_toggle_ajax_returns_json_without_redirect(): void
     {
         $client = Client::create(['name' => 'مشترك AJAX حسب الطلب']);

@@ -151,12 +151,13 @@ class BulkDeliveryController extends Controller
 
         // لا يُطبَّق min_days على حسب الطلب — الهدف ظهوره دون استحقاق الأيام.
 
-        // دمج النتائج
+        // دمج النتائج — toBase() يمنع انهيار صفوف حسب الطلب عند دمج Eloquent بمفتاح id=null
         $dueClients = $dueClientsQuery->get();
-        $onDemandClients = $onDemandClientsQuery->get();
+        $onDemandClients = $onDemandClientsQuery->toBase()->get();
 
         $allClients = collect($dueClients)->merge($onDemandClients)
-            ->unique('client_id')
+            ->unique(static fn ($row): int => (int) data_get($row, 'client_id'))
+            ->filter(static fn ($row): bool => (int) data_get($row, 'client_id') > 0)
             ->sortByDesc('days_since_last_delivery')
             ->values();
 
